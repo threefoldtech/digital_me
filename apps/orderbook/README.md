@@ -3,19 +3,19 @@
 Orderbook is a Gedis app, that says you need to be familiar with
 these topics before you can work with orderbook
 
-- [Schemas](JumpScale9RecordChain/data/schema/README.md)
-- [BCDB database](JumpScale9RecordChain/data/bcdb/README.md)
-- [gedis Framework](JumpScale9RecordChain/servers/gedis/README.md)
+- [Schemas](JumpScale9Lib/data/schema/README.md)
+- [BCDB database](JumpScale9Lib/data/bcdb/README.md)
+- [gedis Framework](JumpScale9Lib/servers/gedis/README.md)
 
 # Specs
 
-- Read about specs [HERE](JumpScale9RecordChain/apps/orderbook/specs.md)
+- Read about specs [HERE](JumpScale9Lib/apps/orderbook/specs.md)
 
 
 # Orderbook
 
 - #### Start server
-    - Make sure in config to leave `app_dir` empty to load ordrbook from `JumpScale9RecordChain/apps/orderbook`
+    - Make sure in config to leave `app_dir` empty to load ordrbook from `JumpScale9Lib/apps/orderbook`
     - Orderbook is an instance of gedis and you can start server using
         ```python
         server = j.servers.gedis.get('orderbook')
@@ -56,23 +56,23 @@ these topics before you can work with orderbook
         - **API**
             - **`login(jwt='', addr='', ipaddr='', email='', username='')`**
                 - *Params*:
-                    - consumes all params of a [threefoldtoken.wallet](https://github.com/rivine/recordchain/blob/master/JumpScale9RecordChain/apps/orderbook/schema.toml#L32) object
+                    - consumes all params of a [threefoldtoken.wallet](https://github.com/threefoldtech/jumpscale_lib9/blob/master/JumpScale9Lib/apps/orderbook/schema.toml#L32) object
                     
             - **`add_buy_order(comment='', currency_to_buy='', price_max='0.0', amount=0.0, expiration=0, secret='', approved=False, currency_mine=[  ], buy_from=[  ])`**
                 - *params*:
-                    - consumes all the params of [threefoldtoken.order.buy.create](https://github.com/rivine/recordchain/blob/master/JumpScale9RecordChain/apps/orderbook/schema_crud.toml#L43) object
+                    - consumes all the params of [threefoldtoken.order.buy.create](https://github.com/threefoldtech/jumpscale_lib9/blob/master/JumpScale9Lib/apps/orderbook/schema_crud.toml#L43) object
                     
             - **`update_sell_order(comment='', currency_to_sell='', price_min='0.0', amount=0.0, expiration=0, approved=False, id=0, currency_accept=[  ], sell_to=[  ], secret=[  ])`**
                 - *params*:
-                    - consumes all the params of [threefoldtoken.order.sell.update](https://github.com/rivine/recordchain/blob/master/JumpScale9RecordChain/apps/orderbook/schema_crud.toml#L29) object
+                    - consumes all the params of [threefoldtoken.order.sell.update](https://github.com/threefoldtech/jumpscale_lib9/blob/master/JumpScale9Lib/apps/orderbook/schema_crud.toml#L29) object
                     
             - **`update_buy_order(self,comment='', currency_to_buy='', price_max='0.0', amount=0.0, expiration=0, secret='', approved=False, id=0, currency_mine=[  ], buy_from=[  ])`**
                 - *params*:
-                    - consumes all the params of [threefoldtoken.order.buy.update](https://github.com/rivine/recordchain/blob/master/JumpScale9RecordChain/apps/orderbook/schema_crud.toml#L56) object
+                    - consumes all the params of [threefoldtoken.order.buy.update](https://github.com/threefoldtech/jumpscale_lib9/blob/master/JumpScale9Lib/apps/orderbook/schema_crud.toml#L56) object
                     
             - **`add_sell_order(comment='', currency_to_sell='', price_min='0.0', amount=0.0, expiration=0, approved=False, currency_accept=[  ], sell_to=[  ], secret=[  ])`**
                 - *params*:
-                    - consumes all the params of [threefoldtoken.order.sell.add](https://github.com/rivine/recordchain/blob/master/JumpScale9RecordChain/apps/orderbook/schema_crud.toml#L16) object
+                    - consumes all the params of [threefoldtoken.order.sell.add](https://github.com/threefoldtech/jumpscale_lib9/blob/master/JumpScale9Lib/apps/orderbook/schema_crud.toml#L16) object
                     
             - **`get_buy_order(order_id=0)`**
                 - *params*:
@@ -84,14 +84,14 @@ these topics before you can work with orderbook
         
             - **`list_all_buy_orders(sortby='id', desc=False, total_items_in_page=20, page_number=1)`**
                 - *params*
-                    - sortby: field to sort returned data with. could be any field of [threefoldtoken.order.buy](https://github.com/rivine/recordchain/blob/master/JumpScale9RecordChain/apps/orderbook/schema.toml#L17)
+                    - sortby: field to sort returned data with. could be any field of [threefoldtoken.order.buy](https://github.com/threefoldtech/jumpscale_lib9/blob/master/JumpScale9Lib/apps/orderbook/schema.toml#L17)
                     - desc: Descending order by default is False, which means data comes in Ascending order
                     - total_items_in_page: Total items in a page, 20 by default
                     - page_number: Page number for pagination
                     
             - **`list_all_sell_orders(sortby='id', desc=False, total_items_in_page, page_number)`**
                 - *params*
-                    - sortby: field to sort returned data with. could be any field of [threefoldtoken.order.sell](https://github.com/rivine/recordchain/blob/master/JumpScale9RecordChain/apps/orderbook/schema.toml#L1) by default, it's `id`
+                    - sortby: field to sort returned data with. could be any field of [threefoldtoken.order.sell](https://github.com/threefoldtech/jumpscale_lib9/blob/master/JumpScale9Lib/apps/orderbook/schema.toml#L1) by default, it's `id`
                     - desc: Descending order by default is False, which means data comes in Ascending order
                     - total_items_in_page: Total items in a page, 20 by default
                     - page_number: Page number for pagination
@@ -99,7 +99,7 @@ these topics before you can work with orderbook
             - **`list_my_buy_orders(sortby='id', desc=False, total_items_in_page, page_number)`**
                 - List/filters only buy orders for the current client only
                 - *params*
-                    - sortby: field to sort returned data with. could be any field of [threefoldtoken.order.buy](https://github.com/rivine/recordchain/blob/master/JumpScale9RecordChain/apps/orderbook/schema.toml#L17) by default, it's `id`
+                    - sortby: field to sort returned data with. could be any field of [threefoldtoken.order.buy](https://github.com/threefoldtech/jumpscale_lib9/blob/master/JumpScale9Lib/apps/orderbook/schema.toml#L17) by default, it's `id`
                     - desc: Descending order by default is False, which means data comes in Ascending order
                     - total_items_in_page: Total items in a page, 20 by default
                     - page_number: Page number for pagination
@@ -107,7 +107,7 @@ these topics before you can work with orderbook
             - **`list_my_sell_orders(sortby='id', desc=False, total_items_in_page, page_number)`**
                 - List/filters only sell orders for the current client only
                 - *params*
-                    - sortby: field to sort returned data with. could be any field of [threefoldtoken.order.sell](https://github.com/rivine/recordchain/blob/master/JumpScale9RecordChain/apps/orderbook/schema.toml#L1) by default, it's `id`
+                    - sortby: field to sort returned data with. could be any field of [threefoldtoken.order.sell](https://github.com/threefoldtech/jumpscale_lib9/blob/master/JumpScale9Lib/apps/orderbook/schema.toml#L1) by default, it's `id`
                     - desc: Descending order by default is False, which means data comes in Ascending order
                     - total_items_in_page: Total items in a page, 20 by default
                     - page_number: Page number for pagination

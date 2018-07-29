@@ -4,8 +4,8 @@ from js9 import j
 
 login_manager = j.servers.web.latest.loader.login_manager
 
-j.tools.docgenerator.load("https://github.com/Jumpscale/web_libs/tree/master/docsites_examples/simpleblogsite")
-ds = j.tools.docgenerator.docsite_get("simpleblogsite")
+j.tools.markdowndocs.load("https://github.com/threefoldtech/jumpscale_/web_libs/tree/master/docsites_examples/simpleblogsite")
+ds = j.tools.markdowndocs.docsite_get("simpleblogsite")
 
 @blueprint.route('/')
 def route_default():

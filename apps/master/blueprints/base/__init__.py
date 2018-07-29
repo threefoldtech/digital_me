@@ -1,7 +1,7 @@
 # from flask import Blueprint
 # from js9 import j
 
-# staticpath = j.clients.git.getContentPathFromURLorPath("https://github.com/Jumpscale/web_libs/tree/master/static")
+# staticpath = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/jumpscale_/web_libs/tree/master/static")
 
 # blueprint = Blueprint(
 #     'base_blueprint',
@@ -24,7 +24,7 @@ from flask import Blueprint
 from js9 import j
 
 name =  j.sal.fs.getDirName(__file__,True)
-staticpath = j.clients.git.getContentPathFromURLorPath("https://github.com/Jumpscale/web_libs/tree/master/static")
+staticpath = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/jumpscale_/web_libs/tree/master/static")
 
 #create link to static dir on jumpscale web libs
 localstat_path = "%s/static"%j.sal.fs.getDirName(__file__)

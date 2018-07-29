@@ -31,4 +31,4 @@ publish = "/tools"
 
 # [[docsite]]
 # name = "core9"
-# url = "https://github.com/Jumpscale/core9/tree/development"
+# url = "https://github.com/threefoldtech/jumpscale_core9/tree/development"

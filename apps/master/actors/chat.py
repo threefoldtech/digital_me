@@ -1,6 +1,6 @@
 from js9 import j
 
-#BE CAREFUL MASTER IS IN: /code/github/rivine/recordchain/JumpScale9RecordChain/servers/gedis/base/actors/chat.py
+#BE CAREFUL MASTER IS IN: /code/github/threefoldtech/jumpscale_lib9/JumpScale9Lib/servers/gedis/base/actors/chat.py
 
 JSBASE = j.application.jsbase_get_class()
 

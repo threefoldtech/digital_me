@@ -41,12 +41,12 @@ def wiki_route(subpath):
     try:
         #at this point we know the docsite
 
-        ds = j.tools.docgenerator.docsite_get(wikicat)
+        ds = j.tools.markdowndocs.docsite_get(wikicat)
 
         #if binary file, return
         name = parts[-1]
         if not name.endswith(".md"):
-            ds = j.tools.docgenerator.docsite_get(wikicat)
+            ds = j.tools.markdowndocs.docsite_get(wikicat)
             file_path = ds.file_get(name)
             with open(file_path, 'rb') as bites:
                 return send_file(
