@@ -1,5 +1,5 @@
 from flask import Blueprint
-from js9 import j
+from jumpscale import j
 
 name =  j.sal.fs.getDirName(__file__,True)
 print("NAME::: ", name)

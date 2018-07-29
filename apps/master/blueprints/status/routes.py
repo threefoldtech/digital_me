@@ -7,7 +7,7 @@ import io
 # from flask_login import login_required
 
 from werkzeug.routing import BaseConverter
-from js9 import j
+from jumpscale import j
 
 
 @blueprint.route('/index')

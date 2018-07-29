@@ -1,5 +1,5 @@
 
-from js9 import j
+from jumpscale import j
 
 rack=j.servers.gworld.server_rack_get()
 

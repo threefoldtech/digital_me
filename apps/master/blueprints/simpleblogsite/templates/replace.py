@@ -1,5 +1,5 @@
 
-from js9 import j
+from jumpscale import j
 
 BASE = "/base/static"
 name = "simpleblogsite"

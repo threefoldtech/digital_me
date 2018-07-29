@@ -1,4 +1,4 @@
-from js9 import j
+from jumpscale import j
 
 from orderbook.lib.orderbook import OrderBook
 from orderbook.lib.matcher import Matcher

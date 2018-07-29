@@ -1,4 +1,4 @@
-from js9 import j
+from jumpscale import j
 print("[-] starting server")
 
 #TODO, can we autoconfigure client & server, is all for test anyhow

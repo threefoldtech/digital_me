@@ -1,1 +1,1 @@
-js9 'j.clients.zdb.testdb_server_start_client_get(start=True)'
+js_shell 'j.clients.zdb.testdb_server_start_client_get(start=True)'

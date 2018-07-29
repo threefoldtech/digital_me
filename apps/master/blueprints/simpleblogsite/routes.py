@@ -1,6 +1,6 @@
 from flask import render_template, redirect, request, url_for
 from blueprints.simpleblogsite import *
-from js9 import j
+from jumpscale import j
 
 login_manager = j.servers.web.latest.loader.login_manager
 
