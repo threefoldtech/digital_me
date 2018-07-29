@@ -1,6 +1,6 @@
 
 from jumpscale import j
-
+zdb_start=False
 rack=j.servers.gworld.server_rack_get()
 
 if zdb_start:
