@@ -22,14 +22,14 @@ var mdContentGenerate = function (message){
 
 var multiChoiceGenerate = function(message, options){
     let choices = ""
-    $.each(options, function(id, value){
+    $.each(options, function(i, value){
         choices += `
         <div class="items col-xs-5 col-sm-5 col-md-3 col-lg-3">
             <div class="info-block block-info clearfix">
                 <div data-toggle="buttons" class="btn-group bizmoduleselect">
                     <label class="btn btn-default">
                         <div class="bizcontent">
-                            <input type="checkbox" name="value[]" autocomplete="off" value="${id}">
+                            <input type="checkbox" name="value[]" autocomplete="off" value="${value}">
                             <span class="glyphicon glyphicon-ok glyphicon-lg"></span>
                             <h5>${value}</h5>
                         </div>
@@ -50,11 +50,11 @@ var singleChoiceGenerate = function(message, options){
     let choices = "";
     const classes = ["primary", "success", "danger", "warning", "info"];
     let i = 0;
-    $.each(options, function(id, value){
+    $.each(options, function(i, value){
         choices += `
         <div class="funkyradio-${classes[i]}">
-            <input type="radio" name="value" id="${id}" value="${id}"/>
-            <label for="${id}">${value}</label>
+            <input type="radio" name="value" id="${value}" value="${value}"/>
+            <label for="${value}">${value}</label>
         </div>`;
         i += 1;
     });
@@ -76,11 +76,17 @@ var addStep = function(){
 
 var generateSlide = function(res) {
     $("#spinner").toggle();
+    // if error: leave the old slide and show the error
     if (res["error"]) {
         $("#error").html(res['error']);
         $(".btn-submit").attr("disabled", "false");
         $(".form-box").toggle({"duration": 400});
         return
+    }
+    // If the response contains redirect, so this was the final slide and will take new action
+    else if(res['cat'] === "redirect"){
+            $(location).attr("href", res["msg"]);
+            return
     }
     addStep();
     let contents = "";
@@ -129,11 +135,12 @@ var generateSlide = function(res) {
         }
         $("#spinner").toggle();
         $(".form-box").toggle({"duration": 400});
-		client.chat.work_report(SESSIONID, value);
-		client.chat.work_get(SESSIONID).then(function(res){
-            res = JSON.parse(res);
-            console.log(res);
-            generateSlide(res);
+		client.chat.work_report(SESSIONID, value).then(function(res){
+		    // Ignore work_report response and wait for getting next question
+		    client.chat.work_get(SESSIONID).then(function(res){
+                res = JSON.parse(res);
+                generateSlide(res);
+            });
 		});
 	});
 }

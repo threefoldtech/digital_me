@@ -46,7 +46,6 @@ def wiki_route(subpath):
         #if binary file, return
         name = parts[-1]
         if not name.endswith(".md"):
-            ds = j.tools.markdowndocs.docsite_get(wikicat)
             file_path = ds.file_get(name)
             with open(file_path, 'rb') as bites:
                 return send_file(
