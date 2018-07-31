@@ -112,8 +112,3 @@ def access_forbidden(error):
 @blueprint.errorhandler(404)
 def not_found_error(error):
     return render_template('errors/page_404.html'), 404
-
-
-@blueprint.errorhandler(500)
-def internal_error(error):
-    return render_template('errors/page_500.html'), 500
