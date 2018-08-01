@@ -9,8 +9,7 @@ if zdb_start:
 ws_dir = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/digital_me/tree/master/apps/master")
 
 server = j.servers.gedis.configure(host = "localhost", port = "8000", ssl = False, \
-    zdb_instance = "test",
-    secret = "", app_dir = ws_dir, instance='test')
+    zdb_instance = "test",secret = "", app_dir = ws_dir, instance='test')
 
 redis_server = j.servers.gedis.geventservers_get("test")
 rack.add("gedis",redis_server)    

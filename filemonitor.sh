@@ -1,0 +1,1 @@
+js_shell 'j.servers.gworld.monitor_changes("test")'

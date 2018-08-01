@@ -8,6 +8,7 @@ class system(JSBASE):
     
     def __init__(self):
         JSBASE.__init__(self)
+        self.server = j.servers.gedis.latest
 
     def ping(self):
         return "PONG"
@@ -30,9 +31,9 @@ class system(JSBASE):
         return the api meta information
 
         """  
-        s=j.servers.gedis.latest.cmds_meta
+        s=self.server.cmds_meta
         res={}
-        res["namespace"]=j.servers.gedis.latest.instance
+        res["namespace"] = self.server.instance
         res["cmds"]={}
         for key,item in s.items():
             res["cmds"][key] = item.data.data
@@ -43,8 +44,19 @@ class system(JSBASE):
         return the api meta information
 
         """  
-        s=j.servers.gedis.latest.schema_urls
+        s=self.server.schema_urls
         return j.data.serializer.msgpack.dumps(s)
+
+    def docsite_paths(self,schema_out):
+        """
+        ```out
+        paths = (LS)        
+        ```
+        """
+        r = schema_out.new()
+        for key,item in j.tools.markdowndocs.docsites.items():
+            r.paths.append(item.path)
+        return r
 
     def test(self,name,nr,schema_out):      
         """

@@ -69,20 +69,3 @@ def wiki_route(subpath):
     return render_template('error_notfound.html')
 
 
-# @blueprint.route('/<path:subpath>')
-# def route_template(subpath):
-#     print(65789)
-#     from IPython import embed;embed(colors='Linux')
-
-# @blueprint.route('/index/<cat>/<name>.md')
-# def route_template(cat,name):
-#     from IPython import embed;embed(colors='Linux')
-#     s
-#     return render_template("%s/%s.md"%(cat,name))
-
-
-
-# @blueprint.route('/<template>')
-# def route_template(template):
-#     return render_template(template + '.md')
-
