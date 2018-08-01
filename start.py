@@ -1,10 +1,10 @@
-
+#!/usr/bin/sudo python
 from jumpscale import j
-zdb_start=False
+zdb_start=True
 rack=j.servers.gworld.server_rack_get()
 
 if zdb_start:
-    cl = j.clients.zdb.testdb_server_start_client_get(start=True)  #starts & resets a zdb in seq mode with name test       
+    cl = j.clients.zdb.testdb_server_start_client_get(start=True)  #starts & resets a zdb in seq mode with name test
 
 ws_dir = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/digital_me/tree/development/digitalme")
 
@@ -12,7 +12,7 @@ server = j.servers.gedis.configure(host = "localhost", port = "8000", ssl = Fals
     zdb_instance = "test",secret = "", app_dir = ws_dir, instance='test')
 
 redis_server = j.servers.gedis.geventservers_get("test")
-rack.add("gedis",redis_server)    
+rack.add("gedis",redis_server)
 
 #configure a local webserver server (the master one)
 j.servers.web.configure(instance="test", port=5050,port_ssl=0, host="localhost", secret="", ws_dir=ws_dir)
