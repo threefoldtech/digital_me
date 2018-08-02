@@ -1,0 +1,21 @@
+{% extends "hub_layout.html" %}
+{% block title %}Zero-OS Hub{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <div class="container">
+        <h1>Well done</h1>
+        <p>Your flist <code>{{ flistname }}</code> is available.</p>
+        <p>
+            To start a container, use the following informations:
+            <ul>
+                <li>Source: <code>{{ flisturl }}</code></li>
+                <li>Storage: <code>{{ ardbhost }}</code></li>
+            </ul>
+        </p>
+        {% if filescount > 0 %}
+        <p>For your information, we found <code>{{ filescount }} files</code> in your archive.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

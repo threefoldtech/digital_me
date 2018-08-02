@@ -1,0 +1,54 @@
+{% extends "hub_layout.html" %}
+{% block title %}Zero-OS Hub{% endblock %}
+
+{% block content %}
+
+<div class="jumbotron">
+    <div class="container">
+        <ol class="breadcrumb">
+            <li><a href="/hub">Repositories</a></li>
+            <li><a href="/hub/{{ targetuser }}/">{{ targetuser }}</a></li>
+            <li class="active">{{ flistname }}</li>
+        </ol>
+
+        <h1>{{ flistname }}</h1>
+        <p>
+            This archive was uploaded by <code>{{ targetuser }}</code>.
+
+            <h3>Source File</h3>
+            <pre>{{ flisturl }}</pre>
+
+            <h3>Storage Address</h3>
+            <pre>{{ ardbhost }}</pre>
+
+            <h3>Archive Checksum (MD5)</h3>
+            <pre>{{ checksum }}</pre>
+
+            <h2>Contents</h2>
+            <pre id="flist-contents"><a href="#" onclick="return contents();">Show the contents</a></pre>
+        </p>
+    </div>
+</div>
+
+<script>
+function contents() {
+    $("#flist-contents").html("Loading...");
+
+    $.get('/hub/api/flist/{{ targetuser }}/{{ flistname }}', function(data) {
+        var header = data['directory'] + " directories, " +
+                     data['regular'] + " regular files, " +
+                     data['symlink'] + " symlinks and " +
+                     data['special'] + " special files.\n\n";
+
+        var contents = [];
+
+        for(var index in data['content'])
+            contents.push(data['content'][index]["path"]);
+
+        $("#flist-contents").html(header + contents.join("\n"));
+    });
+
+    return false;
+}
+</script>
+{% endblock %}
