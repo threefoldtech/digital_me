@@ -176,7 +176,6 @@ def upload_file_flist():
 
 
 @blueprint.route('/merge', methods=['GET', 'POST'])
-@login_required
 def flist_merge():
     if not request.environ['username']:
         return "Access denied."

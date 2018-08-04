@@ -13,10 +13,10 @@ blueprint = Blueprint(
 
 
 # DUMMY method till we implement login in digital me
-def login_required(r):
-    request.environ['username'] = "ahamdy"
-    request.environ['accounts'] = ['ahamdy']
-    return
-
-
-blueprint.context_processor(login_required)
+# def login_required(r):
+#     request.environ['username'] = "ahamdy"
+#     request.environ['accounts'] = ['ahamdy']
+#     return
+#
+#
+# blueprint.context_processor(login_required)
