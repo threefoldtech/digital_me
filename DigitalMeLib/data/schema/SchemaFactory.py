@@ -83,7 +83,7 @@ class SchemaFactory(JSBASE):
 
             self._template_engine = Environment(
                 loader=PackageLoader(
-                    'JumpscaleLib.data.schema', 'templates'),
+                    'DigitalMeLib.data.schema', 'templates'),
                 trim_blocks=True,
                 lstrip_blocks=True,
             )

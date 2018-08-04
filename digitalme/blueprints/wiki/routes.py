@@ -25,6 +25,8 @@ def index_sub(sub):
 def wiki_route(subpath):
     
     subpath=subpath.strip("/")
+
+
     parts = subpath.split("/")
 
     if len(parts)==1: #"readme" in parts[0].lower() or "index" in parts[0].lower()
@@ -37,6 +39,10 @@ def wiki_route(subpath):
     wikicat = parts[0].lower().strip()
 
     parts = parts[1:]
+
+
+    if len(parts)>0 and parts[0]=="verify":
+        res =  verify(wikicat)
 
     try:
         #at this point we know the docsite
@@ -61,11 +67,15 @@ def wiki_route(subpath):
         doc = ds.doc_get(parts,die=False)
 
     except Exception as e:
+        raise e
         return ("# **ERROR**\n%s\n"%e)
 
     if doc:
-        return doc.content
+        return doc.markdown
 
     return render_template('error_notfound.html')
 
 
+def verify(wikicat):
+    ds = j.tools.markdowndocs.docsite_get(wikicat)
+    return ds.verify()

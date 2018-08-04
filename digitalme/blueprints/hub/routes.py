@@ -7,16 +7,17 @@ from flask import request, render_template, abort, make_response, send_from_dire
 from werkzeug.utils import secure_filename
 # from werkzeug.contrib.fixers import ProxyFix
 from .config import config
+
 from blueprints.hub.hub.flist import HubPublicFlist
 # from hub.itsyouonline import ItsYouChecker
 from blueprints.hub.hub.docker import HubDocker
 from blueprints.hub.hub.merge import HubMerger
-
 #
 # runtime configuration
 # theses location should works out-of-box if you use default settings
 #
-base_path = os.path.dirname(os.path.realpath(__file__))
+base_path = j.dirs.VARDIR+"/hub"
+j.sal.fs.createDir(base_path)
 
 config['public-directory'] = os.path.join(base_path, "public/users/")
 config['flist-work-directory'] = os.path.join(base_path, "workdir/temp")
