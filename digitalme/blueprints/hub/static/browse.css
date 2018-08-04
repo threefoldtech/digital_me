@@ -1,0 +1,11 @@
+/* Move down content because we have a fixed navbar that is 50px tall */
+body {
+  padding-top: 30px;
+  padding-bottom: 20px;
+}
+
+table thead tr {
+    background: #BFBFBF;
+    color: #1A1A1A;
+    font-weight: bold;
+}

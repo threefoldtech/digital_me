@@ -1,0 +1,58 @@
+{% extends "hub_layout.html" %}
+{% block title %}Zero-OS Hub{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <div class="container">
+        <h1>Hello you !</h1>
+        <p>Do you want to publish your Zero-OS flist to our hub? It's easy.</p>
+        <p>All you need is a <code>.tar.gz</code> archive of your files and upload it here. Simple.</p>
+        <p><a class="btn btn-primary btn-lg" href="/hub/upload" role="button">Upload my file</a></p>
+    </div>
+</div>
+
+<div class="container">
+<div id="home" style="display: block;">
+    <h2>Official Repositories</h2>
+    <table class="table table-hover" id="trusted">
+        <thead>
+            <tr>
+                <td style="width: 50%;">Repository</td>
+            </tr>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td>Loading repositories...</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>Contributors</h2>
+    <table class="table table-hover" id="contributors">
+        <thead>
+            <tr>
+                <td style="width: 50%;">Username</td>
+            </tr>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td>Loading users...</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+$(document).ready(function() {
+    $.get("/hub/api/repositories", function(data) {
+        repositories(data);
+    });
+});
+
+$(window).on("beforeunload", function() {
+    sessionStorage.setItem('scrollTop', $(window).scrollTop());
+});
+</script>
+{% endblock %}

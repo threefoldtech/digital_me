@@ -1,0 +1,81 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+
+        <title>{% block title %}{% endblock %}</title>
+        <link rel="stylesheet" href="/hub/static/default.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+        <script src="/hub/static/cookie.js"></script>
+        <script src="/hub/static/hub.js"></script>
+
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <meta name="description" content="">
+        <meta name="author" content="">
+	</head>
+	<body>
+        <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#zeroos-navbar-collapse" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/hub">Zero-OS Hub</a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="zeroos-navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="/hub/upload">Upload</a></li>
+                <li><a href="/hub/merge">Customize</a></li>
+                <li><a href="/hub/docker-convert">Docker</a></li>
+                <li><a href="/hub/upload-flist">Homemade</a></li>
+            </ul>
+
+            {% if username %}
+            <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                    <span class="current-user">{{ username }}</span> <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    {% for account in accounts %}
+                    <li><a href="#" onclick="uswitch('{{ account }}')">{{ account }}</a></li>
+                    {% endfor %}
+                    <li role="separator" class="divider"></li>
+                    <li><a href="/hub/logout">Logout</a></li>
+                </ul>
+            </li>
+            </ul>
+            {% endif %}
+            </div>
+        </div>
+        </nav>
+
+        {% if debug %}
+        <div class="debug">
+            <strong>Warning:</strong> this is a <em>staging</em> and <em>unstable</em> version.
+        </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+
+        <div class="container">
+
+        <hr>
+
+        <footer>
+            <p>&copy; 2017 - 2018 &bull; GIG Technology NV</p>
+        </footer>
+        </div>
+
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	</body>
+</html>
