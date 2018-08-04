@@ -9,7 +9,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
 fi
 
 
-pip3 install flask_sockets html2text 
+pip3 install flask_sockets html2text pyblake2 flask_login flask_sqlalchemy gipc
 
 pip3 install -e .
 

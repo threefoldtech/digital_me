@@ -49,3 +49,6 @@ class chat(JSBASE):
     def session_alive(self, sessionid, schema_out):
         # TODO:*1 check if greenlet is alive
         pass
+
+    def ping(self):
+        return 'PONG'

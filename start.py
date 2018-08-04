@@ -1,7 +1,9 @@
 #!/usr/bin/sudo python
 from jumpscale import j
+import gipc
 zdb_start=True
-rack=j.servers.gworld.server_rack_get()
+monitor = True
+rack=j.servers.gworld.server_rack_get(monitor=monitor, gedis_instance_name='test')
 
 if zdb_start:
     cl = j.clients.zdb.testdb_server_start_client_get(start=True)  #starts & resets a zdb in seq mode with name test

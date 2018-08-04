@@ -83,14 +83,47 @@ class system(JSBASE):
 
         """
 
-        #now check if path is in docsites, if yes then reload that docsite only !
-        #then check if path is actor if yes, reload that one
-        #then check if schema change is yes, reload
-        #then check if blueprint, reload blueprint
-        #then let websocket subscribers know that their page changed (so we can hot reload a page in browser, through javascript trick)
+        # Check if a blueprint is changed
+        if changeobj.is_directory:
+            path_parts = changeobj.src_path.split('/')
+            if path_parts[-2] == 'blueprints':
+                blueprint_name = "{}_blueprint".format(path_parts[-1])
+                bp = j.servers.web.latest.application.app.blueprints.get(blueprint_name)
+                if bp:
+                    print("reloading blueprint : {}".format(blueprint_name))
+                    # TODO: reload the blueprint (bp)
+                    return
 
-        print("IMPLEMENT: TODO: filemonitor_event")
-        print(changeobj)
+        # Check if docsite is changed
+        if changeobj.is_directory:
+            docsites = j.tools.markdowndocs.docsites
+            for _, docsite in docsites.items():
+                if docsite.path in changeobj.src_path:
+                    docsite.load()
+                    print("reloading docsite: {}".format(docsite))
+                    return
+
+        # check if path is actor if yes, reload that one
+        if not changeobj.is_directory and changeobj.src_path.endswith('.py'):
+            paths = list()
+            paths.append(j.servers.gedis.latest.code_generated_dir)
+            paths.append(j.servers.gedis.latest.app_dir + "/actors")
+            paths.append("%s/systemactors" % j.servers.gedis.path)
+            # now check if path is in docsites, if yes then reload that docsite only !
+            for path in paths:
+                if path in changeobj.src_path:
+                    actor_name = j.sal.fs.getBaseName(changeobj.src_path)[:-3].lower()
+                    namespace = j.servers.gedis.latest.instance + '.' + actor_name
+                    if namespace in j.servers.gedis.latest.cmds_meta:
+                        del (j.servers.gedis.latest.cmds_meta[namespace])
+                        del (j.servers.gedis.latest.classes[namespace])
+                        for cmd in list(j.servers.gedis.latest.cmds.keys()):
+                            if actor_name in cmd:
+                                del (j.servers.gedis.latest.cmds[cmd])
+                                print("deleting from cmd")
+                        j.servers.gedis.latest.cmds_add(namespace, path=changeobj.src_path)
+                        print("reloading namespace: {}".format(namespace))
+                        return
 
         return
 
