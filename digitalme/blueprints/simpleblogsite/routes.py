@@ -25,7 +25,10 @@ def route_default():
 # e.g. http://localhost:5050/simpleblogsite/blog/10x-times-power
 @blueprint.route('/blog/<blogname>.html')
 @blueprint.route('/blog/<blogname>')
+@blueprint.route('/blog')
 def route_blog(blogname):
+    if blogname=="":
+        blogname="man_explore"
     doc = ds.doc_get(blogname)
     return render_template('%s_blog.html' % (name), ds=ds, name=name,
                            blogname=blogname, doc=doc)
