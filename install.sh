@@ -1,5 +1,14 @@
 set -ex
-#sudo apt install libssl-dev
+
+
+if [ "$(uname)" == "Darwin" ]; then
+    echo 'darwin'
+    brew install capnp --upgrade
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    echo "linux"
+fi
+
+
 pip3 install flask_sockets html2text 
 
 pip3 install -e .
