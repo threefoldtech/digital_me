@@ -1,6 +1,6 @@
 set -ex
-sudo apt install libssl-dev
-pip3 install flask_sockets html2text -y
+#sudo apt install libssl-dev
+pip3 install flask_sockets html2text 
 
 pip3 install -e .
 
