@@ -1,0 +1,40 @@
+{% extends "explorer/layout.html" %}
+
+{% block content %}
+<table class='pure-table pure-table-horizontal stats'>
+    <thead>
+    <tr>
+        <th colspan='2' class='stats-head'>General Statistics</th>
+    </tr>
+    </thead>
+
+    <tr>
+        <th class='stats-title'>Height</th>
+        <th class='stats-info' id='height'></th>
+    </tr>
+
+    <tr>
+        <th class='stats-title'>Current Block</th>
+        <th class='stats-info' id='blockID'></th>
+    </tr>
+
+    <tr>
+        <th class='stats-title'>Difficulty</th>
+        <th class='stats-info' id='difficulty'></th>
+    </tr>
+
+</table>
+
+<div class='search-form search'>
+    <form class='search-form-tr' method='get' action='/explorer/block.html'>
+        <span class='search-form-td'>Search by Block Height:</span>
+        <span class='search-form-td'><input type='text' name='height' size='50'></span>
+        <span class='search-form-td'><input type='submit' value='Go'></span>
+    </form>
+    <form class='search-form-tr' method='get' action='/explorer/hash.html'>
+        <span class='search-form-td'>Search by Hash:</span>
+        <span class='search-form-td'><input type='text' name='hash' size='50'></span>
+        <span class='search-form-td'><input type='submit' value='Go'></span>
+    </form>
+</div>
+{% endblock %}
