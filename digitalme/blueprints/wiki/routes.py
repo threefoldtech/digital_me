@@ -40,6 +40,8 @@ def wiki_route(subpath):
 
     parts = parts[1:]
 
+    url = "/".join(parts)
+
 
     if len(parts)>0 and parts[0]=="verify":
         res =  verify(wikicat)
@@ -59,21 +61,18 @@ def wiki_route(subpath):
                             attachment_filename=name
                     )                
 
-        content = ds.sidebar_get(parts)
-
-        if content is not None:
-            return content
-
-        doc = ds.doc_get(parts,die=False)
-
     except Exception as e:
         raise e
         return ("# **ERROR**\n%s\n"%e)
 
-    if doc:
-        return doc.markdown
+    if "sidebar.md" in url:
+        return ds.sidebar_get(url)
+    else:            
+        doc = ds.doc_get(parts,die=False)
+        if doc:
+            return doc.markdown
 
-    return render_template('error_notfound.html')
+    return render_template('error_notfound.html',url=url)
 
 
 def verify(wikicat):

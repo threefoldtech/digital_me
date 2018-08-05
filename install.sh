@@ -4,6 +4,7 @@ set -ex
 if [ "$(uname)" == "Darwin" ]; then
     echo 'darwin'
     brew install capnp --upgrade
+    CFLAGS="-mmacosx-version-min=10.7 -std=c++11 -stdlib=libc++" pip3 install pycapnp
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     echo "linux"
 fi
