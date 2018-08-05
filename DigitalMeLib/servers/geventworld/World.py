@@ -5,6 +5,7 @@ from .Actor import Actor
 from .ServerRack import ServerRack
 from .ChangeWatchdog import ChangeWatchdog
 import time
+import gipc
 JSBASE = j.application.jsbase_get_class()
 
 
@@ -16,7 +17,15 @@ class Worlds(JSBASE):
     def community_get(self):
         return ActorCommunity()
 
-    def server_rack_get(self):
+    def server_rack_get(self, monitor=False, gedis_instance_name=None):
+        """
+        returns a server rack
+        :param monitor: if True a gedis instance name should be provided for monitoring
+        :param gedis_instance_name: gedis instance name that will be monitored
+        :return: server rack
+        """
+        if monitor:
+            gipc.start_process(self.monitor_changes, (gedis_instance_name,))
         return ServerRack()
 
     def actor_class_get(self):
@@ -27,7 +36,14 @@ class Worlds(JSBASE):
         js_shell 'j.servers.gworld.monitor_changes("test")'
         """
         from watchdog.observers import Observer
-        cl = j.clients.gedis.get(gedis_instance_name)
+        connected = False
+        while not connected:
+            try:
+                time.sleep(2)
+                cl = j.clients.gedis.get(gedis_instance_name)
+                connected = True
+            except Exception:
+                connected = False
 
         event_handler = ChangeWatchdog(client=cl)
         observer = Observer()
