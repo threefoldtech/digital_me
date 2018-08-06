@@ -3,9 +3,11 @@ import gevent
 from .ActorCommunity import ActorCommunity
 from .Actor import Actor
 from .ServerRack import ServerRack
-from .ChangeWatchdog import ChangeWatchdog
-import time
-import gipc
+from .FileSystemMonitor import monitor_changes_parent
+from gevent import time
+import gevent
+from .RQ import workers
+
 JSBASE = j.application.jsbase_get_class()
 
 
@@ -13,53 +15,32 @@ class Worlds(JSBASE):
     def __init__(self):
         self.__jslocation__ = "j.servers.gworld"
         JSBASE.__init__(self)
+        self.filemonitor = None
 
     def community_get(self):
         return ActorCommunity()
 
-    def server_rack_get(self, monitor=False, gedis_instance_name=None):
+    def server_rack_get(self):
         """
         returns a server rack
-        :param monitor: if True a gedis instance name should be provided for monitoring
-        :param gedis_instance_name: gedis instance name that will be monitored
-        :return: server rack
         """
-        if monitor:
-            gipc.start_process(self.monitor_changes, (gedis_instance_name,))
+
         return ServerRack()
 
     def actor_class_get(self):
         return Actor
 
-    def monitor_changes(self, gedis_instance_name):
+    def filemonitor_start(self,gedis_instance_name=None):
         """
-        js_shell 'j.servers.gworld.monitor_changes("test")'
+        @param gedis_instance_name: gedis instance name that will be monitored
         """
-        from watchdog.observers import Observer
-        connected = False
-        while not connected:
-            try:
-                time.sleep(2)
-                cl = j.clients.gedis.get(gedis_instance_name)
-                connected = True
-            except Exception:
-                connected = False
+        self.filemonitor = gevent.spawn(monitor_changes_parent,gedis_instance_name=gedis_instance_name)
 
-        event_handler = ChangeWatchdog(client=cl)
-        observer = Observer()
-
-        res =  cl.system.filemonitor_paths()
-        for source in res.paths:
-            self.logger.debug("monitor:%s" % source)
-            observer.schedule(event_handler, source, recursive=True)
-
-        self.logger.info("are now observing filesystem changes")
-        observer.start()
-        try:
-            while True:
-                time.sleep(0.1)
-        except KeyboardInterrupt:
-            pass         
+    def workers_start(self,nr=4):
+        """
+        @param gedis_instance_name: gedis instance name that will be monitored
+        """
+        self.workers = workers(nr=nr)
 
     def test_actors(self):
         """

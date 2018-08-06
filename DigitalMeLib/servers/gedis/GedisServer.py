@@ -2,12 +2,20 @@ import sys
 import os
 from jumpscale import j
 from gevent.pool import Pool
+from gevent import time
+import gevent
 from gevent.server import StreamServer
 from .handlers import RedisRequestHandler
 from .GedisChatBot import GedisChatBotFactory
 from .GedisCmds import GedisCmds
 
 JSConfigBase = j.tools.configmanager.base_class_config
+
+
+from rq import Queue
+from redis import Redis
+from rq.decorators import job
+
 
 
 TEMPLATE = """
@@ -18,6 +26,11 @@ TEMPLATE = """
     app_dir = ""
     zdb_instance = ""
     """
+
+def waiter(job):
+    while job.result==None:
+        time.sleep(0.1)
+    return job.result
 
 
 class GedisServer(StreamServer, JSConfigBase):
@@ -46,8 +59,25 @@ class GedisServer(StreamServer, JSConfigBase):
 
         # self.jsapi_server = JSAPIServer()
         self.chatbot = GedisChatBotFactory(ws=self)
+
+        redis_conn = Redis()
+        self.workers_queue =  Queue(connection=redis_conn)
+        self.workers_jobs = {}
         
         self.init()
+
+    def job_schedule(self,method, timeout=60,wait=False,depends_on=None, **kwargs):
+        """
+        @return job, waiter_greenlet
+        """
+        job = self.workers_queue.enqueue_call(func=method,kwargs=kwargs, timeout=timeout,depends_on=depends_on)            
+        greenlet = gevent.spawn(waiter, job)
+        job.greenlet=greenlet
+        self.workers_jobs[job.id]=job
+        if wait:
+            greenlet.get(block=True, timeout=timeout)   
+        return job
+    
 
     def sslkeys_generate(self):
         if self.ssl:

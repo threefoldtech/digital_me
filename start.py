@@ -1,9 +1,12 @@
 #!/usr/bin/sudo python
 from jumpscale import j
 import gipc
-zdb_start=True
-monitor = True
-rack=j.servers.gworld.server_rack_get(monitor=monitor, gedis_instance_name='test')
+
+zdb_start=False
+
+
+
+rack=j.servers.gworld.server_rack_get( )
 
 if zdb_start:
     cl = j.clients.zdb.testdb_server_start_client_get(start=True)  #starts & resets a zdb in seq mode with name test
@@ -25,6 +28,9 @@ rack.add("web",ws)
 
 # dnsserver=j.servers.dns.get(5355)
 # rack.add(dnsserver)
+
+j.servers.gworld.filemonitor_start(gedis_instance_name='test')
+j.servers.gworld.workers_start(10)
 
 rack.start()
 

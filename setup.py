@@ -76,7 +76,8 @@ setup(
         'ed25519>=1.4',
         'python-jose>=1.3.2',
         'g8storclient',
-        'gipc'
+        'gipc',
+        'rq-dashboard'
     ],
     cmdclass={
         'install': install,
