@@ -75,7 +75,8 @@ setup(
         'ipcalc>=1.99.0',
         'ed25519>=1.4',
         'python-jose>=1.3.2',
-        'g8storclient'
+        'g8storclient',
+        'gipc'
     ],
     cmdclass={
         'install': install,
