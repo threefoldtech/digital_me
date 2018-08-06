@@ -84,16 +84,16 @@ class system(JSBASE):
         """
 
         # Check if a blueprint is changed
-        if changeobj.is_directory:
-            path_parts = changeobj.src_path.split('/')
-            if path_parts[-2] == 'blueprints':
-                blueprint_name = "{}_blueprint".format(path_parts[-1])
-                bp = j.servers.web.latest.app.app.blueprints.get(blueprint_name)
-                if bp:
-                    print("reloading blueprint : {}".format(blueprint_name))
-                    del (j.servers.web.latest.app.app.blueprints[blueprint_name])
-                    j.servers.web.latest.app.app.register_blueprint(bp)
-                    return
+        # if changeobj.is_directory:
+        #     path_parts = changeobj.src_path.split('/')
+        #     if path_parts[-2] == 'blueprints':
+        #         blueprint_name = "{}_blueprint".format(path_parts[-1])
+        #         bp = j.servers.web.latest.app.app.blueprints.get(blueprint_name)
+        #         if bp:
+        #             print("reloading blueprint : {}".format(blueprint_name))
+        #             del (j.servers.web.latest.app.app.blueprints[blueprint_name])
+        #             j.servers.web.latest.app.app.register_blueprint(bp)
+        #             return
 
         # Check if docsite is changed
         if changeobj.is_directory:
