@@ -1,6 +1,7 @@
 #!/usr/bin/sudo python
+from gevent import monkey
+monkey.patch_all()
 from jumpscale import j
-import gipc
 zdb_start=True
 monitor = True
 rack = j.servers.gworld.server_rack_get(monitor=monitor, gedis_instance_name='test')
