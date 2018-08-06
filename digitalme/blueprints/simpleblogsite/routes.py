@@ -10,9 +10,6 @@ j.tools.markdowndocs.load(
     name="simpleblogsite")
 
 ds = j.tools.markdowndocs.docsite_get("simpleblogsite")
-import ipdb
-
-ipdb.set_trace()
 name = "simpleblogsite"
 default_blog = "man_explore"
 
