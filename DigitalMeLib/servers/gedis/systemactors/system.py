@@ -88,10 +88,11 @@ class system(JSBASE):
             path_parts = changeobj.src_path.split('/')
             if path_parts[-2] == 'blueprints':
                 blueprint_name = "{}_blueprint".format(path_parts[-1])
-                bp = j.servers.web.latest.application.app.blueprints.get(blueprint_name)
+                bp = j.servers.web.latest.app.app.blueprints.get(blueprint_name)
                 if bp:
                     print("reloading blueprint : {}".format(blueprint_name))
-                    # TODO: reload the blueprint (bp)
+                    del (j.servers.web.latest.app.app.blueprints[blueprint_name])
+                    j.servers.web.latest.app.app.register_blueprint(bp)
                     return
 
         # Check if docsite is changed
@@ -120,7 +121,6 @@ class system(JSBASE):
                         for cmd in list(j.servers.gedis.latest.cmds.keys()):
                             if actor_name in cmd:
                                 del (j.servers.gedis.latest.cmds[cmd])
-                                print("deleting from cmd")
                         j.servers.gedis.latest.cmds_add(namespace, path=changeobj.src_path)
                         print("reloading namespace: {}".format(namespace))
                         return
