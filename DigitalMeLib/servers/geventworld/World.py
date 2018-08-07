@@ -31,7 +31,7 @@ class Worlds(JSBASE):
     def actor_class_get(self):
         return Actor
 
-    def filemonitor_start(self,gedis_instance_name=None,use_gevent=True):
+    def filemonitor_start(self,gedis_instance_name=None):
         """
         @param gedis_instance_name: gedis instance name that will be monitored
 
