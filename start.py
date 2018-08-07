@@ -6,17 +6,28 @@ monkey.patch_all()
 from jumpscale import j
 
 zdb_start = True
-
 name = "test"
-rack = j.servers.gworld.server_rack_get()
-
-j.servers.gworld.filemonitor_start(gedis_instance_name='test')
-j.servers.gworld.workers_start(10)
 
 def signal_shutdown():
     raise KeyboardInterrupt
 
+def install_zrobot():
+    path = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/0-robot")
+    j.sal.process.execute("cd %s;pip install -e ."%path)
+
+if "_zrobot" not in j.servers.__dict__.keys():
+    #means not installed yet
+    install_zrobot()
+
+
 def start():
+    
+    rack = j.servers.gworld.server_rack_get()
+
+    j.servers.gworld.filemonitor_start(gedis_instance_name='test')
+    j.servers.gworld.workers_start(10)
+
+
     if zdb_start:
         # starts & resets a zdb in seq mode with name test
         j.clients.zdb.testdb_server_start_client_get(start=True)
@@ -25,7 +36,7 @@ def start():
         "https://github.com/threefoldtech/digital_me/tree/development/digitalme")
 
     j.servers.gedis.configure(host="localhost", port="8000", ssl=False,
-                                       zdb_instance=name, secret="", app_dir=ws_dir, instance=gedis_instance)
+                                       zdb_instance=name, secret="", app_dir=ws_dir, instance=name)
 
     redis_server = j.servers.gedis.geventservers_get(name)
     rack.add("gedis", redis_server)
