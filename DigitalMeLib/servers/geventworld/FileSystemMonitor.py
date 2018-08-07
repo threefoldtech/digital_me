@@ -12,7 +12,7 @@ def monitor_changes_parent(gedis_instance_name):
     gipc.start_process(monitor_changes_subprocess, (gedis_instance_name,cend,))   
     try:
         while True:
-            time.sleep(1)
+            time.sleep(0.1)
             print(pend.get())
     except KeyboardInterrupt:
         pass   

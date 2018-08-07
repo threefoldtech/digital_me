@@ -42,14 +42,19 @@ def wiki_route(subpath):
 
     url = "/".join(parts)
 
-
-    if len(parts)>0 and parts[0]=="verify":
-        res =  verify(wikicat)
+   
 
     try:
         #at this point we know the docsite
 
         ds = j.tools.markdowndocs.docsite_get(wikicat)
+
+
+        if len(parts)>0 and parts[0]=="verify":
+            return ds.verify()
+
+        if len(parts)>0 and parts[0]=="errors":
+            return ds.errors          
 
         #if binary file, return
         name = parts[-1]
@@ -66,15 +71,14 @@ def wiki_route(subpath):
         return ("# **ERROR**\n%s\n"%e)
 
     if "sidebar.md" in url:
-        return ds.sidebar_get(url)
+        res =  ds.sidebar_get(url)
+        if res == None:
+            raise RuntimeError("sidebar did not return result")
+        return res
     else:            
         doc = ds.doc_get(parts,die=False)
         if doc:
             return doc.markdown
-
     return render_template('error_notfound.html',url=url)
 
 
-def verify(wikicat):
-    ds = j.tools.markdowndocs.docsite_get(wikicat)
-    return ds.verify()
