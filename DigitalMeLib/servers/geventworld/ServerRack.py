@@ -16,7 +16,7 @@ class ServerRack(JSBASE):
     def add(self,name,server):
         self.servers[name]=server
 
-    def start(self,wait=True):
+    def start(self):
         #TODO:*1
         started = []
         try:
@@ -29,10 +29,8 @@ class ServerRack(JSBASE):
             self.stop(started)
             raise
 
-        if wait:
-            gevent.sleep(1000000000000)
-
     def stop(self, servers=None):
+        self.logger.info("stopping server rack")
         if servers is None:
             servers = [item[1] for item in  self.servers.items()]
         for server in servers:
