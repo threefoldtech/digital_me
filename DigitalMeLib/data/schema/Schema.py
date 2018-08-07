@@ -207,7 +207,7 @@ class Schema(JSBASE):
     @property
     def capnp(self):
         if not self._capnp:
-            self._capnp =  j.data.capnp3.getSchemaFromText(self.capnp_schema)
+            self._capnp =  j.data.capnp.getSchemaFromText(self.capnp_schema)
         return self._capnp
 
     @property
