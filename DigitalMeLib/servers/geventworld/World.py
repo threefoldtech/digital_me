@@ -17,15 +17,15 @@ class Worlds(JSBASE):
     def community_get(self):
         return ActorCommunity()
 
-    def server_rack_get(self, monitor=False, gedis_instance_name=None):
+    def server_rack_get(self, gedis_instance=None):
         """
         returns a server rack
         :param monitor: if True a gedis instance name should be provided for monitoring
         :param gedis_instance_name: gedis instance name that will be monitored
         :return: server rack
         """
-        if monitor:
-            gipc.start_process(self.monitor_changes, (gedis_instance_name,))
+        if gedis_instance:
+            gipc.start_process(self.monitor_changes, (gedis_instance,))
         return ServerRack()
 
     def actor_class_get(self):
