@@ -6,9 +6,9 @@ JSBASE = j.application.jsbase_get_class()
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 import gipc
+import time
 
 def monitor_changes_parent(gedis_instance_name):
-    from gevent import time
     # cend, pend = gipc.pipe(duplex=True)  #cend = client end, pend=parent end
     gipc.start_process(monitor_changes_subprocess, (gedis_instance_name,))   
     # try:
