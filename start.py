@@ -67,9 +67,9 @@ def go():
         rack.stop()    
 
 def start_wiki():
-    multicast_client = j.clients.multicast.get(data={"port": 8123}, interactive=False)
-    spawn(multicast_client.send)
-    spawn(multicast_client.listen)
+    # multicast_client = j.clients.multicast.get(data={"port": 8123}, interactive=False)
+    # spawn(multicast_client.send)
+    # spawn(multicast_client.listen)
 
     j.servers.gworld.filemonitor_start(gedis_instance_name='test')
     
