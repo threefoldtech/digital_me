@@ -1,12 +1,16 @@
 #!/usr/bin/sudo python
+from gevent import monkey
+monkey.patch_all()
 from jumpscale import j
-import gipc
+
+# import gipc
 
 zdb_start=False
 
 
 
 rack=j.servers.gworld.server_rack_get( )
+
 
 if zdb_start:
     cl = j.clients.zdb.testdb_server_start_client_get(start=True)  #starts & resets a zdb in seq mode with name test

@@ -8,8 +8,10 @@ login_manager = j.servers.web.latest.loader.login_manager
 j.tools.markdowndocs.load(
     "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/docsites_examples/simpleblogsite",
     name="simpleblogsite")
-ds = j.tools.markdowndocs.docsite_get("simpleblogsite")
 
+ds = j.tools.markdowndocs.docsite_get("simpleblogsite")
+name = "simpleblogsite"
+default_blog = "man_explore"
 
 def image_path_get(image):
     file_path = ds.file_get(image)
@@ -21,14 +23,15 @@ def image_path_get(image):
 def route_default():
     return redirect('/%s/index.html' % name)
 
+@blueprint.route('/blog')
+def route_default_blog():
+    return redirect('/blog/%s' % (default_blog))
+
 
 # e.g. http://localhost:5050/simpleblogsite/blog/10x-times-power
 @blueprint.route('/blog/<blogname>.html')
 @blueprint.route('/blog/<blogname>')
-@blueprint.route('/blog')
 def route_blog(blogname):
-    if blogname=="":
-        blogname="man_explore"
     doc = ds.doc_get(blogname)
     return render_template('%s_blog.html' % (name), ds=ds, name=name,
                            blogname=blogname, doc=doc)
@@ -37,9 +40,15 @@ def route_blog(blogname):
 # @login_required
 @blueprint.route('/<template>.html')
 def route_template(template):
-    # from IPython import embed;embed(colors='Linux')
-    doc = ds.doc_get(template)
+    if template == "index":
+        headers = [post.header_get().title for _, post in ds.docs.items()]
+        return render_template('%s_%s.html' % (name, template), ds=ds, headers=headers)
+    try:
+        doc = ds.doc_get(template)
+    except Exception:
+        doc = {}
     return render_template('%s_%s.html' % (name, template), ds=ds, doc=doc)
+
 
 
 @blueprint.route('/image/<image>')
