@@ -3,7 +3,7 @@ import gevent
 from .ActorCommunity import ActorCommunity
 from .Actor import Actor
 from .ServerRack import ServerRack
-from .FileSystemMonitor import monitor_changes_parent
+from .FileSystemMonitor import *
 from gevent import time
 import gevent
 from .RQ import workers
@@ -31,11 +31,17 @@ class Worlds(JSBASE):
     def actor_class_get(self):
         return Actor
 
-    def filemonitor_start(self,gedis_instance_name=None):
+    def filemonitor_start(self,gedis_instance_name=None,use_gevent=True):
         """
         @param gedis_instance_name: gedis instance name that will be monitored
+
+        js_shell 'j.servers.gworld.filemonitor_start("test",use_gevent=False)'
+
         """
-        self.filemonitor = gevent.spawn(monitor_changes_parent,gedis_instance_name=gedis_instance_name)
+        if use_gevent:
+            self.filemonitor = gevent.spawn(monitor_changes_parent,gedis_instance_name=gedis_instance_name)
+        else:            
+            monitor_changes_main(gedis_instance_name=gedis_instance_name)
 
     def workers_start(self,nr=4):
         """

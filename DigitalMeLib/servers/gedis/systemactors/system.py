@@ -90,10 +90,13 @@ class system(JSBASE):
         #         blueprint_name = "{}_blueprint".format(path_parts[-1])
         #         bp = j.servers.web.latest.app.app.blueprints.get(blueprint_name)
         #         if bp:
-        #             print("reloading blueprint : {}".format(blueprint_name))
+        #             self.logger.info("reloading blueprint : {}".format(blueprint_name))
         #             del (j.servers.web.latest.app.app.blueprints[blueprint_name])
-        #             j.servers.web.latest.app.app.register_blueprint(bp)
+        #             j.servers.web.latest.app.app.register_blueself.logger.info(bp)
         #             return
+
+        from IPython import embed;embed(colors='Linux')
+        s
 
         # Check if docsite is changed
         if changeobj.is_directory:
@@ -101,7 +104,7 @@ class system(JSBASE):
             for _, docsite in docsites.items():
                 if docsite.path in changeobj.src_path:
                     docsite.load()
-                    print("reloading docsite: {}".format(docsite))
+                    self.logger.info("reloading docsite: {}".format(docsite))
                     return
 
         # check if path is actor if yes, reload that one
@@ -122,7 +125,7 @@ class system(JSBASE):
                             if actor_name in cmd:
                                 del (j.servers.gedis.latest.cmds[cmd])
                         j.servers.gedis.latest.cmds_add(namespace, path=changeobj.src_path)
-                        print("reloading namespace: {}".format(namespace))
+                        self.logger.info("reloading namespace: {}".format(namespace))
                         return
 
         return

@@ -2,14 +2,15 @@
 from jumpscale import j
 
 JSBASE = j.application.jsbase_get_class()
+
 from watchdog.events import FileSystemEventHandler
-# from watchdog.observers import Observer
+from watchdog.observers import Observer
 import gipc
-from gevent import time
 
 def monitor_changes_parent(gedis_instance_name):
-    cend, pend = gipc.pipe(duplex=True)  #cend = client end, pend=parent end
-    gipc.start_process(monitor_changes_subprocess, (gedis_instance_name,cend,))   
+    from gevent import time
+    # cend, pend = gipc.pipe(duplex=True)  #cend = client end, pend=parent end
+    gipc.start_process(monitor_changes_subprocess, (gedis_instance_name,))   
     try:
         while True:
             time.sleep(0.1)
@@ -17,12 +18,14 @@ def monitor_changes_parent(gedis_instance_name):
     except KeyboardInterrupt:
         pass   
 
-
-def monitor_changes_subprocess(gedis_instance_name,cend):
+def monitor_changes_main(gedis_instance_name):
     """
     js_shell 'j.servers.gworld.monitor_changes("test")'
     """
-    cend.put("log: init monitor fs")
+    
+
+    print("log: init monitor fs")
+    import time
     from watchdog.observers import Observer
     connected = False
     while not connected:
@@ -33,22 +36,60 @@ def monitor_changes_subprocess(gedis_instance_name,cend):
         except Exception:
             connected = False
 
-    cend.put("log: gedis connected")
+    print("log: gedis connected")
 
     event_handler = ChangeWatchdog(client=cl)
     observer = Observer()
 
     res =  cl.system.filemonitor_paths()
     for source in res.paths:
-        cend.put("log: monitor:%s" % source)
+        print("log: monitor:%s" % source)
         observer.schedule(event_handler, source, recursive=True)
 
-    cend.put("log: are now observing filesystem changes")
+    print("log: are now observing filesystem changes")
     observer.start()
     try:
         while True:
             time.sleep(20)
-            cend.put("filesystem monitor alive")
+            print("filesystem monitor alive")
+    except KeyboardInterrupt:
+        pass   
+
+
+def monitor_changes_subprocess(gedis_instance_name,):
+    """
+    js_shell 'j.servers.gworld.monitor_changes("test")'
+    """
+    import time
+    print("log: init monitor fs")
+    from watchdog.observers import Observer
+    connected = False
+    while not connected:
+        try:
+            time.sleep(2)
+            cl = j.clients.gedis.get(gedis_instance_name)
+            connected = True
+        except Exception:
+            connected = False
+
+    print("log: gedis connected")
+
+    event_handler = ChangeWatchdog(client=cl)
+    observer = Observer()
+
+    res =  cl.system.filemonitor_paths()
+    for source in res.paths:
+        print("log: monitor:%s" % source)
+        observer.schedule(event_handler, source, recursive=True)
+
+    print("log: are now observing filesystem changes")
+
+    observer.start()    
+    print ("started")
+    try:
+        while True:
+            time.sleep(2)
+            print("filesystem monitor alive")
     except KeyboardInterrupt:
         pass   
 
@@ -60,7 +101,8 @@ class ChangeWatchdog(FileSystemEventHandler, JSBASE):
         self.logger_enable()
 
     def handler(self, event, action=""):
-        self.logger.debug("%s:%s" % (event, action))
+        
+        print("%s:%s" % (event, action))
 
         changedfile = event.src_path
 

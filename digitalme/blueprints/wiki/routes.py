@@ -47,13 +47,15 @@ def wiki_route(subpath):
     try:
         #at this point we know the docsite
 
-        ds = j.tools.markdowndocs.docsite_get(wikicat)
+        ds = j.tools.markdowndocs.docsite_get(wikicat,die=False)
 
+        if ds==None:
+            return "Cannot find docsite with name:%s"%wikicat
 
-        if len(parts)>0 and parts[0]=="verify":
+        if len(parts)>0 and parts[0].startswith("verify"):
             return ds.verify()
 
-        if len(parts)>0 and parts[0]=="errors":
+        if len(parts)>0 and parts[0].startswith("errors"):
             return ds.errors          
 
         #if binary file, return

@@ -61,3 +61,4 @@ class MulticastClient(JSConfigBase):
             while data[-1:] == '\0':
                 data = data[:-1]  # Strip trailing \0's
             print(str(sender_address) + '  ' + repr(data))
+

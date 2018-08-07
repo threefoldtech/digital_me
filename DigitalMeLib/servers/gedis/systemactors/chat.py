@@ -51,4 +51,4 @@ class chat(JSBASE):
         pass
 
     def ping(self):
-        return 'PONG'
+        return 'PONG' 
