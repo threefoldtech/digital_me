@@ -1,12 +1,9 @@
 import socket
 import time
-import struct
 from jumpscale import j
 from netifaces import interfaces, ifaddresses
 
-
 TEMPLATE = """
-group = "ff15:7079:7468:6f6e:6465:6d6f:6d63:6173"
 port = 8123
 """
 
@@ -40,7 +37,8 @@ class MulticastClient(JSConfigBase):
         s.bind((bind_ip, 0))
         while True:
             data = str(time.time()).encode()
-            s.sendto(data, (self.config.data['group'], self.config.data['port']))
+            # "ff02::1" is the multicast address which represents all nodes on the local network segment
+            s.sendto(data, ("ff02::1", self.config.data['port']))
             time.sleep(1)
 
     def listen(self):
@@ -49,11 +47,6 @@ class MulticastClient(JSConfigBase):
 
         # Bind it to the port
         s.bind(("", self.config.data['port']))
-
-        # Join multicast group
-        group_bin = socket.inet_pton(socket.AF_INET6, self.config.data['group'])
-        mreq = group_bin + struct.pack('@I', 0)
-        s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)
 
         # Loop, printing any data we receive
         while True:
