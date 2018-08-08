@@ -29,7 +29,7 @@ class Schema(JSBASE):
 
     def error_raise(self,msg,e=None):
 
-        if self.url == "":
+        if self.url == "" and "url" in self._systemprops:
             self.url =  self._systemprops["url"]
         out="\nerror in schema:\n"
         out+="    url:%s\n"%self.url
@@ -148,7 +148,7 @@ class Schema(JSBASE):
             if line.startswith("#"):
                 continue
             if "=" not in line:
-                self.raise_error("did not find =, need to be there to define field")
+                self.error_raise("did not find =, need to be there to define field")
 
             propname, alias, jumpscaletype, defvalue, comment, pointer_type = process(line)
 

@@ -13,10 +13,11 @@ class BCDB(JSBASE):
         
         self.tables = {}
 
-    def table_get(self, schema, name=""):
+    def table_get(self, name, schema=""):
         if name in self.tables:
             return self.tables[name]
-
+        if schema=="":
+            raise RuntimeError("schema cannot be empty")
         t = BCDBTable(self,schema=schema,name=name)
         self.tables[name]=t
         return t
