@@ -71,7 +71,8 @@ def start_wiki():
     # spawn(multicast_client.send)
     # spawn(multicast_client.listen)
 
-    j.servers.gworld.filemonitor_start(gedis_instance_name='test')
+    # for minimal don't need
+    # j.servers.gworld.filemonitor_start(gedis_instance_name='test')
     
     rack.add("gedis",  j.servers.gedis.geventservers_get(name))
     rack.add("web", j.servers.web.geventserver_get(name))

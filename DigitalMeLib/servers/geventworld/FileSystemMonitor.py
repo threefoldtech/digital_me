@@ -6,17 +6,10 @@ JSBASE = j.application.jsbase_get_class()
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 import gipc
-import time
+
 
 def monitor_changes_parent(gedis_instance_name):
-    # cend, pend = gipc.pipe(duplex=True)  #cend = client end, pend=parent end
     gipc.start_process(monitor_changes_subprocess, (gedis_instance_name,))   
-    # try:
-    #     while True:
-    #         time.sleep(0.1)
-    #         print(pend.get())
-    # except KeyboardInterrupt:
-    #     pass   
 
 def monitor_changes_subprocess(gedis_instance_name,):
     """
@@ -79,14 +72,17 @@ class ChangeWatchdog(FileSystemEventHandler, JSBASE):
                 src_path=event.src_path,  event_type=event.event_type)
 
 
-    def on_moved(self, event):
+    def on_any_event(self,event):
         self.handler(event, action="")
 
-    def on_created(self, event):
-        self.handler(event)
+    # def on_moved(self, event):
+    #     self.handler(event, action="")
 
-    def on_deleted(self, event):
-        self.handler(event, action="")
+    # def on_created(self, event):
+    #     self.handler(event)
 
-    def on_modified(self, event):
-        self.handler(event)
+    # def on_deleted(self, event):
+    #     self.handler(event, action="")
+
+    # def on_modified(self, event):
+    #     self.handler(event)

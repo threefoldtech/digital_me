@@ -1,5 +1,5 @@
 import os
-from js9 import j
+from jumpscale import j
 from .flist import HubFlist, HubPublicFlist
 
 class HubMerger:
