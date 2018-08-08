@@ -31,7 +31,7 @@ class BCDBFactory(JSBASE):
         nr = 0
         date_start = 0 (D)
         description = ""
-        token_price = "10 USD" (N)
+        token_price = "10 USD" (S)
         cost_estimate:hw_cost = 0.0 #this is a comment
         llist = []
         llist3 = "1,2,3" (LF)
