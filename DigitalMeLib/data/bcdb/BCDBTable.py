@@ -86,13 +86,15 @@ class BCDBTable(JSBASE):
             raise RuntimeError("Cannot find data type, str,bin,obj or ddict is only supported")
         bdata = obj.data
 
-        #we store data in list
-        l=[]
+        #prepare the object for indexing
         index={}
         for item in self.schema.index_list:
             r=eval("obj.%s"%item)
             if r:
                 index[item]=r
+
+        if hook:
+            obj,index = hook(obj,index)
 
         #later:
         acl = b""
@@ -101,9 +103,6 @@ class BCDBTable(JSBASE):
 
         l=[index,bdata]
         data = msgpack.packb(l)
-
-        if hook:
-            obj = hook(obj,index)
 
         
         if id==None:
@@ -127,7 +126,7 @@ class BCDBTable(JSBASE):
             key2=self._index_key+":%s"%key
             res = self.index.hget(key2,item)
             if res==None:
-                res = struct.pack("<I",id)                
+                res = struct.pack("<I",id)       #binary pack the id         
                 self.index.hset(key2,item,res)
             else:
                 res=self._index_get(res)
@@ -182,6 +181,7 @@ class BCDBTable(JSBASE):
             return obj
 
     def find(self,hook=None, capnp=False, total_items_in_page=20, page_number=1, only_fields=[], **args):
+        
         total_items_in_page = int(total_items_in_page)
         page_number = int(page_number)
 
@@ -197,17 +197,17 @@ class BCDBTable(JSBASE):
 
             if val == '*' or val == b'*':
                 for item in self.index.hkeys(indexkey):
-                    id=self.index.hget(indexkey,item)
-                    id=struct.unpack("<I",id)[0]            
-                    ids.append(id)
+                    datadb=self.index.hget(indexkey,item)
+                    ids.extend(self._index_get(datadb))
             else:
-                id=self.index.hget(indexkey,val)
-                if id is not None:
-                    ids.extend(msgpack.unpackb(id))
-            if ids:
-                res.append(ids)
+                datadb=self.index.hget(indexkey,val)
+                if datadb is not None:
+                    ids.extend(self._index_get(datadb))
+            
+            res.append(ids)
 
-        res = reduce(set.intersection, res)
+        res = [set(item) for item in res]
+        res = set.intersection(*res)
 
         final = []
 

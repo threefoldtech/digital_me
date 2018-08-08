@@ -19,7 +19,7 @@ class BCDBFactory(JSBASE):
 
     def test(self,start=True):
         """
-        js_shell 'j.data.bcdb.test(start=True)'
+        js_shell 'j.data.bcdb.test(start=False)'
         """
 
         schema = """
