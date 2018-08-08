@@ -1,6 +1,5 @@
 #!/usr/bin/sudo python
 from gevent import monkey, signal, event, spawn
-
 monkey.patch_all()
 
 from jumpscale import j
@@ -41,17 +40,13 @@ def start_full():
         j.clients.zdb.testdb_server_start_client_get(start=True)
 
 
-    redis_server = j.servers.gedis.geventservers_get(name)
-    rack.add("gedis", redis_server)
+    rack.add("gedis", j.servers.gedis.geventservers_get(name))
 
     # use jumpscale way of doing wsgi server (make sure it exists already)
     ws = j.servers.web.geventserver_get(name)
     rack.add("web", ws)
 
-    # get zrobot instance
-    zrobot = j.servers.zrobot.get(name, data={"template_repo": "git@github.com:threefoldtech/0-templates.git",
-                                  "block": False})
-    rack.add('zrobot', zrobot)
+
 
     go()
 
@@ -67,6 +62,9 @@ def go():
         rack.stop()    
 
 def start_wiki():
+    
+    configure()
+
     # multicast_client = j.clients.multicast.get(data={"port": 8123}, interactive=False)
     # spawn(multicast_client.send)
     # spawn(multicast_client.listen)

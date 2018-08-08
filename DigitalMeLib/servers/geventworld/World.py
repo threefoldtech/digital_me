@@ -3,10 +3,8 @@ import gevent
 from .ActorCommunity import ActorCommunity
 from .Actor import Actor
 from .ServerRack import ServerRack
-from .FileSystemMonitor import *
 from gevent import time
 import gevent
-from .RQ import workers
 
 JSBASE = j.application.jsbase_get_class()
 
@@ -31,23 +29,6 @@ class Worlds(JSBASE):
     def actor_class_get(self):
         return Actor
 
-    def filemonitor_start(self,gedis_instance_name=None,subprocess=True):
-        """
-        @param gedis_instance_name: gedis instance name that will be monitored
-
-        js_shell 'j.servers.gworld.filemonitor_start("test",subprocess=False)'
-
-        """
-        if subprocess:
-            self.filemonitor = monitor_changes_parent(gedis_instance_name=gedis_instance_name)
-        else:
-            monitor_changes_subprocess(gedis_instance_name=gedis_instance_name)
-
-    def workers_start(self,nr=4):
-        """
-        @param gedis_instance_name: gedis instance name that will be monitored
-        """
-        self.workers = workers(nr=nr)
 
     def test_actors(self):
         """
@@ -73,16 +54,15 @@ class Worlds(JSBASE):
         rack = j.servers.gworld.server_rack_get()
 
         if zdb_start:
-            cl = j.clients.zdb.testdb_server_start_client_get(
-                start=True)  # starts & resets a zdb in seq mode with name test
+            cl = j.clients.zdb.testdb_server_start_client_get(start=True)  # starts & resets a zdb in seq mode with name test
 
         ws_dir = j.clients.git.getContentPathFromURLorPath(
             "https://github.com/threefoldtech/digital_me/tree/development/digitalme")
         j.servers.gedis.configure(host="localhost", port="8000", ssl=False, zdb_instance="test",
                                   secret="", app_dir=ws_dir, instance='test')
 
-        redis_server = j.servers.gedis.geventservers_get("test")
-        rack.add("gedis", redis_server)
+        gedis_server = j.servers.gedis.geventservers_get("test")
+        rack.add("gedis", gedis_server)
 
         # configure a local web server server (the master one)
         j.servers.web.configure(instance="test", port=5050, port_ssl=0,

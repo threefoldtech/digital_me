@@ -2,7 +2,7 @@
 from jumpscale import j
 
 JSBASE = j.application.jsbase_get_class()
-from gevent import time
+
 import sys
 import gipc
 

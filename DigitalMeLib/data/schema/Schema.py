@@ -4,7 +4,7 @@ from Jumpscale import j
 from .SchemaProperty import SchemaProperty
 
 JSBASE = j.application.jsbase_get_class()
-
+import copy
 
 class Schema(JSBASE):
     def __init__(self, text=None, url=""):
@@ -26,6 +26,18 @@ class Schema(JSBASE):
         self.name = ""
         if text:
             self._schema_from_text(text)
+
+    def error_raise(self,msg,e=None):
+
+        if self.url == "":
+            self.url =  self._systemprops["url"]
+        out="\nerror in schema:\n"
+        out+="    url:%s\n"%self.url
+        out+="    msg:%s\n"%j.data.text.prefix("    ",msg)
+        if e is not None:
+            out+="\nERROR:\n"
+            out+=j.data.text.prefix("        ",str(e))
+        raise RuntimeError(out)
 
     def _proptype_get(self, txt):
 
@@ -68,13 +80,14 @@ class Schema(JSBASE):
 
         systemprops = {}
         self.properties = []
-
-        errors = []
+        self._systemprops = systemprops
 
         def process(line):
+            line_original = copy.copy(line)
             propname, line = line.split("=", 1)
             propname = propname.strip()
             line = line.strip()
+            
 
             if "!" in line:
                 line, pointer_type = line.split("!", 1)
@@ -99,7 +112,10 @@ class Schema(JSBASE):
                     defvalue = ""
                 else:
                     jumpscaletype = j.data.types.get(line_proptype)
-                    defvalue = jumpscaletype.fromString(line_wo_proptype)
+                    try:
+                        defvalue = jumpscaletype.fromString(line_wo_proptype)
+                    except Exception as e:
+                        self.error_raise("error on line:%s"%line_original,e=e)                        
             else:
                 jumpscaletype, defvalue = self._proptype_get(line)
 
@@ -113,7 +129,7 @@ class Schema(JSBASE):
                 alias=alias[:-1]
 
             if propname in ["id"]:
-                raise RuntimeError("do not use 'id' in your schema, is reserved for system.")
+                self.error_raise("do not use 'id' in your schema, is reserved for system.")
 
             return (propname, alias, jumpscaletype, defvalue, comment, pointer_type)
 
@@ -132,9 +148,7 @@ class Schema(JSBASE):
             if line.startswith("#"):
                 continue
             if "=" not in line:
-                errors.append(
-                    (nr, "did not find =, need to be there to define field"))
-                continue
+                self.raise_error("did not find =, need to be there to define field")
 
             propname, alias, jumpscaletype, defvalue, comment, pointer_type = process(line)
 
