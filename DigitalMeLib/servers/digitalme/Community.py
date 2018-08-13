@@ -46,8 +46,10 @@ class Community(JSBASE):
         return self.actors[key]
 
     def error_raise(self,msg,e=None,cat=""):
-        import bpython; bpython.embed(locals(), banner='errorraise') 
-        
+        msg="ERROR in %s\n"%self
+        msg+="msg\n"
+        raise j.exceptions.Input(msg,eco=e)
+
 
     def knowledge_learn(self,path=""):
         """
@@ -111,9 +113,7 @@ class Community(JSBASE):
             if line.startswith("#"):
                 continue
             if line.startswith("@"):
-                raise RuntimeError("Schema:\n%s\nshould not define name & url at start, will be added automatically.")
-            else:
-                break
+                raise RuntimeError("Schema:\n%s\nshould not define name & url at start, will be added automatically."%name)
             schema1+="%s\n"%line
             
         splitted=[item.strip().lower() for item in name.split("_")]
@@ -124,7 +124,10 @@ class Community(JSBASE):
         SCHEMA2+="@name = %s\n"% "_".join(splitted)
         SCHEMA2+=schema1
 
-        module.schema_obj = schema_obj = j.data.schema.schema_add(SCHEMA2)   
+        try:
+            module.schema_obj = j.data.schema.schema_add(SCHEMA2)
+        except Exception as e:
+            self.error_raise("cannot parse schema:%s"%SCHEMA2,e=e)
 
         return module    
             
