@@ -138,6 +138,9 @@ class SchemaFactory(JSBASE):
         o.token_price = "10 EUR"
         o.description = "something"
 
+        import bpython;
+        bpython.embed(locals(), banner='$name$')
+
         o.cobj
 
         schema = """
@@ -190,9 +193,9 @@ class SchemaFactory(JSBASE):
 
         s1 = self.schema_from_text(schema1)
         s0 = self.schema_from_text(schema0)
-
         print(s0)
         o = s1.get()
+
 
         print(s1.capnp_schema)
         print(s0.capnp_schema)
