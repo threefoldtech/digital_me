@@ -18,7 +18,7 @@ if "_zrobot" not in j.servers.__dict__.keys():
     #means not installed yet
     install_zrobot()
 
-rack = j.servers.gworld.server_rack_get()
+rack = j.servers.digitalme.server_rack_get()
 
 def configure():
     ws_dir = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/digital_me/tree/development/digitalme")
@@ -32,8 +32,8 @@ def start_full():
     
     configure()
 
-    j.servers.gworld.filemonitor_start(gedis_instance_name='test')
-    j.servers.gworld.workers_start(4)
+    j.servers.digitalme.filemonitor_start(gedis_instance_name='test')
+    j.servers.digitalme.workers_start(4)
 
     if zdb_start:
         # starts & resets a zdb in seq mode with name test
@@ -70,7 +70,7 @@ def start_wiki():
     # spawn(multicast_client.listen)
 
     # for minimal don't need
-    # j.servers.gworld.filemonitor_start(gedis_instance_name='test')
+    # j.servers.digitalme.filemonitor_start(gedis_instance_name='test')
     
     rack.add("gedis",  j.servers.gedis.geventservers_get(name))
     rack.add("web", j.servers.web.geventserver_get(name))

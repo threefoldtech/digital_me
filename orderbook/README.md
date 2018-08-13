@@ -17,6 +17,7 @@ these topics before you can work with orderbook
 - #### Start server
     - Make sure in config to leave `app_dir` empty to load ordrbook from `JumpscaleLib/apps/orderbook`
     - Orderbook is an instance of gedis and you can start server using
+    
         ```python
         server = j.servers.gedis.get('orderbook')
         server.start()
