@@ -143,7 +143,7 @@ class SchemaFactory(JSBASE):
         schema = """
         @url = despiegk.test2
         @name = TestObj
-        llist2 = "" (LS)        
+        llist2 = "" (LS)
         nr = 4
         date_start = 0 (D)
         description = ""

@@ -95,9 +95,6 @@ class system(JSBASE):
         #             j.servers.web.latest.app.app.register_blueself.logger.info(bp)
         #             return
 
-        from IPython import embed;embed(colors='Linux')
-        s
-
         # Check if docsite is changed
         if changeobj.is_directory:
             docsites = j.tools.markdowndocs.docsites

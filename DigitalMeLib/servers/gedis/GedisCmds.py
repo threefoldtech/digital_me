@@ -32,7 +32,7 @@ class GedisCmds(JSBASE):
         @url = jumpscale.gedis.api
         @name = GedisServerSchema
         namespace = ""
-        cmds = (LO) !jumpscale.gedis.cmd        
+        cmds = (LO) !jumpscale.gedis.cmd  
         """
         j.data.schema.schema_add(SCHEMA)
         self.schema = j.data.schema.schema_from_url("jumpscale.gedis.api")

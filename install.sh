@@ -1,5 +1,6 @@
 set -ex
 
+pip3 install cython 
 
 if [ "$(uname)" == "Darwin" ]; then
     echo 'darwin'
