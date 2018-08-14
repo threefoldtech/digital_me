@@ -7,6 +7,7 @@ class Service(ActorBase):
         ActorBase.__init__(community=community)
         self.data.instance = instance
         self.data.name = name
+        self.init()
 
     @property
     def name(self):

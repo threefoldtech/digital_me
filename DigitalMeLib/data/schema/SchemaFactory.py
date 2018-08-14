@@ -138,8 +138,6 @@ class SchemaFactory(JSBASE):
         o.token_price = "10 EUR"
         o.description = "something"
 
-        import bpython;
-        bpython.embed(locals(), banner='$name$')
 
         o.cobj
 

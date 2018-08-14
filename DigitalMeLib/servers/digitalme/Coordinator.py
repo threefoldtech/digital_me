@@ -1,13 +1,15 @@
 from jumpscale import j
 from .ActorBase import ActorBase
 
+
+
 class Coordinator(ActorBase):
 
     
     def __init__(self,community,name):
         ActorBase.__init__(community=community)
-        self.data.instance = instance
         self.data.name = name
+        self.init()
 
     @property
     def name(self):

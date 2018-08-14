@@ -10,6 +10,25 @@ import gevent
 from .Coordinator import Coordinator
 from .Service import Service
 
+SCHEMA = """
+@url = digital.me.state
+@name = DMState
+state = "new,init,active,error" (S)  #needs to become enumeration, so no mistakes can be made, now string
+actions = "" (LO) !digital.me.action
+
+@url = digital.me.action
+@name = DMAction
+time_ask = 0 (D)            #when was it asked to start
+time_start = 0 (D)          #if 0 then not started then still needs to execute
+time_end = 0 (D)            #if end date then was ok
+blocked = False (B)         #blocked means stop trying to execute, cannot continue
+error = False (B)           #if error, encountered error, as ling as timeout_error not reached keep on trying
+timeout_exec = 0 (I)        #max time to try and execute, in sec
+timeout_error = 0 (I)       #max time to try to execute even in error state
+error_msg = "" (S) 
+"""
+
+
 class Community(JSBASE):
     """
     is a set of coordinators
@@ -23,6 +42,9 @@ class Community(JSBASE):
         self.coordinator_dna = {}    #are the classes for coordinators
         self.service_dna = {}        #are the classes for services (which can run inside coordinators)
         self.knowledge = []          #are paths to the knowledge to learn
+
+        res = j.data.schema.schema_add(SCHEMA)
+        self.schema_state = res[0]
 
         self._key = None
 
@@ -40,15 +62,17 @@ class Community(JSBASE):
         if name not in self.coordinators:
             if name not in self.coordinator_dna:
                 raise RuntimeError("did not find coordinator dna:%s"%name)
-            self.actors[key] = self.coordinator_dna[name](community=self,name=name,instance=instance)
+            self.coordinators[name] = self.coordinator_dna[name](community=self,name=name,instance=instance)
             if capnp_data is not None:
-                self.actors[key].data = self.actors[key].schema.get(capnpbin=capnp_data)          
-        return self.actors[key]
+                self.coordinators[name] = self.actors[key].schema.get(capnpbin=capnp_data)
+        raise j.exceptions.HaltException("test")
+        return self.coordinators[name]
 
     def error_raise(self,msg,e=None,cat=""):
         msg="ERROR in %s\n"%self
         msg+="msg\n"
-        raise j.exceptions.Input(msg,eco=e)
+        if "input" in cat:
+            raise j.exceptions.Input(msg)
 
 
     def knowledge_learn(self,path=""):
@@ -114,6 +138,8 @@ class Community(JSBASE):
                 continue
             if line.startswith("@"):
                 raise RuntimeError("Schema:\n%s\nshould not define name & url at start, will be added automatically."%name)
+            if "digital.me.state" in line:
+                continue
             schema1+="%s\n"%line
             
         splitted=[item.strip().lower() for item in name.split("_")]
@@ -123,6 +149,17 @@ class Community(JSBASE):
         SCHEMA2="@url = %s.%s\n"% (cat,".".join(splitted))
         SCHEMA2+="@name = %s\n"% "_".join(splitted)
         SCHEMA2+=schema1
+        SCHEMA2+="stateobj = (LO) !digital.me.state\n"
+
+        #default properties
+        if "epoch_started = " not in SCHEMA2:
+            SCHEMA2 += "epoch_started = 0 (D)\n"
+        if "epoch_stopped = " not in SCHEMA2:
+            SCHEMA2 += "epoch_stopped = 0 (D)\n"
+        if "description = " not in SCHEMA2:
+            SCHEMA2 += "description = \"\"\n"
+        if "state = " not in SCHEMA2:
+            SCHEMA2 += "\"new,active,error,halted,deleted\" (S)\n"  #TODO: *1 needs enumeration
 
         try:
             module.schema_obj = j.data.schema.schema_add(SCHEMA2)

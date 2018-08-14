@@ -8,6 +8,8 @@ import inspect
 
 JSBASE = j.application.jsbase_get_class()
 
+
+
 class ActorBase(JSBASE):
 
     
@@ -22,7 +24,7 @@ class ActorBase(JSBASE):
         
         for method in inspect.getmembers(OptionParser, predicate=inspect.ismethod):
             print("iterate over methods")
-            from IPython import embed;embed(colors='Linux')
+            import bpython; bpython.embed(locals(), banner='actorbase')
             s            
             if hasattr(self,"monitor"):
                 print("monitor")
