@@ -1,0 +1,34 @@
+@url = digitalme.gridcapacity.location
+@name  = location
+continent = "" (S)
+country = "" (S)
+city = "" (S)
+longitude = 0.0 (F)
+latitude = 0.0 (F)
+
+@url = digitalme.gridcapacity.farmer
+@name = farmer
+iyo_organization = (S)
+name = (S)
+wallet_addresses = (LS)
+location = (O) !digitalme.gridcapacity.location
+
+@url = digitalme.gridcapacity.resource
+@name = resource
+cru = 0.0 (F)
+mru = 0.0 (F)
+hru = 0.0 (F)
+sru = 0.0 (F)
+
+@url = digitalme.gridcapacity.capacity
+@name = capacity
+node_id = (S)
+location = (O) !digitalme.gridcapacity.location
+farmer = (O) !digitalme.gridcapacity.farmer
+total_resources = (O) !digitalme.gridcapacity.resource
+reserved_resources = (O) !digitalme.gridcapacity.resource
+used_resources = (O) !digitalme.gridcapacity.resource
+robot_address = (S)
+os_version = (S)
+uptime = (I)
+updated = (D)
