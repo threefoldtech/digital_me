@@ -139,7 +139,9 @@ class SchemaFactory(JSBASE):
         o.description = "something"
 
 
-        o.cobj
+        o._cobj
+        
+        import bpython;bpython.embed(locals(), banner='')
 
         schema = """
         @url = despiegk.test2
@@ -197,6 +199,7 @@ class SchemaFactory(JSBASE):
 
         print(s1.capnp_schema)
         print(s0.capnp_schema)
+        
 
         print("TEST 2 OK")
 

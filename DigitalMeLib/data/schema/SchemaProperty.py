@@ -15,7 +15,7 @@ class SchemaProperty(JSBASE):
         self.enumeration = []
         self.comment = ""
         self.pointer_type = None
-        self.nr=0
+        self.nr = 0
         self.index = False
 
         if self.name in ["schema"]:

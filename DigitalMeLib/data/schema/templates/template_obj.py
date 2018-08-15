@@ -5,38 +5,38 @@ List0=j.data.schema.list_base_class_get()
 class ModelOBJ():
     
     def __init__(self,schema,data={}, capnpbin=None):
-        self.schema = schema
-        self.capnp = schema.capnp
+        self._schema = schema
+        self._capnp = schema.capnp
 
-        self.changed_list = False
-        self.changed_prop = False
-        self.changed_items = {}
+        self._changed_list = False
+        self._changed_prop = False
+        self._changed_items = {}
 
         if capnpbin != None:
-            self._cobj = self.capnp.from_bytes_packed(capnpbin)
+            self.__cobj = self._capnp.from_bytes_packed(capnpbin)
         else:
-            self._cobj = self.capnp.new_message()
+            self.__cobj = self._capnp.new_message()
 
 
 
         {# list not as property#}
         {% for ll in obj.lists %}    
-        self.{{ll.alias}} = List0(self,self._cobj.{{ll.name_camel}}, self.schema.property_{{ll.name}})
+        self.{{ll.alias}} = List0(self,self._cobj.{{ll.name_camel}}, self._schema.property_{{ll.name}})
         {% endfor %}
 
         self._JSOBJ = True
 
         self.id = None
-        self.changed_prop_permanent = False
+        self._changed_prop_permanent = False
         {% for prop in obj.properties %}
         {% if prop.jumpscaletype.NAME == "jsobject" %}
-        self.schema_{{prop.name}} = j.data.schema.schema_from_url("{{prop.jumpscaletype.SUBTYPE}}")
-        self.changed_prop = True
-        self.changed_prop_permanent = True
+        self._schema_{{prop.name}} = j.data.schema.schema_from_url("{{prop.jumpscaletype.SUBTYPE}}")
+        self._changed_prop = True
+        self._changed_prop_permanent = True
         if self._cobj.{{prop.name_camel}}:
-            self.changed_items["{{prop.name_camel}}"] = self.schema_{{prop.name}}.get(capnpbin=self._cobj.{{prop.name_camel}})
+            self._changed_items["{{prop.name_camel}}"] = self._schema_{{prop.name}}.get(capnpbin=self._cobj.{{prop.name_camel}})
         else:
-            self.changed_items["{{prop.name_camel}}"] = self.schema_{{prop.name}}.new()         
+            self._changed_items["{{prop.name_camel}}"] = self._schema_{{prop.name}}.new()         
         {% endif %} 
         {% endfor %}
 
@@ -55,10 +55,10 @@ class ModelOBJ():
         '''
         {% endif %} 
         {% if prop.jumpscaletype.NAME == "jsobject" %}
-        return self.changed_items["{{prop.name_camel}}"]
+        return self._changed_items["{{prop.name_camel}}"]
         {% else %} 
-        if self.changed_prop and "{{prop.name_camel}}" in self.changed_items:
-            return self.changed_items["{{prop.name_camel}}"]
+        if self._changed_prop and "{{prop.name_camel}}" in self._changed_items:
+            return self._changed_items["{{prop.name_camel}}"]
         else:
             return self._cobj.{{prop.name_camel}}
         {% endif %} 
@@ -66,14 +66,14 @@ class ModelOBJ():
     @{{prop.alias}}.setter
     def {{prop.alias}}(self,val):
         {% if prop.jumpscaletype.NAME == "jsobject" %}
-        self.changed_items["{{prop.name_camel}}"] = val
+        self._changed_items["{{prop.name_camel}}"] = val
         {% else %} 
         #will make sure that the input args are put in right format
         # val = {{prop.js_typelocation}}.clean(val)
         # self._cobj.{{prop.name_camel}} = val        
         if self.{{prop.alias}} != val:
-            self.changed_prop = True
-            self.changed_items["{{prop.name_camel}}"] = val
+            self._changed_prop = True
+            self._changed_items["{{prop.name_camel}}"] = val
         {% endif %} 
 
     {% if prop.jumpscaletype.NAME == "numeric" %}
@@ -93,17 +93,17 @@ class ModelOBJ():
 
     {% endfor %}
 
-    def check(self):
+    def _check(self):
         #checks are done while creating ddict, so can reuse that
-        self.ddict
+        self._ddict
         return True
 
     @property
-    def cobj(self):
-        if self.changed_list or self.changed_prop:
-            ddict = self._cobj.to_dict()
+    def _cobj(self):
+        if self._changed_list or self._changed_prop:
+            ddict = self.__cobj.to_dict()
 
-            if self.changed_list:
+            if self._changed_list:
                 # print("cobj")
                 pass
                 {% for prop in obj.lists %}
@@ -120,21 +120,21 @@ class ModelOBJ():
                 {% endfor %}
 
         
-            if self.changed_prop:
+            if self._changed_prop:
                 pass
                 {% for prop in obj.properties %}        
                 #convert jsobjects to capnpbin data
-                if "{{prop.name_camel}}" in self.changed_items:
+                if "{{prop.name_camel}}" in self._changed_items:
                     {% if prop.jumpscaletype.NAME == "jsobject" %}
-                    ddict["{{prop.name_camel}}"] = self.changed_items["{{prop.name_camel}}"].data
+                    ddict["{{prop.name_camel}}"] = self._changed_items["{{prop.name_camel}}"].data
                     {% else %}
-                    ddict["{{prop.name_camel}}"] = self.changed_items["{{prop.name_camel}}"]
+                    ddict["{{prop.name_camel}}"] = self._changed_items["{{prop.name_camel}}"]
                     {% endif %}
                 {% endfor %}
                 
 
             try:
-                self._cobj = self.capnp.new_message(**ddict)
+                self.__cobj = self._capnp.new_message(**ddict)
             except Exception as e:
                 msg="\nERROR: could not create capnp message\n"
                 try:
@@ -142,36 +142,36 @@ class ModelOBJ():
                 except:
                     msg+=j.data.text.indent(str(ddict),4)+"\n"
                 msg+="schema:\n"
-                msg+=j.data.text.indent(str(self.schema.capnp_schema),4)+"\n"
+                msg+=j.data.text.indent(str(self._schema.capnp_schema),4)+"\n"
                 msg+="error was:\n%s\n"%e
                 raise RuntimeError(msg)
 
-            self.changed_reset()
+            self._changed_reset()
 
-        return self._cobj
+        return self.__cobj
 
     @property
-    def data(self):        
+    def _data(self):        
         try:
-            self.cobj.clear_write_flag()
-            return self.cobj.to_bytes_packed()
+            self._cobj.clear_write_flag()
+            return self._cobj.to_bytes_packed()
         except:
-            self._cobj=self.cobj.as_builder()
-            return self.cobj.to_bytes_packed()
+            self._cobj=self._cobj.as_builder()
+            return self._cobj.to_bytes_packed()
 
-    def changed_reset(self):
-        if self.changed_prop_permanent:
+    def _changed_reset(self):
+        if self._changed_prop_permanent:
             return
-        self.changed_list = False
-        self.changed_prop = False
-        self.changed_items = {}
+        self._changed_list = False
+        self._changed_prop = False
+        self._changed_items = {}
         {% for ll in obj.lists %}    
-        self.{{ll.alias}} = List0(self,self._cobj.{{ll.name_camel}}, self.schema.property_{{ll.name}})
+        self.{{ll.alias}} = List0(self,self._cobj.{{ll.name_camel}}, self._schema.property_{{ll.name}})
         {% endfor %}
         
         
     @property
-    def ddict(self):
+    def _ddict(self):
         d={}
         {% for prop in obj.properties %}
         {% if prop.jumpscaletype.NAME == "jsobject" %}
@@ -190,7 +190,7 @@ class ModelOBJ():
         return d
 
     @property
-    def ddict_hr(self):
+    def _ddict_hr(self):
         """
         human readable dict
         """
@@ -210,15 +210,46 @@ class ModelOBJ():
             d["id"]=self.id
         return d
 
-    @property
-    def json(self):
-        return j.data.serializer.json.dumps(self.ddict)
+    def _ddict_hr_get(self,exclude=[],maxsize=100):
+        """
+        human readable dict
+        """
+        d = {}
+        {% for prop in obj.properties %}
+        {% if prop.jumpscaletype.NAME == "jsobject" %}
+        d["{{prop.name}}"] = self.{{prop.alias}}.ddict_hr
+        {% else %}
+        res = {{prop.js_typelocation}}.toHR(self.{{prop.alias}})
+        if len(str(res))<maxsize:
+            d["{{prop.name}}"] = res
+        {% endif %}
+        {% endfor %}
+        if self.id is not None:
+            d["id"] = self.id
+        for item in exclude:
+            if item in d:
+                d.pop(item)
+        return d
+
+    def _hr_get(self,exclude=[]):
+        """
+        human readable test format
+        """
+        out = "\n"
+        res = self._ddict_hr_get(exclude=exclude)
+        for key, item in res.items():
+            out += "%-20s: %s\n" % (key, item)
+        return out
 
     @property
-    def msgpack(self):
-        return j.data.serializer.msgpack.dumps(self.ddict)
+    def _json(self):
+        return j.data.serializer.json.dumps(self._ddict)
+
+    @property
+    def _msgpack(self):
+        return j.data.serializer.msgpack.dumps(self._ddict)
 
     def __str__(self):
-        return j.data.serializer.json.dumps(self.ddict_hr,sort_keys=True, indent=True)
+        return j.data.serializer.json.dumps(self._ddict_hr,sort_keys=True, indent=True)
 
     __repr__ = __str__
