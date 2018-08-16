@@ -41,8 +41,6 @@ def login_with_iyo_user(user_info):
         if user.iyouser == user_info['username']:
             break
     else:
-        import ipdb
-        ipdb.set_trace()
         user = dm_table.set(data={
             "name": "{} {}".format(user_info['firstname'], user_info['lastname']),
             "iyouser": user_info['username'],
