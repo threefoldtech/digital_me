@@ -126,9 +126,6 @@ def requires_auth(org_from_request=False):
 
 
 def callback():
-    import ipdb;
-    ipdb.set_trace()
-
     code = request.args.get("code")
     state = request.args.get("state")
     session_state = session.get("_iyo_state")
