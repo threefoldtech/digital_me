@@ -68,7 +68,7 @@ class BCDBTable(JSBASE):
             obj = self.schema.get(data)
         elif j.data.types.bytes.check(data):
             obj = self.schema.get(capnpbin=data)
-        elif "_JSOBJ" in data.__dict__:
+        elif getattr(data, "_JSOBJ", None):
             obj = data
             if obj_id is None and obj.id is not None:
                 obj_id = obj.id

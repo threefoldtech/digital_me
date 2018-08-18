@@ -27,7 +27,7 @@ class model_{{obj.name}}(JSBASE):
         else:
             id,data = j.data.serializer.msgpack.loads(data_in)
 
-        res=self.table.set(data=data, id=id, hook=self.hook_set)
+        res=self.table.set(data=data, obj_id=id, hook=self.hook_set)
         if res.id == None:
             raise RuntimeError("cannot be None")
 

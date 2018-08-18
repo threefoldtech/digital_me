@@ -1,0 +1,12 @@
+six==1.11.0
+python_jose==2.0.2
+flask_mongoengine==0.9.5
+requests==2.19.1
+mongoengine==0.15.0
+geocoder==1.38.1
+pycountry==18.5.26
+jsonschema==2.6.0
+Flask==0.12.2
+pycountry_convert==0.7.2
+python_dateutil==2.7.3
+jose==1.0.0

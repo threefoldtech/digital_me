@@ -44,7 +44,7 @@ class chat(JSBASE):
 
         """
         self.chatbot.session_work_set(sessionid, result)
-        return "hello"
+        return
 
     def session_alive(self, sessionid, schema_out):
         # TODO:*1 check if greenlet is alive
