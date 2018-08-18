@@ -115,7 +115,7 @@ class ModelOBJ():
                     for item in self.{{prop.name}}._inner_list:
                         if self.{{prop.name}}.schema_property.pointer_type is not None:
                             #use data in stead of rich object
-                            item = item.data
+                            item = item._data
                         ddict["{{prop.name_camel}}"].append(item)
                 {% endfor %}
 
@@ -126,7 +126,7 @@ class ModelOBJ():
                 #convert jsobjects to capnpbin data
                 if "{{prop.name_camel}}" in self._changed_items:
                     {% if prop.jumpscaletype.NAME == "jsobject" %}
-                    ddict["{{prop.name_camel}}"] = self._changed_items["{{prop.name_camel}}"].data
+                    ddict["{{prop.name_camel}}"] = self._changed_items["{{prop.name_camel}}"]._data
                     {% else %}
                     ddict["{{prop.name_camel}}"] = self._changed_items["{{prop.name_camel}}"]
                     {% endif %}
@@ -175,7 +175,7 @@ class ModelOBJ():
         d={}
         {% for prop in obj.properties %}
         {% if prop.jumpscaletype.NAME == "jsobject" %}
-        d["{{prop.name}}"] = self.{{prop.alias}}.ddict
+        d["{{prop.name}}"] = self.{{prop.alias}}._ddict
         {% else %}
         d["{{prop.name}}"] = self.{{prop.alias}}
         {% endif %}    
@@ -197,7 +197,7 @@ class ModelOBJ():
         d={}
         {% for prop in obj.properties %}
         {% if prop.jumpscaletype.NAME == "jsobject" %}
-        d["{{prop.name}}"] = self.{{prop.alias}}.ddict_hr
+        d["{{prop.name}}"] = self.{{prop.alias}}._ddict_hr
         {% else %}
         d["{{prop.name}}"] = {{prop.js_typelocation}}.toHR(self.{{prop.alias}})
         {% endif %}
@@ -217,7 +217,7 @@ class ModelOBJ():
         d = {}
         {% for prop in obj.properties %}
         {% if prop.jumpscaletype.NAME == "jsobject" %}
-        d["{{prop.name}}"] = self.{{prop.alias}}.ddict_hr
+        d["{{prop.name}}"] = self.{{prop.alias}}._ddict_hr
         {% else %}
         res = {{prop.js_typelocation}}.toHR(self.{{prop.alias}})
         if len(str(res))<maxsize:

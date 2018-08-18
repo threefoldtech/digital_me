@@ -73,7 +73,7 @@ class List0(collections.MutableSequence):
             if self.schema_property.pointer_type is None:
                 return self._inner_list
             else:
-                return [item.ddict if ddict else item.ddict_hr for item in self._inner_list]
+                return [item._ddict if ddict else item._ddict_hr for item in self._inner_list]
         else:
             res= [item for item in self._parent]
             return res

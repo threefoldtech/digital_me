@@ -27,13 +27,15 @@ class Schema(JSBASE):
         if text:
             self._schema_from_text(text)
 
-    def error_raise(self,msg,e=None):
+    def error_raise(self,msg,e=None,schema=None):
 
         if self.url == "" and "url" in self._systemprops:
             self.url =  self._systemprops["url"]
         out="\nerror in schema:\n"
         out+="    url:%s\n"%self.url
         out+="    msg:%s\n"%j.data.text.prefix("    ",msg)
+        if schema:
+            out+="    schema:\n%s"%schema
         if e is not None:
             out+="\nERROR:\n"
             out+=j.data.text.prefix("        ",str(e))
@@ -129,7 +131,7 @@ class Schema(JSBASE):
                 alias=alias[:-1]
 
             if propname in ["id"]:
-                self.error_raise("do not use 'id' in your schema, is reserved for system.")
+                self.error_raise("do not use 'id' in your schema, is reserved for system.",schema=schema)
 
             return (propname, alias, jumpscaletype, defvalue, comment, pointer_type)
 
@@ -148,7 +150,7 @@ class Schema(JSBASE):
             if line.startswith("#"):
                 continue
             if "=" not in line:
-                self.error_raise("did not find =, need to be there to define field")
+                self.error_raise("did not find =, need to be there to define field",schema=schema)
 
             propname, alias, jumpscaletype, defvalue, comment, pointer_type = process(line)
 
