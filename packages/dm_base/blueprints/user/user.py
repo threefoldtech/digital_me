@@ -1,6 +1,3 @@
-#
-# Itsyou.Online authentication helpers for Flask
-#
 import time
 import uuid
 from urllib.parse import urlencode
@@ -9,12 +6,11 @@ from flask import current_app, redirect, request, session
 import flask_login
 from jumpscale import j
 
-__version__ = '0.0.1'
-
 ITSYOUONLINEV1 = "https://itsyou.online/v1"
 
 login_manager = j.servers.web.latest.loader.login_manager
 login_manager.login_view = "/user/login"
+password_protect_view = "/user/passwd"
 dm_table = j.servers.gedis.latest.bcdb.table_get("dm_myself")
 
 
@@ -135,3 +131,18 @@ def get_iyo_login_url():
     base_url = "{}/oauth/authorize?".format(ITSYOUONLINEV1)
     login_url = base_url + urlencode(params)
     return login_url
+
+
+def password_protect(passwd):
+    def outer_decorated(f):
+        def decorated(*args, **kwargs):
+            page = request.path
+            if not session.get(page):
+                session['current_passwd'] = passwd
+                session['current_page'] = page
+                return redirect(password_protect_view)
+            return f(*args, **kwargs)
+
+        return decorated
+
+    return outer_decorated

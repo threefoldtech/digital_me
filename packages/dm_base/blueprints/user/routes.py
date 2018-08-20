@@ -1,7 +1,7 @@
-from flask import redirect, request, render_template
+from flask import redirect, request, render_template, session, flash
 import flask_login
 from . import name as bp_name, blueprint
-from .user import dm_table, User, get_iyo_login_url
+from .user import dm_table, User, get_iyo_login_url, password_protect
 
 
 @blueprint.route('/login', methods=['GET', 'POST'])
@@ -25,6 +25,7 @@ def login():
             flask_login.login_user(logged_user)
             next_url = request.args.get('next')
             return redirect(next_url or '/')
+        flash("Wrong user or password")
     iyo_url = get_iyo_login_url()
     return render_template('user/login.html', iyo_url=iyo_url)
 
@@ -43,13 +44,14 @@ def register():
         username = request.form['username']
         secret = request.form['password']
         secret_confirm = request.form['confirm_password']
-        # TODO check hashed secret
         if secret == secret_confirm:
             user = dm_table.set(data={"name": username, "secret": secret})
             logged_user = User(user.id, user.name, user.email)
             flask_login.login_user(logged_user)
             next_url = request.args.get('next')
             return redirect(next_url or '/')
+        else:
+            flash("Password confirmation doesn't match")
     iyo_url = get_iyo_login_url()
     return render_template('user/register.html', iyo_url=iyo_url)
 
@@ -61,6 +63,25 @@ def protected():
     Logged in as: %s <br/>
     User ID: %s <br/>
     """ % (flask_login.current_user.name, flask_login.current_user.id)
+
+
+@blueprint.route('/passwd', methods=['GET', 'POST'])
+def single_passwd():
+    if request.method == 'POST':
+        secret = request.form['password']
+        if secret == session['current_passwd']:
+            next_url = session['current_page']
+            session[next_url] = True
+            return redirect(next_url)
+        else:
+            flash('Invalid password provided')
+    return render_template('user/passwd.html')
+
+
+@blueprint.route('/protected-single')
+@password_protect(passwd="123")
+def protected_single():
+    return "Logged in successfully"
 
 
 @blueprint.route('/logout')
