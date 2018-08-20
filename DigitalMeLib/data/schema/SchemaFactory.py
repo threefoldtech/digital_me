@@ -135,9 +135,27 @@ class SchemaFactory(JSBASE):
         o.llist5.append(2)
         o.U = 1.1
         o.nr = 1
-        o.token_price = "10 EUR"
+        o.token_price = "10 USD"
         o.description = "something"
 
+
+        usd2usd = o.token_price_usd # convert USD-to-USD... same value
+        assert usd2usd == 10
+        inr = o.token_price_cur('inr')
+        #print ("convert 10 USD to INR", inr)
+        assert inr > 100 # ok INR is pretty high... check properly in a bit...
+        eur = o.token_price_eur
+        #print ("convert 10 USD to EUR", eur)
+        cureur = j.clients.currencylayer.cur2usd['eur']
+        curinr = j.clients.currencylayer.cur2usd['inr']
+        #print (cureur, curinr, o.token_price)
+        assert usd2usd*cureur == eur
+        assert usd2usd*curinr == inr
+
+        # try EUR to USD as well
+        o.token_price = "10 EUR"
+        eur2usd = o.token_price_usd
+        assert eur2usd*cureur == 10
 
         o._cobj
 

@@ -79,16 +79,21 @@ class ModelOBJ():
     {% if prop.jumpscaletype.NAME == "numeric" %}
     @property 
     def {{prop.alias}}_usd(self):
-        return {{prop.js_typelocation}}.bytes2cur(self.{{prop.alias}})
+        return self.{{prop.alias}}_cur('usd')
     @property 
     def {{prop.alias}}_eur(self):
-        return {{prop.js_typelocation}}.bytes2cur(self.{{prop.alias}},curcode="eur")
+        return self.{{prop.alias}}_cur('eur')
 
     def {{prop.alias}}_cur(self,curcode):
         """
         @PARAM curcode e.g. usd, eur, egp, ...
         """
-        return {{prop.js_typelocation}}.bytes2cur(self.{{prop.alias}},curcode=curcode)
+        # cannot pass in string to bytes2cur, have to encode into packed first
+        strval = self.{{prop.alias}}
+        if isinstance(strval, bytes):
+            strval = strval.decode()
+        binval = {{prop.js_typelocation}}.str2bytes(strval)
+        return {{prop.js_typelocation}}.bytes2cur(binval,curcode=curcode)
     {% endif %}
 
     {% endfor %}
