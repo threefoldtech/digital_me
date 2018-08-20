@@ -16,6 +16,13 @@ class DigitalMe(JSBASE):
         self.filemonitor = None
         self.community = Community()
 
+    def start(self,path=""):
+        """
+        js_shell 'j.servers.digitalme.test_servers()'
+        """
+        from IPython import embed; embed()
+        s
+
 
     def server_rack_get(self):
 

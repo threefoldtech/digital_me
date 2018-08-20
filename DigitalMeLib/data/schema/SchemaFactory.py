@@ -137,13 +137,9 @@ class SchemaFactory(JSBASE):
         o.nr = 1
         o.token_price = "10 EUR"
         o.description = "something"
-        
-        import bpython;bpython.embed(locals(), banner='sdsd')
 
 
         o._cobj
-        
-        import bpython;bpython.embed(locals(), banner='')
 
         schema = """
         @url = despiegk.test2

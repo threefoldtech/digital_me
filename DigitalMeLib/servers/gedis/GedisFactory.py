@@ -118,7 +118,7 @@ class GedisFactory(JSConfigBase):
         server.client_configure() #configures the client
         return server
 
-    def cmds_get(self, namespace, capnpbin):
+    def _cmds_get(self, namespace, capnpbin):
         """
         Used in client only
         """

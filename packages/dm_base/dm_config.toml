@@ -1,0 +1,8 @@
+
+prefix = "/base"
+
+[[blueprint_links]]
+name = "base" 
+url = "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static"
+dest = "static/"
+

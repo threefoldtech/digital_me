@@ -15,7 +15,7 @@ class GedisCmd(JSBASE):
         JSBASE.__init__(self)
 
         self.cmdobj = cmd
-        self.data = cmd.data
+        self.data = cmd._data
         self.cmds = cmds
         self.server = self.cmds.server
         self.name = cmd.name
@@ -24,23 +24,23 @@ class GedisCmd(JSBASE):
             if cmd.schema_in.startswith("!"):
                 url=cmd.schema_in.strip("!").strip()
                 self.schema_in = j.data.schema.schema_from_url(url)
-            else:        
+            else:
                 self.schema_in=j.data.schema.schema_from_text(cmd.schema_in,url=self.namespace+".%s.in"%cmd.name)
             self.schema_in.objclass
         else:
             self.schema_in = None
 
-        if cmd.schema_out:            
+        if cmd.schema_out:
             if cmd.schema_out.startswith("!"):
                 url=cmd.schema_out.strip("!").strip()
                 self.schema_out = j.data.schema.schema_from_url(url)
             else:
                 self.schema_out = j.data.schema.schema_from_text(cmd.schema_out,url=self.namespace+".%s.out"%cmd.name)
-            self.schema_out.objclass     
+            self.schema_out.objclass
         else:
             self.schema_out = None
 
-        self._method = None 
+        self._method = None
 
         # print(self.code_runtime)
 
@@ -84,9 +84,9 @@ class GedisCmd(JSBASE):
                     out = ","
             for prop in  self.schema_in.properties + self.schema_in.lists:
                 d=prop.default_as_python_code
-                out += "%s=%s, "%(prop.name,d)            
+                out += "%s=%s, "%(prop.name,d)
             out = out.rstrip().rstrip(",").rstrip().rstrip(",")
-            return out            
+            return out
 
     @property
     def code_indent(self):
@@ -112,3 +112,8 @@ class GedisCmd(JSBASE):
             m=imp.load_source(name=self.namespace+"."+self.name, pathname=path)
             self._method = m.action
         return self._method
+
+    def __repr__(self):
+        return 'CMD:%s:%s' % (self.cmds.rstrip(".py"),self.name)
+
+    __str__ = __repr__

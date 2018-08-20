@@ -111,12 +111,6 @@ class GedisServer(StreamServer, JSConfigBase):
         if self.app_dir.strip() is "":
             raise RuntimeError("appdir cannot be empty")
         j.sal.fs.createDir(self.app_dir)
-        
-        #LETS NOT LONGER COPY THE BASE !!!!
-        #copies the base from the jumpscale lib to the appdir
-        # self.logger.debug("copy base to:%s"%self.app_dir )
-        # j.tools.jinja2.copy_dir_render("%s/base"%j.servers.gedis.path,self.app_dir ,overwriteFiles=True, render=False, reset=False, \
-        #     j=j, config=self.config.data, instance=self.instance)     
 
         # add the cmds to the server (from generated dir + app_dir)
         self.bcdb_init() #make sure we know the schemas
@@ -175,7 +169,7 @@ class GedisServer(StreamServer, JSConfigBase):
         for nsfull, cmds_ in self.cmds_meta.items():
             if 'model_' in nsfull:
                 continue
-            commands.append(cmds_)        
+            commands.append(cmds_)
         self.code_js_client = j.tools.jinja2.file_render("%s/templates/client.js" % j.servers.gedis.path,
                                                          commands=commands,write=False)
 
@@ -214,7 +208,11 @@ class GedisServer(StreamServer, JSConfigBase):
                 sys.path.append(dname)
             exec("from %s import %s" % (classname, classname))
             class_ = eval(classname)
-        self.cmds_meta[namespace] = GedisCmds(self, namespace=namespace, class_=class_)
+        else:
+            print("cmds_add need to find path")
+            from IPython import embed; embed()
+            ss
+        self.cmds_meta[namespace] = GedisCmds(self, path=path, namespace=namespace, class_=class_)
         self.classes[namespace] =class_()
 
     def client_configure(self):

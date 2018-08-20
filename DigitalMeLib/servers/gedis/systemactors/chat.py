@@ -1,7 +1,5 @@
 from jumpscale import j
 
-# BE CAREFUL MASTER IS IN: /code/github/rivine/recordchain/Jumpscale9RecordChain/servers/gedis/base/actors/chat.py
-
 JSBASE = j.application.jsbase_get_class()
 
 

@@ -31,7 +31,7 @@ class List0(collections.MutableSequence):
     def __delitem__(self, index):
         self._copyFromParent()
         self._inner_list.__delitem__(index )
-        self._parentobj.changed_list = True
+        self._parentobj._changed_list = True
 
     def insert(self, index, value):
         self._copyFromParent()
@@ -41,7 +41,7 @@ class List0(collections.MutableSequence):
             if not "_JSOBJ" in value.__dict__:
                 raise RuntimeError("need to insert JSOBJ, use .new() on list before inserting.")
         self._inner_list.insert(index, value)
-        self._parentobj.changed_list = True
+        self._parentobj._changed_list = True
 
     def __setitem__(self, index, value):
         self._copyFromParent()
@@ -51,7 +51,7 @@ class List0(collections.MutableSequence):
             if not "_JSOBJ" in value.__dict__:
                 raise RuntimeError("need to insert JSOBJ, use .new() on list before inserting.")
         self._inner_list.__setitem__(index, value)
-        self._parentobj.changed_list = True
+        self._parentobj._changed_list = True
 
     def __getitem__(self, index):
         if self.schema_property.pointer_type is not None:

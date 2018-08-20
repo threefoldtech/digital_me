@@ -14,14 +14,19 @@ class GedisCmds(JSBASE):
     all commands captured in a capnp object, which can be stored in redis or any other keyvaluestor
     """
     
-    def __init__(self,server=None, namespace="", class_=None,capnpbin=None):
+    def __init__(self,server=None, namespace="", class_=None,capnpbin=None,path=None):
         JSBASE.__init__(self)
+
+        if path is None:
+            raise RuntimeError("path cannot be None")
+
+        self.path=path
 
         self.server = server
 
         SCHEMA = """
         @url = jumpscale.gedis.cmd
-        @name = GedisCmd
+        @name = GedisCmds
         name = ""
         comment = ""
         code = "" 
@@ -139,4 +144,11 @@ class GedisCmds(JSBASE):
     def method_exists(self,name):    
         return name in self.children
     
-            
+
+    def __repr__(self):
+        path2 = self.path.split("github")[-1].strip("/")
+        return 'CMDS:%s' % (path2)
+
+    __str__ = __repr__
+
+

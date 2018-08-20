@@ -47,7 +47,7 @@ def wiki_route(subpath):
     try:
         #at this point we know the docsite
 
-        ds = j.tools.markdowndocs.docsite_get(wikicat,die=False)
+        ds = j.tools.docsites.docsite_get(wikicat,die=False)
 
         if ds==None:
             return "Cannot find docsite with name:%s"%wikicat

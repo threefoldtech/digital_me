@@ -5,11 +5,11 @@ from jumpscale import j
 
 login_manager = j.servers.web.latest.loader.login_manager
 
-j.tools.markdowndocs.load(
+j.tools.docsites.load(
     "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/docsites_examples/simpleblogsite",
     name="simpleblogsite")
 
-ds = j.tools.markdowndocs.docsite_get("simpleblogsite")
+ds = j.tools.docsites.docsite_get("simpleblogsite")
 name = "simpleblogsite"
 default_blog = "man_explore"
 
