@@ -34,5 +34,12 @@ o.nr = 1
 o.token_price = "10 EUR"
 o.description = "something"
 
+assert len(o._changed_items) > 3 #at least for properties, but prob also for the list?
+assert o._changed_list
+assert o._changed_properties
+
+assert o.token_price_usd <15  #tthere is error
+
+
 
 import bpython;bpython.embed(locals(), banner='test1')
