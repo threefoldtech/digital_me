@@ -34,12 +34,23 @@ o.nr = 1
 o.token_price = "10 EUR"
 o.description = "something"
 
-assert len(o._changed_items) > 3 #at least for properties, but prob also for the list?
+print ("after change")
+print(s)
+
+print ("token_price", repr(o.token_price))
+print ("_obj", dir(o._cobj))
+print ("_obj", dir(o._cobj.tokenPrice))
+print ("_schema", o._schema.property_token_price)
+print (dir(o._schema.property_token_price))
+print ("token_price_usd", repr(o.token_price_usd))
+print ("token_price_usd", type(o))
+assert o.token_price_usd <15
+
+# these fail (o._changed_list etc. don't exist)
 assert o._changed_list
 assert o._changed_properties
 
-assert o.token_price_usd <15  #tthere is error
-
+assert len(o._changed_items) > 3 #at least for properties, but prob also for the list?
 
 
 import bpython;bpython.embed(locals(), banner='test1')
