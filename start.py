@@ -27,7 +27,7 @@ def configure():
     ws_dir = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/digital_me/tree/development/digitalme")
 
     j.servers.gedis.configure(host="localhost", port="8000", ssl=False,
-                                       zdb_instance=name, secret="", app_dir=ws_dir, instance=name)
+                                       zdb_instance=name, secret="", instance=name)
     # configure a local webserver server (the master one)
     j.servers.web.configure(instance=name, port=5050, port_ssl=0, host="localhost", secret="", ws_dir=ws_dir)    
 

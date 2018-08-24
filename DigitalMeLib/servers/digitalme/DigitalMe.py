@@ -18,8 +18,18 @@ class DigitalMe(JSBASE):
 
     def start(self,path=""):
         """
-        js_shell 'j.servers.digitalme.test_servers()'
+        js_shell 'j.servers.digitalme.start()'
         """
+
+        ws_dir = j.clients.git.getContentPathFromURLorPath(
+            "https://github.com/threefoldtech/digital_me/tree/development/digitalme")
+
+        j.servers.gedis.configure(host="localhost", port="8000", ssl=False,
+                                  zdb_instance=name, secret="", app_dir=ws_dir, instance=name)
+        # configure a local webserver server (the master one)
+        j.servers.web.configure(instance=name, port=5050, port_ssl=0, host="localhost", secret="", ws_dir=ws_dir)
+
+
         from IPython import embed; embed()
         s
 
