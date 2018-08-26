@@ -24,7 +24,7 @@ if "_zrobot" not in j.servers.__dict__.keys():
 rack = j.servers.digitalme.server_rack_get()
 
 def configure():
-    ws_dir = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/digital_me/tree/development/digitalme")
+    ws_dir = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/digital_me/tree/development/packages")
 
     j.servers.gedis.configure(host="localhost", port="8000", ssl=False,
                                        zdb_instance=name, secret="", instance=name)
