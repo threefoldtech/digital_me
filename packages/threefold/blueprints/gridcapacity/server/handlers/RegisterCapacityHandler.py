@@ -10,7 +10,7 @@ from jsonschema import Draft4Validator
 from flask import jsonify, request
 from jumpscale import j
 
-from digitalme.blueprints.gridcapacity.models import Capacity, NodeRegistration, NodeNotFoundError, Farmer, FarmerRegistration
+from gridcapacity.models import Capacity, NodeRegistration, NodeNotFoundError, Farmer, FarmerRegistration
 from .jwt import validate_farmer_id, FarmerInvalid
 
 dir_path = os.path.dirname(os.path.realpath(__file__))

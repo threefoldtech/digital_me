@@ -65,7 +65,7 @@ def configure(blueprint, organization, client_secret, callback_uri, callback_rou
 def get_auth_org(org_from_request=False):
     if org_from_request and isinstance(org_from_request, str):
         return org_from_request
-    from digitalme.blueprints.gridcapacity import blueprint as current_blueprint
+    from . import blueprint as current_blueprint
     config = current_blueprint.config["iyo_config"]
     if org_from_request is True:
         return request.values[config['orgfromrequest']]
@@ -82,7 +82,7 @@ def requires_auth(org_from_request=False):
         def _wrapper(*args, **kwargs):
             if not session.get("_iyo_authenticated"):
                 organization = get_auth_org(org_from_request=org_from_request)
-                from digitalme.blueprints.gridcapacity import blueprint as current_blueprint
+                from . import blueprint as current_blueprint
                 config = current_blueprint.config["iyo_config"]
                 scopes = []
                 scopes.append("user:memberof:{}".format(organization))
@@ -137,7 +137,7 @@ def callback():
     if not code:
         return "Invalid code received. Cannot authenticate request!", 400
     # Get access token
-    from digitalme.blueprints.gridcapacity import blueprint as current_blueprint
+    from . import blueprint as current_blueprint
     config = current_blueprint.config["iyo_config"]
     organization = config["organization"]
     authorg = session['_iyo_organization']
