@@ -100,7 +100,6 @@ class BCDBFactory(JSBASE):
         db = load(start=start)
 
         m = db.model_get(url="despiegk.test")
-
         query = m.index.select()
         qres = [(item.name, item.nr) for item in query]
         assert qres == [('name0', 0),
@@ -117,30 +116,28 @@ class BCDBFactory(JSBASE):
         assert m.index.select().where(m.index.id == 5)[0].name == "name5"
         assert m.index.select().where(m.index.nr == 5)[0].name == "name5"
 
-        j.shell()
 
-        query =  m.index.select().where(m.index.nr > 5)  #should return 4 records
+        query =  m.index.select().where(m.index.nr > 5) # should return 4 records
         qres = [(item.name,item.nr) for item in query]
 
-        j.shell()
-        assert len(res) == 0
+        assert len(qres) == 4
 
-        res = t.find(name="name2")
+        res = m.index.select().where(m.index.name=="name2")
         assert len(res) == 1
-        assert res[0].name == "name2"
+        assert res.first().name == "name2"
 
-        res = t.find(name="name2", email="info2@something.com")
+        res = m.index.select().where(m.index.email=="info2@something.com")
         assert len(res) == 1
-        assert res[0].name == "name2"
+        assert res.first().name == "name2"
 
-        o = res[0]
+        o = m.get(res.first().id)
         
         o.name = "name2"
-        assert o.changed_prop == False  # because data did not change, was already that data
+        assert o._changed_prop == False  # because data did not change, was already that data
         o.name = "name3"
-        assert o.changed_prop == True  # now it really changed
+        assert o._changed_prop == True  # now it really changed
 
-        assert o.ddict["name"] == "name3"
+        assert o._ddict["name"] == "name3"
 
         print ("TEST DONE")
 

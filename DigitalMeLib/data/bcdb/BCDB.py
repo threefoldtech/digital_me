@@ -41,7 +41,7 @@ class BCDB(JSBASE):
         imodel = BCDBIndexModel(schema=schema)
         imodel.enable = True
         imodel.include_schema = include_schema
-        tpath = "%s/templates/model.py"%j.data.bcdb._path
+        tpath = "%s/templates/Model.py"%j.data.bcdb._path
         key = j.data.text.strip_to_ascii_dense(schema.url).replace(".","_")
         if dest is None:
             dest = "%s/model_%s.py"%(j.data.bcdb.code_generation_dir,key)
