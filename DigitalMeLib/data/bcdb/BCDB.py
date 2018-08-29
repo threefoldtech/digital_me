@@ -73,7 +73,7 @@ class BCDB(JSBASE):
 
         tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="*.toml", followSymlinks=True)
         for schemapath in tocheck:
-            dest = "%s/%s.py"%(j.sal.fs.getDirName(schemapath),j.sal.fs.getBaseName(schemapath, True))
+            dest = "%s/bcdb_model_%s.py"%(j.sal.fs.getDirName(schemapath),j.sal.fs.getBaseName(schemapath, True))
             if overwrite or not j.sal.fs.exists(dest):
                 self.model_create(schemapath,dest=dest)
 
@@ -85,16 +85,18 @@ class BCDB(JSBASE):
         dpath = j.sal.fs.getDirName(classpath)
         if dpath not in sys.path:
             sys.path.append(dpath)
-            j.sal.fs.touch("%s/.__init__.py" % dpath)
+            j.sal.fs.touch("%s/__init__.py" % dpath)
         # self.logger.info("model all:%s" % classpath)
         modulename = j.sal.fs.getBaseName(classpath)[:-3]
+        if modulename.startswith("_"):
+            return
         try:
             self.logger.info("import module:%s" % modulename)
             model_module = import_module(modulename)
             self.logger.debug("ok")
         except Exception as e:
             raise RuntimeError("could not import module:%s" % modulename, e)
-        model = model_module.Model(self)
+        model = model_module.Model(bcdb=self)
         self.models[model.schema.url] = model
         return model
 

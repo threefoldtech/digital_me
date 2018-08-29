@@ -11,30 +11,20 @@ SCHEMA="""
 {% if index.enable %}
 from peewee import *
 
-db = j.data.bcdb.latest.sqlitedb
-
-class BaseModel(Model):
-    class Meta:
-        database = db
-
-class IndexClass(BaseModel):
-
+class IndexClass(j.data.bcdb.PEEWEE_INDEX_CLASS):
     id = IntegerField()
     {% for field in index.fields %}
     {{field.name}} = {{field.type}}(index=True)
     {% endfor %}
-    def __repr__(self):
-        print(self.__dict__)
-        return str(self.nr)
 {% endif %}
-
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 class Model(MODEL_CLASS):
 
-    def __init__(self, bcdb):
+    def __init__(self, bcdb=None):
+        print("{{schema.url}}")
         {% if include_schema %}
-        MODEL_CLASS.__init__(self,bcdb=bcdb,schema=SCHEMA)
+        MODEL_CLASS.__init__(self,bcdb=bcdb, schema=SCHEMA)
         {% else %}
         MODEL_CLASS.__init__(self, bcdb=bcdb, url="{{schema.url}}")
         {% endif %}

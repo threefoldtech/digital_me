@@ -3,6 +3,7 @@ from jumpscale import j
 
 from .BCDB import BCDB
 from .BCDBModel import BCDBModel
+from peewee import Model
 import os
 import sys
 JSBASE = j.application.jsbase_get_class()
@@ -35,6 +36,17 @@ class BCDBFactory(JSBASE):
     @property
     def MODEL_CLASS(self):
         return BCDBModel
+
+    @property
+    def PEEWEE_INDEX_CLASS(self):
+        db = j.data.bcdb.latest.sqlitedb
+        class BaseModel(Model):
+            class Meta:
+                database = db
+            def __repr__(self):
+                return (self.__dict__)
+            __str__ = __repr__
+        return BaseModel
 
     @property
     def _path(self):
@@ -139,6 +151,8 @@ class BCDBFactory(JSBASE):
 
         assert o._ddict["name"] == "name3"
 
+        self.test2()
+
         print ("TEST DONE")
 
     def test2(self, start=True):
@@ -153,4 +167,8 @@ class BCDBFactory(JSBASE):
 
         db.models_add("%s/tests"%self._path,overwrite=True)
 
+        m = db.model_get('jumpscale.bcdb.test.house2')
 
+        o = m.new()
+
+        print ("TEST2 DONE, but is still minimal")

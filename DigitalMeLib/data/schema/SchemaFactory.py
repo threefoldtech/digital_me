@@ -56,10 +56,17 @@ class SchemaFactory(JSBASE):
         :return: schema
         """
 
-        if self._schema_from_url(schema) is not None:
-            #check if its url
-            return self._schema_from_url(schema)
-        elif j.sal.fs.exists(schema):
+        if url is not None:
+            if self._schema_from_url(url) is not None:
+                #check if its url
+                return self._schema_from_url(url)
+            else:
+                raise RuntimeError("url not found for schema:%s"%url)
+
+        if schema is None:
+            raise RuntimeError("schema cannot be None")
+
+        if j.sal.fs.exists(schema):
             schema = j.sal.fs.fileGetContents(schema)
 
         s = self._schemas_add(schema)
@@ -108,6 +115,8 @@ class SchemaFactory(JSBASE):
         """
         url e.g. despiegk.test
         """
+        if url is None:
+            return None
         url = url.lower().strip()
         if url in self.schemas:
             return self.schemas[url]
