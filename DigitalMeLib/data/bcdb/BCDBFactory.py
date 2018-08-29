@@ -152,9 +152,12 @@ class BCDBFactory(JSBASE):
         assert o._ddict["name"] == "name3"
 
         o.token_price = "10 USD"
-        import pudb; pudb.set_trace()
+        assert o.token_price_usd == 10
         m.set(o)
+        o2=m.get(o.id)
+        assert o2.token_price_usd == 10
 
+        j.shell()
         assert m.index.select().where(m.index.id == o.id).first().token_price == 10
 
         self.test2()
