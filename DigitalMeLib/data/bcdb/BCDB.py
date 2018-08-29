@@ -39,7 +39,7 @@ class BCDB(JSBASE):
                 raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
         imodel = BCDBIndexModel(schema=schema)
         imodel.enable = True
-        tpath = "%s/templates/model.py"%j.data.bcdb._path
+        tpath = "%s/templates/Model.py"%j.data.bcdb._path
         key = j.data.text.strip_to_ascii_dense(schema.url).replace(".","_")
         dest = "%s/model_%s.py"%(j.data.bcdb.code_generation_dir,key)
         self.logger.debug("render model:%s"%dest)

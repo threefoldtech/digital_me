@@ -15,10 +15,14 @@ class BaseModel(Model):
         database = db
 
 class IndexClass(BaseModel):
+
     id = IntegerField()
     {% for field in index.fields %}
     {{field.name}} = {{field.type}}(index=True)
     {% endfor %}
+    def __repr__(self):
+        print(self.__dict__)
+        return str(self.nr)
 {% endif %}
 
 
@@ -30,7 +34,7 @@ class Model(MODEL_CLASS):
         self.url = "{{schema.url}}"
 
         {% if index.enable %}
-        self.index = IndexClass()
+        self.index = IndexClass
         self.index.create_table()
         {% endif %}
 
