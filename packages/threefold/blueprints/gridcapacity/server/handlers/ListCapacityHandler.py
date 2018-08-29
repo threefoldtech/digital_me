@@ -1,6 +1,6 @@
 # THIS FILE IS SAFE TO EDIT. It will not be overwritten when rerunning go-raml.
 
-from digitalme.blueprints.gridcapacity.models import NodeRegistration
+from gridcapacity.models import NodeRegistration
 from flask import request, jsonify
 from io import StringIO
 

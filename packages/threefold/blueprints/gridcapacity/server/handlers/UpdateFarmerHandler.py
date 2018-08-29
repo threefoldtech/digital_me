@@ -2,12 +2,12 @@
 
 import os
 from flask import request, redirect, jsonify, flash
-from digitalme.blueprints.gridcapacity.flask_itsyouonline import requires_auth
+from gridcapacity.flask_itsyouonline import requires_auth
 
 import json as JSON
 import jsonschema
 from jsonschema import Draft4Validator
-from digitalme.blueprints.gridcapacity.models import Farmer, Location, FarmerRegistration
+from gridcapacity.models import Farmer, Location, FarmerRegistration
 from .reverse_geocode import reverse_geocode
 
 

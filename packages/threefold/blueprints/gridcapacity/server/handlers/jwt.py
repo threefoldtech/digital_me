@@ -2,7 +2,7 @@
 import jose.jwt
 from jumpscale import j
 
-from digitalme.blueprints.gridcapacity.models import Farmer
+from gridcapacity.models import Farmer
 
 
 IYO_PUBLIC_KEY = """

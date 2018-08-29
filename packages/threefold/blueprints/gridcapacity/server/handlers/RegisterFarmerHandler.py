@@ -2,12 +2,12 @@
 import os
 
 from flask import request, redirect, url_for
-from digitalme.blueprints.gridcapacity.flask_itsyouonline import requires_auth
+from gridcapacity.flask_itsyouonline import requires_auth
 
 import json as JSON
 import jsonschema
 from jsonschema import Draft4Validator
-from digitalme.blueprints.gridcapacity.models import Farmer, Location
+from gridcapacity.models import Farmer, Location
 from .reverse_geocode import reverse_geocode
 
 dir_path = os.path.dirname(os.path.realpath(__file__))

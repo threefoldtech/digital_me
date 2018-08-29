@@ -10,6 +10,13 @@ from gevent import time
 #alias for scheduling rq job
 schedule = j.servers.gedis.latest.job_schedule
 
+users = [
+    {"id": 1, "name": "ahmed", "email": "ahmed@dmdm.com"},
+]
+todos = [
+    {"id": 1, "title": "fix it", "done": False},
+]
+
 @blueprint.route('/')
 def route_default():
     return redirect('/%s/gedis_index.html'%name)
@@ -35,11 +42,42 @@ def gedis_test():
     return "ALLDONE"
     # res=schedule(test2,wait=True,timetowait=3,descr="HELLO")
 
+@blueprint.route('/admin')
+def route_admin():
+    # needs to return the session id
+    models2datatable = {
+        'user': {
+            "view": "datatable",
+            "id": "crudPanel",
+            "icon": "user",
+            "columns": [
+                {"id": "id"},
+                {"id": "name"},
+                {"id": "email"},
+            ],
+            "data": users,
+        },
+        'todo': {
+            "view": "datatable",
+            "id": "crudPanel",
+            "icon": "dashboard",
+            "columns": [
+                {"id": "id"},
+                {"id": "title"},
+                {"id": "done"},
+                {"id": "notes"},
+            ],
+            "data": todos,
+
+        }
+    }
+    return render_template("gedis_admin.html", data=models2datatable)
+
+
+
 # @login_required
 @blueprint.route('/<template>')
 def route_template(template):
     return render_template(template)
-
-
 
 

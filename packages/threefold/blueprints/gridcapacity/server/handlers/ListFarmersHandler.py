@@ -1,6 +1,6 @@
 # THIS FILE IS SAFE TO EDIT. It will not be overwritten when rerunning go-raml.
 from flask import request, jsonify
-from digitalme.blueprints.gridcapacity.models import FarmerRegistration
+from gridcapacity.models import FarmerRegistration
 
 def ListFarmersHandler():
     farmers = FarmerRegistration.list()

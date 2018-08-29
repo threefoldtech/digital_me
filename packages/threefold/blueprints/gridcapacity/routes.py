@@ -1,8 +1,8 @@
 from flask import render_template, redirect, request, url_for
 from jumpscale import j
-from blueprints.gridcapacity import blueprint
+from . import blueprint
 login_manager = j.servers.web.latest.loader.login_manager
-from digitalme.blueprints.gridcapacity.server import handlers
+from .server import handlers
 import os
 from flask import send_from_directory, render_template, request, session, abort, redirect
 from .flask_itsyouonline import requires_auth, force_invalidate_session, ITSYOUONLINE_KEY, callback

@@ -8,7 +8,7 @@ from jsonschema import Draft4Validator
 
 from flask import jsonify, request
 
-from digitalme.blueprints.gridcapacity.models import NodeRegistration, Resources, Capacity
+from gridcapacity.models import NodeRegistration, Resources, Capacity
 from .jwt import FarmerInvalid, validate_farmer_id
 
 

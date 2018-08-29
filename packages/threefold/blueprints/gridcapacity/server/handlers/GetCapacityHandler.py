@@ -1,7 +1,7 @@
 # THIS FILE IS SAFE TO EDIT. It will not be overwritten when rerunning go-raml.
 
 from flask import jsonify, request
-from digitalme.blueprints.gridcapacity.models import NodeRegistration, NodeNotFoundError
+from gridcapacity.models import NodeRegistration, NodeNotFoundError
 
 
 def GetCapacityHandler(node_id):

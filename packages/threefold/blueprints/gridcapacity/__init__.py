@@ -4,6 +4,7 @@ import sys
 from flask import Blueprint, jsonify, url_for
 from jumpscale import j
 from .flask_itsyouonline import configure, callback
+from . import settings
 
 name =  j.sal.fs.getDirName(__file__,True)
 print("NAME::: ", name)
@@ -16,18 +17,7 @@ blueprint = Blueprint(
     static_folder='static'
 )
 
-iyo_cli = j.clients.itsyouonline.get()
-config = iyo_cli.config.data
-
-configure(blueprint=blueprint,
-          organization=config['application_id_'],
-          client_secret=config['secret_'],
-          callback_uri="http://127.0.0.1:5050/gridcapacity/callback",
-          callback_route='/gridcapacity/callback',
-          scope=None,
-          get_jwt=True,
-          offline_access=True,
-          orgfromrequest='organization')
+configure(blueprint, settings.IYO_CLIENTID, settings.IYO_SECRET, settings.IYO_CALLBACK, '/gridcapacity/callback', None, True, True, 'organization')
 
 @blueprint.app_template_filter
 def uptime(seconds):
