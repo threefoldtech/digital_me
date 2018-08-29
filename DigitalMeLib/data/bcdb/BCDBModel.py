@@ -61,7 +61,6 @@ class BCDBModel(JSBASE):
         else:
             raise RuntimeError("Cannot find data type, str,bin,obj or ddict is only supported")
 
-        self.index_set(obj)
 
         bdata = obj._data
 
@@ -83,6 +82,9 @@ class BCDBModel(JSBASE):
             self.db.set(data, id=obj_id)
 
         obj.id = obj_id
+
+        self.index_set(obj)
+
 
         return obj
 

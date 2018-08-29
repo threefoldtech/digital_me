@@ -114,6 +114,8 @@ class BCDBFactory(JSBASE):
              ('name8', 8),
              ('name9', 9)]
 
+        j.shell()
+
         query =  m.index.select().where(m.index.nr > 5)  #should return 4 records
         qres = [(item.name,item.nr) for item in query]
 

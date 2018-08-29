@@ -15,7 +15,7 @@ class BaseModel(Model):
         database = db
 
 class IndexClass(BaseModel):
-    # id = RowIDField()
+    id = IntegerField()
     {% for field in index.fields %}
     {{field.name}} = {{field.type}}(index=True)
     {% endfor %}
@@ -39,9 +39,7 @@ class Model(MODEL_CLASS):
         idict={}
         {% for field in index.fields %}
         idict["{{field.name}}"] = obj.{{field.name}}
-        #self.index.{{field.name}}
         {% endfor %}
+        idict["id"] = obj.id
         self.index.create(**idict)
-        # j.shell()
-        # self.index.save()
     {% endif %}

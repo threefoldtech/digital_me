@@ -20,9 +20,8 @@ colors = []
 
 class Model(j.data.bcdb.MODEL_CLASS):
 
-    def __init__(self, bcdb):
-        """
-        """
-        JSBASE.__init__(self,bcdb=bcdb)
+    def _init(self):
+        pass
+
 
 
