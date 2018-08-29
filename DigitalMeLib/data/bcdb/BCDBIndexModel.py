@@ -13,6 +13,10 @@ class IndexField():
             self.type = "TextField"
         elif self.jumpscaletype.NAME in ["integer",'date']:
             self.type = "IntegerField"
+        elif self.jumpscaletype.NAME in ["boolean"]:
+            self.type = "BooleanField"
+        elif self.jumpscaletype.NAME in ["numeric"]:
+            self.type = "IntegerField"
         else:
             j.shell()
             raise RuntimeError("did not find required type for peewee:%s"%self)

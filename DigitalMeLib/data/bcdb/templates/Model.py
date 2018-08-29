@@ -2,7 +2,7 @@
 from jumpscale import j
 
 
-{% if include_schema %}
+{% if index.include_schema %}
 SCHEMA="""
 {{schema.text}}
 """
@@ -39,7 +39,11 @@ class Model(MODEL_CLASS):
     def index_set(self,obj):
         idict={}
         {% for field in index.fields %}
+        {% if field.jumpscaletype.NAME == "numeric" %}
+        idict["{{field.name}}"] = obj.{{field.name}}_usd
+        {% else %}
         idict["{{field.name}}"] = obj.{{field.name}}
+        {% endif %}
         {% endfor %}
         idict["id"] = obj.id
         self.index.create(**idict)

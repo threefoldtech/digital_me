@@ -72,7 +72,7 @@ class BCDBModel(JSBASE):
         bdata = obj._data
 
         # prepare
-        self.set_pre(obj)
+        obj = self.set_pre(obj)
 
         # later:
         acl = b""
@@ -86,7 +86,7 @@ class BCDBModel(JSBASE):
             # means a new one
             obj_id = self.db.set(data)
         else:
-            self.db.set(data, id=obj_id)
+            self.db.set(data, key=obj_id)
 
         obj.id = obj_id
 
@@ -98,7 +98,10 @@ class BCDBModel(JSBASE):
     def new(self):
         return self.schema.get()
 
-    def set_pre(self,org):
+    def set_pre(self,obj):
+        return obj
+
+    def index_set(self,obj):
         pass
 
     def get(self, id, capnp=False):

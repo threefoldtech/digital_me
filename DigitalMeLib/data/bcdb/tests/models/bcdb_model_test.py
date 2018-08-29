@@ -3,12 +3,29 @@ from jumpscale import j
 
 
 
+SCHEMA="""
+@url = jumpscale.bcdb.test.house
+@name = test_house
+name* = "" (S)
+active* = "" (B)
+cost* = (N)
+room = (LO) !jumpscale.bcdb.test.room
+
+
+"""
+
 
 
 from peewee import *
 
 class IndexClass(j.data.bcdb.PEEWEE_INDEX_CLASS):
     id = IntegerField()
+    
+    name = TextField(index=True)
+    
+    active = BooleanField(index=True)
+    
+    cost = IntegerField(index=True)
     
 
 
@@ -30,6 +47,18 @@ class Model(MODEL_CLASS):
     
     def index_set(self,obj):
         idict={}
+        
+        
+        idict["name"] = obj.name
+        
+        
+        
+        idict["active"] = obj.active
+        
+        
+        
+        idict["cost"] = obj.cost_usd
+        
         
         idict["id"] = obj.id
         self.index.create(**idict)

@@ -66,7 +66,7 @@ class BCDBFactory(JSBASE):
         nr* = 0
         date_start* = 0 (D)
         description = ""
-        token_price = "10 USD" (S)
+        token_price* = "10 USD" (N)
         cost_estimate:hw_cost = 0.0 #this is a comment
         llist = []
         llist3 = "1,2,3" (LF)
@@ -151,6 +151,12 @@ class BCDBFactory(JSBASE):
 
         assert o._ddict["name"] == "name3"
 
+        o.token_price = "10 USD"
+        import pudb; pudb.set_trace()
+        m.set(o)
+
+        assert m.index.select().where(m.index.id == o.id).first().token_price == 10
+
         self.test2()
 
         print ("TEST DONE")
@@ -170,5 +176,14 @@ class BCDBFactory(JSBASE):
         m = db.model_get('jumpscale.bcdb.test.house2')
 
         o = m.new()
+        o.cost = "10 USD"
+
+        m.set(o)
+
+        data = m.get(o.id)
+
+        assert data.cost == 10
+
+        assert o.cost == 10
 
         print ("TEST2 DONE, but is still minimal")
