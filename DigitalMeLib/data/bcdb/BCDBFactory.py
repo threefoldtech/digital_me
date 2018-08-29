@@ -2,20 +2,44 @@
 from jumpscale import j
 
 from .BCDB import BCDB
-
-
+from .BCDBModel import BCDBModel
+import os
+import sys
 JSBASE = j.application.jsbase_get_class()
 
 
 class BCDBFactory(JSBASE):
 
     def __init__(self):
+        JSBASE.__init__(self)
         self.__jslocation__ = "j.data.bcdb"
+        self._code_generation_dir = None
 
     def get(self, zdbclient):       
         if j.data.types.string.check(zdbclient):
             raise RuntimeError("zdbclient cannot be str")
         return BCDB(zdbclient)
+
+    @property
+    def code_generation_dir(self):
+        if not self._code_generation_dir:
+            path = j.sal.fs.joinPaths(j.dirs.VARDIR, "codegen", "models")
+            j.sal.fs.createDir(path)
+            if path not in sys.path:
+                sys.path.append(path)
+            j.sal.fs.touch(j.sal.fs.joinPaths(path, "__init__.py"))
+            self.logger.debug("codegendir:%s" % path)
+            self._code_generation_dir = path
+        return self._code_generation_dir
+
+    @property
+    def MODEL_CLASS(self):
+        return BCDBModel
+
+    @property
+    def _path(self):
+        return j.sal.fs.getDirName(os.path.abspath(__file__))
+
 
     def test(self,start=True):
         """
@@ -24,12 +48,11 @@ class BCDBFactory(JSBASE):
 
         schema = """
         @url = despiegk.test
-        @name = TestObj
         llist2 = "" (LS)    
         name* = ""    
         email* = ""
-        nr = 0
-        date_start = 0 (D)
+        nr* = 0
+        date_start* = 0 (D)
         description = ""
         token_price = "10 USD" (S)
         cost_estimate:hw_cost = 0.0 #this is a comment
@@ -41,50 +64,60 @@ class BCDBFactory(JSBASE):
         #pool_type = "managed,unmanaged" (E)  #NOT DONE FOR NOW
         """
 
-        schema2 = """
-        @url = despiegk.test
-        @name = TestObj2
-        name* = ""    
-        email* = ""
-        nr = 0
-        """
 
         def load(start):
     
-            cl = j.clients.zdb.testdb_server_start_client_get(start=start)        
-            db = j.data.bcdb.get(cl)
+            zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
+            db = j.data.bcdb.get(zdb_cl)
+            db.index_create(reset=True)
 
-            t = db.table_get(name="t1", schema=schema)   #why does name have to be t1
-            t2 = db.table_get(name="t2", schema=schema2)
+            model = db.model_create(schema=schema)
 
             for i in range(10):
-                o = t.new()
+                o = model.new()
                 o.llist.append(1)
                 o.llist2.append("yes")
                 o.llist2.append("no")
                 o.llist3.append(1.2)
+                o.date_start = j.data.time.epoch
                 o.U = 1.1
-                o.nr = 1
+                o.nr = i
                 o.token_price = "10 EUR"
                 o.description = "something"
                 o.name = "name%s" % i
                 o.email = "info%s@something.com" % i
-                o2 = t.set(o)
+                o2 = model.set(o)
                 assert o2.id == i
 
-            o3 = t.get(o2.id)
+            o3 = model.get(o2.id)
             assert o3.id == o2.id
 
-            assert o3.ddict == o2.ddict
-            assert o3.ddict == o.ddict
+            assert o3._ddict == o2._ddict
+            assert o3._ddict == o._ddict
 
             return db
 
         db = load(start=start)
 
-        t = db.table_get(name="t1", schema=schema)
+        m = db.model_get(url="despiegk.test")
 
-        res = t.find(name="name1", email="info2@something.com")
+        query = m.index.select()
+        qres = [(item.name, item.nr) for item in query]
+        assert qres == [('name0', 0),
+             ('name1', 1),
+             ('name2', 2),
+             ('name3', 3),
+             ('name4', 4),
+             ('name5', 5),
+             ('name6', 6),
+             ('name7', 7),
+             ('name8', 8),
+             ('name9', 9)]
+
+        query =  m.index.select().where(m.index.nr > 5)  #should return 4 records
+        qres = [(item.name,item.nr) for item in query]
+
+        j.shell()
         assert len(res) == 0
 
         res = t.find(name="name2")

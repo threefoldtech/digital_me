@@ -1,8 +1,8 @@
 from jumpscale import j
-import gevent
-
+from gevent import monkey
 from .Community import Community
 from .ServerRack import ServerRack
+from .Package import  Package
 from gevent import time
 import gevent
 
@@ -15,19 +15,78 @@ class DigitalMe(JSBASE):
         JSBASE.__init__(self)
         self.filemonitor = None
         self.community = Community()
+        self.packages= {}
 
-    def start(self,path=""):
+    def packages_add(self,path):
         """
+
+        :param path: path of packages, will look for dm_config.toml
+        :return:
+        """
+        for item in j.sal.fs.listFilesInDir(path, recursive=True, filter="dm_config.toml",
+                                followSymlinks=False, listSymlinks=False):
+            pdir = j.sal.fs.getDirName(item)
+            self.package_add(pdir)
+
+    def package_add(self,path):
+        """
+
+        :param path: directory where there is a dm_config.toml inside = a package for digital me
+        has blueprints, ...
+        :return:
+        """
+        tpath = "%s/dm_config.toml"%path
+        if not j.sal.fs.exists(tpath):
+            raise j.exceptions.Input("could not find:%s"%tpath)
+        p=Package(tpath)
+        if p.name not in self.packages:
+            self.packages[p.name]=p
+
+    def start(self,path="",nrworkers=0):
+        """
+        examples:
+
         js_shell 'j.servers.digitalme.start()'
+        js_shell 'j.servers.digitalme.start(nrworkers=4)'
         """
 
-        ws_dir = j.clients.git.getContentPathFromURLorPath(
-            "https://github.com/threefoldtech/digital_me/tree/development/digitalme")
+        self.rack = self.server_rack_get()
 
-        j.servers.gedis.configure(host="localhost", port="8000", ssl=False,
-                                  zdb_instance=name, secret="", app_dir=ws_dir, instance=name)
+        def install_zrobot():
+            path = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/0-robot")
+            j.sal.process.execute("cd %s;pip install -e ." % path)
+
+        if "_zrobot" not in j.servers.__dict__.keys():
+            # means not installed yet
+            install_zrobot()
+
+
+        zdbcl=j.clients.zdb.testdb_server_start_client_get()
+
+        pdir = j.clients.git.getContentPathFromURLorPath(
+            "https://github.com/threefoldtech/digital_me/tree/development/packages")
+
+        name="test"
+
+        j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
+                                  zdb_instance=name, secret="", app_dir="", instance=name)
         # configure a local webserver server (the master one)
-        j.servers.web.configure(instance=name, port=5050, port_ssl=0, host="localhost", secret="", ws_dir=ws_dir)
+        j.servers.web.configure(instance=name, port=8000, port_ssl=0, host="localhost", secret="", ws_dir="")
+
+        monkey.patch_all()
+
+        self.rack.add("gedis", j.servers.gedis.geventservers_get(name))
+        self.rack.add("web", j.servers.web.geventserver_get(name))
+
+        if nrworkers>0:
+            rack.workers_start(nrworkers)
+
+
+        self.packages_add(pdir)
+
+
+        j.shell()
+
 
 
         from IPython import embed; embed()

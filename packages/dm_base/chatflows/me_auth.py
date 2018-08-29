@@ -5,7 +5,7 @@ def chat(bot):
     """
     to call http://localhost:5050/chat/session/me_auth
     """
-    dm_table = j.servers.gedis.latest.bcdb.table_get("dm_myself")
+    dm_table = j.servers.gedis.latest.bcdb.model_get("dm_myself")
     if not dm_table.db.count:
         bot.md_show("It seems this is your first time configuration, click next to register your data")
         email = bot.string_ask("Enter your email?")

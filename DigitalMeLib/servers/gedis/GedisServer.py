@@ -15,7 +15,7 @@ JSConfigBase = j.tools.configmanager.base_class_config
 from rq import Queue
 from redis import Redis
 from rq.decorators import job
-
+from importlib.machinery import SourceFileLoader
 
 
 TEMPLATE = """
@@ -107,10 +107,10 @@ class GedisServer(StreamServer, JSConfigBase):
         if self.code_generated_dir not in sys.path:
             sys.path.append(self.code_generated_dir)
 
-        # make sure apps dir is created if not exists
-        if self.app_dir.strip() is "":
-            raise RuntimeError("appdir cannot be empty")
-        j.sal.fs.createDir(self.app_dir)
+        # # make sure apps dir is created if not exists
+        # if self.app_dir.strip() is "":
+        #     raise RuntimeError("appdir cannot be empty")
+        # j.sal.fs.createDir(self.app_dir)
 
         # add the cmds to the server (from generated dir + app_dir)
         self.bcdb_init() #make sure we know the schemas
@@ -199,21 +199,18 @@ class GedisServer(StreamServer, JSConfigBase):
         # self.jsapi_server.classes = self.classes
         # self.jsapi_server.cmds_meta = self.cmds_meta
 
-    def cmds_add(self, namespace, path=None, class_=None):
-        self.logger.debug("cmds_add:%s:%s"%(namespace,path))
-        if path is not None:
-            classname = j.sal.fs.getBaseName(path).split(".", 1)[0]
-            dname = j.sal.fs.getDirName(path)
-            if dname not in sys.path:
-                sys.path.append(dname)
-            exec("from %s import %s" % (classname, classname))
-            class_ = eval(classname)
-        else:
-            print("cmds_add need to find path")
-            from IPython import embed; embed()
-            ss
-        self.cmds_meta[namespace] = GedisCmds(self, path=path, namespace=namespace, class_=class_)
-        self.classes[namespace] =class_()
+    def cmds_add(self, name, path):
+        """
+        add commands from 1 actor (or other python) file
+
+        :param name:  each set of cmds need to have a unique name
+        :param path: of the actor file
+        :return:
+        """
+        if not j.sal.fs.exists(path):
+            raise RuntimeError("cannot find actor:%s"%path)
+        self.logger.debug("cmds_add:%s:%s"%(name,path))
+        self.cmds_meta[name] = GedisCmds(self, path=path, name=name)
 
     def client_configure(self):
     

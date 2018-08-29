@@ -13,13 +13,7 @@ name = "test"
 def signal_shutdown():
     raise KeyboardInterrupt
 
-def install_zrobot():
-    path = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/0-robot")
-    j.sal.process.execute("cd %s;pip install -e ."%path)
 
-if "_zrobot" not in j.servers.__dict__.keys():
-    #means not installed yet
-    install_zrobot()
 
 rack = j.servers.digitalme.server_rack_get()
 

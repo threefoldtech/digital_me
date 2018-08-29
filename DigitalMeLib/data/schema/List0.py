@@ -78,11 +78,14 @@ class List0(collections.MutableSequence):
             res= [item for item in self._parent]
             return res
         
-    def new(self):
+    def new(self,data={}):
         """
         return new subitem, only relevant when there are pointer_types used
         """
-        s=self.pointer_schema.new()
+        if data is not {}:
+            s = self.pointer_schema.get(data=data)
+        else:
+            s=self.pointer_schema.new()
         self.append(s)
         return s
 
@@ -91,7 +94,7 @@ class List0(collections.MutableSequence):
         if self._pointer_schema is None:
             if self.schema_property.pointer_type==None:
                 raise RuntimeError("can only be used when pointer_types used")
-            s =  j.data.schema.schema_from_url(self.schema_property.pointer_type)
+            s =  j.data.schema.schema_get(url=self.schema_property.pointer_type)
             self._pointer_schema = s
         return self._pointer_schema
 

@@ -11,7 +11,7 @@ ITSYOUONLINEV1 = "https://itsyou.online/v1"
 login_manager = j.servers.web.latest.loader.login_manager
 login_manager.login_view = "/user/login"
 password_protect_view = "/user/passwd"
-dm_table = j.servers.gedis.latest.bcdb.table_get("dm_myself")
+dm_table = j.servers.gedis.latest.bcdb.model_get("dm_myself")
 
 
 class User(flask_login.UserMixin):

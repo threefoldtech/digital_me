@@ -1,57 +1,100 @@
-
+from importlib import import_module
 from Jumpscale import j
-
+import sys
+from peewee import *
+import os
 JSBASE = j.application.jsbase_get_class()
 
-from .BCDBTable import BCDBTable
+from .BCDBIndexModel import BCDBIndexModel
 
 
 class BCDB(JSBASE):
     
     def __init__(self,zdbclient):
+        JSBASE.__init__(self)
         self.zdbclient = zdbclient
-        
-        self.tables = {}
+        self.models = {}
+        self.logger_enable()
 
-    def table_get(self, name, schema=""):
-        if name in self.tables:
-            return self.tables[name]
-        if schema=="":
-            raise RuntimeError("schema cannot be empty")
-        t = BCDBTable(self,schema=schema,name=name)
-        self.tables[name]=t
-        return t
+        self.index_create()
+        j.data.bcdb.latest = self
+
+    def index_create(self,reset=False):
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb"))
+        dest = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb",self.zdbclient.instance+".db")
+        j.sal.fs.remove(dest) #TODO:*1 is temporary untill some bugs are fixed
+        self.sqlitedb = SqliteDatabase(dest)
 
 
-    def tables_get(self,schema_path=""):
+    def model_create(self, schema,path=None):
         """
-        @PARAM schema_path if empty will look in current dir for all files starting with 'schema'
-           if a directory will also walk over files in the directory
+        :param schema: j.data.schema ...
+        :param path: optional path where the model should be generated, if not specified will be in codegeneration dir
+        :return: model
         """
-        
-        if schema_path=="":
-            # j.data.schema.reset() #start from empty situation
-            schema_path=j.sal.fs.getcwd()
-
-        if j.sal.fs.isDir(schema_path) and j.sal.fs.exists("%s/schemas"%(schema_path)):
-            schema_path = "%s/schemas"%(schema_path)
-        
-        if j.sal.fs.isDir(schema_path):
-            for path in j.sal.fs.listFilesInDir(schema_path, recursive=False, filter="schema*"):
-                self.tables_get(schema_path=path)
+        if j.data.types.string.check(schema):
+            schema = j.data.schema.schema_add(schema)
         else:
-            C=j.sal.fs.fileGetContents(schema_path)
-            schemas = j.data.schema.schema_add(C)
-            for schema in schemas:
-                if schema.name!="":    
-                    t = self.table_get(schema=schema,name=schema.name)
-                # elif schema.url!="":
-                #     t = self.table_get(schema=schema,name=schema.url.replace(".","_"))
-                else:
-                    raise RuntimeError("schema name should not be empty")
-            
-        return self.tables
+            if not isinstance(schema, j.data.schema.SCHEMA_CLASS):
+                raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
+        imodel = BCDBIndexModel(schema=schema)
+        imodel.enable = True
+        tpath = "%s/templates/model.py"%j.data.bcdb._path
+        key = j.data.text.strip_to_ascii_dense(schema.url).replace(".","_")
+        dest = "%s/model_%s.py"%(j.data.bcdb.code_generation_dir,key)
+        self.logger.debug("render model:%s"%dest)
+        j.tools.jinja2.file_render(tpath, write=True, dest=dest, schema=schema, index=imodel)
+        return self.model_add(dest)
+
+    def model_add(self,modelOrPath):
+        """
+        add model to BCDB
+        """
+        if isinstance(modelOrPath, j.data.bcdb.MODEL_CLASS):
+            self.models[modelOrPath.schema.url] = modelOrPath
+        elif j.sal.fs.exists(modelOrPath):
+            modelOrPath = self._model_add_from_path(modelOrPath)
+        else:
+            raise RuntimeError("model needs to be of type: j.data.bcdb.MODEL_CLASS or path to model.")
+        return modelOrPath
+
+    def models_add(self,path):
+        """
+        will walk over directory and each class needs to be a model
+        :param path:
+        :return: None
+        """
+        tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="*.py", followSymlinks=True)
+
+        for classpath in tocheck:
+            self.model_add(classpath)
+
+    def _model_add_from_path(self,classpath):
+        dpath = j.sal.fs.getDirName(classpath)
+        if dpath not in sys.path:
+            sys.path.append(dpath)
+            j.sal.fs.touch("%s/.__init__.py" % dpath)
+        # self.logger.info("model all:%s" % classpath)
+        modulename = j.sal.fs.getBaseName(classpath)[:-3]
+        try:
+            self.logger.info("import module:%s" % modulename)
+            model_module = import_module(modulename)
+            self.logger.debug("ok")
+        except Exception as e:
+            raise RuntimeError("could not import module:%s" % modulename, e)
+        model = model_module.Model(self)
+        self.models[model.schema.url] = model
+        return model
+
+
+    def model_get(self, url):
+        if url in self.models:
+            return self.models[url]
+        raise RuntimeError("could not find model for url:%s"%url)
 
     def destroy(self):
-        self.zdb.destroy()
-        
+        """
+        delete all objects in the zdb
+        :return:
+        """
+        self.zdbclient.destroy()

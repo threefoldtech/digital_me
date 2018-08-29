@@ -17,7 +17,7 @@ U = 0.0
 #pool_type = "managed,unmanaged" (E)  #NOT DONE FOR NOW
 """
 
-s = j.data.schema.schema_from_text(schema)
+s = j.data.schema.schema_add(schema)
 print(s)
 
 o = s.get()

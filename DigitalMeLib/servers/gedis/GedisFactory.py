@@ -3,7 +3,7 @@ import os
 from jumpscale import j
 
 from .GedisServer import GedisServer
-from .GedisCmds import GedisCmds
+from .GedisCmds import GedisActor
 from .GedisChatBot import GedisChatBotFactory
 
 JSConfigBase = j.tools.configmanager.base_class_configs
@@ -45,7 +45,7 @@ class GedisFactory(JSConfigBase):
             zdb_instance="",
             path="",
             reset=False
-    ):
+        ):
         """
         creates new server on path, if not specified will be current path
         will start from example app
@@ -122,7 +122,7 @@ class GedisFactory(JSConfigBase):
         """
         Used in client only
         """
-        return GedisCmds(namespace=namespace, capnpbin=capnpbin)
+        return GedisActor(namespace=namespace, capnpbin=capnpbin)
 
     @property
     def path(self):

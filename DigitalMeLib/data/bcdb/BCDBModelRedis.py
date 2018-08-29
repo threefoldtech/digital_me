@@ -5,7 +5,7 @@ import struct
 JSBASE = j.application.jsbase_get_class()
 
 
-class BCDBTable(JSBASE):
+class BCDBModel(JSBASE):
     def __init__(self, bcdb, schema, name=""):
         """
         """
@@ -17,7 +17,7 @@ class BCDBTable(JSBASE):
         self.name = name
 
         if j.data.types.string.check(schema):
-            schema = j.data.schema.schema_from_text(schema)
+            schema = j.data.schema.schema_add(schema)
         elif "_SCHEMA" in schema.__dict__:
             pass
         else:
@@ -226,3 +226,16 @@ class BCDBTable(JSBASE):
         if capnp:
             final = j.data.serializer.msgpack.dumps(final)
         return final
+
+    # def find(self, total_items_in_page=20, page_number=1, only_fields=[], {{find_args}}):
+    #     items = self.redis.execute_command("model_%s.find" % self.name, total_items_in_page, page_number, only_fields,
+    #                                        {{kwargs}})
+    #     items = j.data.serializer.msgpack.loads(items)
+    #     result = []
+    #
+    #     for item in items:
+    #         id, data = j.data.serializer.msgpack.loads(item)
+    #         obj = self.schema.get(capnpbin=data)
+    #         obj.id = id
+    #         result.append(obj)
+    #     return result

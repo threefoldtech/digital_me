@@ -14,7 +14,7 @@ class GedisCmds(JSBASE):
     all commands captured in a capnp object, which can be stored in redis or any other keyvaluestor
     """
     
-    def __init__(self,server=None, namespace="", class_=None,capnpbin=None,path=None):
+    def __init__(self,server=None, name="",path=None,capnpbin=None):
         JSBASE.__init__(self)
 
         if path is None:
@@ -40,16 +40,28 @@ class GedisCmds(JSBASE):
         cmds = (LO) !jumpscale.gedis.cmd  
         """
         j.data.schema.schema_add(SCHEMA)
-        self.schema = j.data.schema.schema_from_url("jumpscale.gedis.api")
+        self.schema = j.data.schema.schema_get(url="jumpscale.gedis.api")
 
         self._cmds = {}
 
         if capnpbin:
             self.data = self.schema.get(capnpbin=capnpbin)
         else:
+
+            dname = j.sal.fs.getDirName(path)
+            # if dname not in sys.path:
+            #     sys.path.append(dname)
+            # exec("from %s import %s" % (classname, classname))
+            # class_ = eval(classname)
+            key="%s_%s"%(namespace,name)
+            mymodule = SourceFileLoader(key, path).load_module()
+            class_ = eval("mymodule.%s"%self._class_find_name())
+            self.server.classes[name] = class_()
+
+            j.shell()
+
             self.data = self.schema.new()
-            if namespace:
-                self.data.namespace = namespace
+            self.data.name = name
 
             for name,item in inspect.getmembers(class_):
                 if name.startswith("_"):
@@ -62,11 +74,13 @@ class GedisCmds(JSBASE):
                     cmd = self.data.cmds.new()
                     cmd.name = name
                     code = inspect.getsource(item)
-                    cmd.code,cmd.comment,cmd.schema_in, cmd.schema_out, cmd.args= self.source_process(code)   
+                    cmd.code,cmd.comment,cmd.schema_in, cmd.schema_out, cmd.args= self._method_source_process(code)
+
+
 
     @property
-    def namespace(self):
-        return self.data.namespace
+    def name(self):
+        return self.data.name
 
     @property
     def cmds(self):
@@ -78,7 +92,16 @@ class GedisCmds(JSBASE):
             print('\n')
         return self._cmds
 
-    def source_process(self,txt):
+    def _class_find_name(self):
+        txt = j.sal.fs.fileGetContents(self.path)
+        for line in txt.split("\n"):
+            if line.strip().startswith("class"):
+                pre = line.split("(")[0]
+                classname = pre.split(" ")[1].strip()
+                return classname
+        raise RuntimeError("did not find class name in %s"%self.path)
+
+    def _method_source_process(self,txt):
         """
         return code,comment,schema_in, schema_out
         """
@@ -141,7 +164,7 @@ class GedisCmds(JSBASE):
             j.data.text.strip(schema_out),j.data.text.strip(args)
             
 
-    def method_exists(self,name):    
+    def cmd_exists(self,name):
         return name in self.children
     
 

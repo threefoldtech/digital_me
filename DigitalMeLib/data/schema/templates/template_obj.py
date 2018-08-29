@@ -6,16 +6,16 @@ class ModelOBJ():
     
     def __init__(self,schema,data={}, capnpbin=None):
         self._schema = schema
-        self._capnp = schema.capnp
+        self._capnp_schema = schema.capnp_schema
 
         self._changed_list = False
         self._changed_prop = False
         self._changed_items = {}
 
         if capnpbin != None:
-            self.__cobj = self._capnp.from_bytes_packed(capnpbin)
+            self.__cobj = self._capnp_schema.from_bytes_packed(capnpbin)
         else:
-            self.__cobj = self._capnp.new_message()
+            self.__cobj = self._capnp_schema.new_message()
 
 
 
@@ -30,7 +30,7 @@ class ModelOBJ():
         self._changed_prop_permanent = False
         {% for prop in obj.properties %}
         {% if prop.jumpscaletype.NAME == "jsobject" %}
-        self._schema_{{prop.name}} = j.data.schema.schema_from_url("{{prop.jumpscaletype.SUBTYPE}}")
+        self._schema_{{prop.name}} = j.data.schema.schema_get(url="{{prop.jumpscaletype.SUBTYPE}}")
         self._changed_prop = True
         self._changed_prop_permanent = True
         if self._cobj.{{prop.name_camel}}:
@@ -69,8 +69,7 @@ class ModelOBJ():
         self._changed_items["{{prop.name_camel}}"] = val
         {% else %} 
         #will make sure that the input args are put in right format
-        # val = {{prop.js_typelocation}}.clean(val)
-        # self._cobj.{{prop.name_camel}} = val        
+        val = {{prop.js_typelocation}}.clean(val)  #is important because needs to come in right format e.g. binary for numeric
         if self.{{prop.alias}} != val:
             self._changed_prop = True
             self._changed_items["{{prop.name_camel}}"] = val
@@ -79,21 +78,25 @@ class ModelOBJ():
     {% if prop.jumpscaletype.NAME == "numeric" %}
     @property 
     def {{prop.alias}}_usd(self):
-        return self.{{prop.alias}}_cur('usd')
+        # return self.{{prop.alias}}_cur('usd')
+        return {{prop.js_typelocation}}.bytes2cur(self.{{prop.alias}})
+
     @property 
     def {{prop.alias}}_eur(self):
-        return self.{{prop.alias}}_cur('eur')
+        # return self.{{prop.alias}}_cur('eur')
+        return {{prop.js_typelocation}}.bytes2cur(self.{{prop.alias}},curcode="eur")
 
     def {{prop.alias}}_cur(self,curcode):
         """
         @PARAM curcode e.g. usd, eur, egp, ...
         """
-        # cannot pass in string to bytes2cur, have to encode into packed first
-        strval = self.{{prop.alias}}
-        if isinstance(strval, bytes):
-            strval = strval.decode()
-        binval = {{prop.js_typelocation}}.str2bytes(strval)
-        return {{prop.js_typelocation}}.bytes2cur(binval,curcode=curcode)
+        return {{prop.js_typelocation}}.bytes2cur(self.{{prop.alias}}, curcode = curcode)
+        # # cannot pass in string to bytes2cur, have to encode into packed first
+        # strval = self.{{prop.alias}}
+        # if isinstance(strval, bytes):
+        #     strval = strval.decode()
+        # binval = {{prop.js_typelocation}}.str2bytes(strval)
+        # return {{prop.js_typelocation}}.bytes2cur(binval,curcode=curcode)
     {% endif %}
 
     {% endfor %}
@@ -106,6 +109,7 @@ class ModelOBJ():
     @property
     def _cobj(self):
         if self._changed_list or self._changed_prop:
+            # print("go inside cobj")
             ddict = self.__cobj.to_dict()
 
             if self._changed_list:
@@ -139,7 +143,7 @@ class ModelOBJ():
                 
 
             try:
-                self.__cobj = self._capnp.new_message(**ddict)
+                self.__cobj = self._capnp_schema.new_message(**ddict)
             except Exception as e:
                 msg="\nERROR: could not create capnp message\n"
                 try:
@@ -161,8 +165,16 @@ class ModelOBJ():
             self._cobj.clear_write_flag()
             return self._cobj.to_bytes_packed()
         except:
-            self._cobj=self._cobj.as_builder()
+            self.__cobj=self.__cobj.as_builder()
             return self._cobj.to_bytes_packed()
+
+    def _from_dict(self,ddict):
+        """
+        update internal data object from ddict
+        """
+        self.__cobj.from_dict(ddict)
+        self._changed_reset()
+
 
     def _changed_reset(self):
         if self._changed_prop_permanent:
