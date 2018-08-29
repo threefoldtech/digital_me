@@ -82,7 +82,7 @@ class BCDBModel(JSBASE):
         l = [acl,crc, signature, bdata]
         data = msgpack.packb(l)
 
-        if not obj_id:
+        if obj_id is None:
             # means a new one
             obj_id = self.db.set(data)
         else:
