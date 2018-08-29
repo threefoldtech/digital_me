@@ -114,8 +114,8 @@ class BCDBFactory(JSBASE):
              ('name8', 8),
              ('name9', 9)]
 
-        assert m.index.select().where(m.index.nr == 5)[0].name == "name5"
         assert m.index.select().where(m.index.id == 5)[0].name == "name5"
+        assert m.index.select().where(m.index.nr == 5)[0].name == "name5"
 
         j.shell()
 
