@@ -182,7 +182,7 @@ class BCDBFactory(JSBASE):
 
         data = m.get(o.id)
 
-        assert data.cost == 10
+        assert data.cost_usd == 10
 
         assert o.cost == 10
 

@@ -13,7 +13,7 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class IndexClass(BaseModel):
+class Index_{{schema.key}}(BaseModel):
     id = IntegerField()
     {%- for field in index.fields %}
     {{field.name}} = {{field.type}}(index=True)
@@ -31,7 +31,7 @@ class Model(MODEL_CLASS):
         {%- endif %}
         self.url = "{{schema.url}}"
         {%- if index.enable %}
-        self.index = IndexClass
+        self.index = Index_{{schema.key}}
         self.index.create_table()
 
         {%- endif %}
