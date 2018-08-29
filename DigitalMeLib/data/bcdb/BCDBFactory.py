@@ -79,7 +79,7 @@ class BCDBFactory(JSBASE):
 
         def load(start):
     
-            zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=start)
+            zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
             db = j.data.bcdb.get(zdb_cl)
             db.index_create(reset=start)
 
