@@ -16,7 +16,7 @@ class IndexField():
         elif self.jumpscaletype.NAME in ["boolean"]:
             self.type = "BooleanField"
         elif self.jumpscaletype.NAME in ["numeric"]:
-            self.type = "IntegerField"
+            self.type = "FloatField"
         else:
             j.shell()
             raise RuntimeError("did not find required type for peewee:%s"%self)

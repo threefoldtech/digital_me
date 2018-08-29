@@ -184,6 +184,6 @@ class BCDBFactory(JSBASE):
 
         assert data.cost_usd == 10
 
-        assert o.cost == 10
+        assert o.cost_usd == 10
 
         print ("TEST2 DONE, but is still minimal")
