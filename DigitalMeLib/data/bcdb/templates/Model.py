@@ -1,50 +1,50 @@
-
 from jumpscale import j
-
 
 {% if index.include_schema %}
 SCHEMA="""
 {{schema.text}}
 """
-{% endif %}
-
-{% if index.enable %}
+{%- endif %}
+{%- if index.enable %}
 from peewee import *
+db = j.data.bcdb.latest.sqlitedb
 
-class IndexClass(j.data.bcdb.PEEWEE_INDEX_CLASS):
+class BaseModel(Model):
+    class Meta:
+        database = db
+
+class IndexClass(BaseModel):
     id = IntegerField()
-    {% for field in index.fields %}
+    {%- for field in index.fields %}
     {{field.name}} = {{field.type}}(index=True)
-    {% endfor %}
-{% endif %}
+    {%- endfor %}
+{%- endif %}
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
+
 class Model(MODEL_CLASS):
-
-    def __init__(self, bcdb=None):
-        print("{{schema.url}}")
-        {% if include_schema %}
-        MODEL_CLASS.__init__(self,bcdb=bcdb, schema=SCHEMA)
-        {% else %}
+    def __init__(self, bcdb):
+        {%- if include_schema %}
+        MODEL_CLASS.__init__(self,bcdb=bcdb,schema=SCHEMA)
+        {%- else %}
         MODEL_CLASS.__init__(self, bcdb=bcdb, url="{{schema.url}}")
-        {% endif %}
+        {%- endif %}
         self.url = "{{schema.url}}"
-
-        {% if index.enable %}
+        {%- if index.enable %}
         self.index = IndexClass
         self.index.create_table()
-        {% endif %}
 
+        {%- endif %}
     {% if index.enable %}
     def index_set(self,obj):
         idict={}
-        {% for field in index.fields %}
-        {% if field.jumpscaletype.NAME == "numeric" %}
+        {%- for field in index.fields %}
+        {%- if field.jumpscaletype.NAME == "numeric" %}
         idict["{{field.name}}"] = obj.{{field.name}}_usd
-        {% else %}
+        {%- else %}
         idict["{{field.name}}"] = obj.{{field.name}}
-        {% endif %}
-        {% endfor %}
+        {%- endif %}
+        {%- endfor %}
         idict["id"] = obj.id
         self.index.create(**idict)
     {% endif %}
