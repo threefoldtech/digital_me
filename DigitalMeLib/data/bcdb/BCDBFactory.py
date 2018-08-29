@@ -153,6 +153,7 @@ class BCDBFactory(JSBASE):
 
         o.token_price = "10 USD"
         assert o.token_price_usd == 10
+        import pudb; pudb.set_trace()
         m.set(o)
         o2=m.get(o.id)
         assert o2.token_price_usd == 10
