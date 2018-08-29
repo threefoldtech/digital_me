@@ -114,6 +114,9 @@ class BCDBFactory(JSBASE):
              ('name8', 8),
              ('name9', 9)]
 
+        assert m.index.select().where(m.index.nr == 5)[0].name == "name5"
+        assert m.index.select().where(m.index.id == 5)[0].name == "name5"
+
         j.shell()
 
         query =  m.index.select().where(m.index.nr > 5)  #should return 4 records
@@ -140,3 +143,17 @@ class BCDBFactory(JSBASE):
         assert o.ddict["name"] == "name3"
 
         print ("TEST DONE")
+
+    def test2(self, start=True):
+        """
+        js_shell 'j.data.bcdb.test2(start=False)'
+        """
+
+
+        zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
+        db = j.data.bcdb.get(zdb_cl)
+        db.index_create(reset=True)
+
+        db.models_add("%s/tests"%self._path,overwrite=True)
+
+

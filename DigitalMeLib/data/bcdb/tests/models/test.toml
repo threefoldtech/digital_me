@@ -1,8 +1,3 @@
-
-from jumpscale import j
-JSBASE = j.application.jsbase_get_class()
-
-SCHEMA = """
 @url = jumpscale.bcdb.test.house
 @name = test_house
 name = "" (S)
@@ -15,13 +10,3 @@ room = (LO) !jumpscale.bcdb.test.room
 name = "" (S)
 active = "" (B)
 colors = []
-
-"""
-
-class Model(j.data.bcdb.MODEL_CLASS):
-
-    def _init(self):
-        j.shell()
-
-
-

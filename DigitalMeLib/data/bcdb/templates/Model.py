@@ -1,9 +1,12 @@
 
 from jumpscale import j
 
+
+{% if include_schema %}
 SCHEMA="""
 {{schema.text}}
 """
+{% endif %}
 
 {% if index.enable %}
 from peewee import *
@@ -26,7 +29,11 @@ MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 class Model(MODEL_CLASS):
 
     def __init__(self, bcdb):
+        {% if include_schema %}
         MODEL_CLASS.__init__(self,bcdb=bcdb,schema=SCHEMA)
+        {% else %}
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="{{schema.url}}")
+        {% endif %}
         self.url = "{{schema.url}}"
 
         {% if index.enable %}

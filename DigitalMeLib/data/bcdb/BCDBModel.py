@@ -6,7 +6,7 @@ JSBASE = j.application.jsbase_get_class()
 
 
 class BCDBModel(JSBASE):
-    def __init__(self,bcdb,schema):
+    def __init__(self,bcdb,schema=None,url=None):
         """
         for query example see http://docs.peewee-orm.com/en/latest/peewee/query_examples.html
 
@@ -21,7 +21,10 @@ class BCDBModel(JSBASE):
         JSBASE.__init__(self)
 
         self.bcdb = bcdb
-        self.schema = j.data.schema.schema_add(schema)
+        if url is not None:
+            self.schema = j.data.schema.schema_get(url=url)
+        else:
+            self.schema = j.data.schema.schema_add(schema)
         self.key = j.data.text.strip_to_ascii_dense(self.schema.url)
         self.db = self.bcdb.zdbclient.namespace_new(name=self.key, maxsize=0, die=False)
         self.index_enable = True
