@@ -6,7 +6,7 @@ JSBASE = j.application.jsbase_get_class()
 
 
 class BCDBModel(JSBASE):
-    def __init__(self,bcdb=None,schema=None,url=None):
+    def __init__(self,bcdb=None,schema=None,url=None,index_enable=True):
         """
         for query example see http://docs.peewee-orm.com/en/latest/peewee/query_examples.html
 
@@ -21,7 +21,8 @@ class BCDBModel(JSBASE):
         JSBASE.__init__(self)
 
         if bcdb is None:
-            bcdb = j.data.bcdb.latest
+            # bcdb = j.data.bcdb.latest
+            raise RuntimeError("bcdb should be set")
         self.bcdb = bcdb
         if url is not None:
             self.schema = j.data.schema.schema_get(url=url)
@@ -29,10 +30,12 @@ class BCDBModel(JSBASE):
             if schema is None:
                 schema = SCHEMA #needs to be in code file
             self.schema = j.data.schema.schema_add(schema)
-        self.key = j.data.text.strip_to_ascii_dense(self.schema.url)
-        self.db = self.bcdb.zdbclient.namespace_new(name=self.key, maxsize=0, die=False)
-        self.index_enable = True
-
+        self.key = j.data.text.strip_to_ascii_dense(self.schema.url).replace(".","_")
+        if bcdb.dbclient.type == "RDB":
+            self.db = bcdb.dbclient
+        else:
+            self.db = self.bcdb.zdbclient.namespace_new(name=self.key, maxsize=0, die=False)
+        self.index_enable = index_enable
 
     def index_delete(self):
         pass
@@ -42,7 +45,10 @@ class BCDBModel(JSBASE):
         # self.logger.info("build index done")
 
     def destroy(self):
-        raise RuntimeError("not implemented yet, need to go to db and remove namespace")
+        if bcdb.dbclient.type == "RDB":
+            j.shell()
+        else:
+            raise RuntimeError("not implemented yet, need to go to db and remove namespace")
 
     def set(self, data, obj_id=None):
         """
@@ -82,16 +88,21 @@ class BCDBModel(JSBASE):
         l = [acl,crc, signature, bdata]
         data = msgpack.packb(l)
 
-        if obj_id is None:
-            # means a new one
-            obj_id = self.db.set(data)
+        if self.db.type == "ZDB":
+            if obj_id is None:
+                # means a new one
+                obj_id = self.db.set(data)
+            else:
+                self.db.set(data, key=obj_id)
         else:
-            self.db.set(data, key=obj_id)
+            if obj_id is None:
+                # means a new one
+                obj_id = self.db.incr("bcdb:%s:lastid" % self.key)-1
+            self.db.hset("bcdb:%s"%self.key, obj_id, data)
 
         obj.id = obj_id
 
         self.index_set(obj)
-
 
         return obj
 
@@ -114,10 +125,17 @@ class BCDBModel(JSBASE):
         if id == None:
             raise RuntimeError("id cannot be None")
 
-        data = self.db.get(id)
+        if self.db.type == "ZDB":
+            data = self.db.get(id)
+        else:
+            data = self.db.hget("bcdb:%s" % self.key, id)
 
         if not data:
             return None
+
+        return self._get(id,data,capnp=capnp)
+
+    def _get(self, id, data,capnp=False):
 
         res = msgpack.unpackb(data)
 
@@ -127,12 +145,68 @@ class BCDBModel(JSBASE):
             raise RuntimeError("not supported format in table yet")
 
         if capnp:
-            obj = self.schema.get(capnpbin=bdata)
-            return obj.data
+            # obj = self.schema.get(capnpbin=bdata)
+            # return obj.data
+            return bdata
         else:
             obj = self.schema.get(capnpbin=bdata)
             obj.id = id
             return obj
+
+    def iterate(self, method, key_start=None, direction="forward",
+                nrrecords=100000, _keyonly=False,
+                result=None):
+        """walk over the data and apply method as follows
+
+        call for each item:
+            '''
+            for each:
+                result = method(id,obj,result)
+            '''
+        result is the result of the previous call to the method
+
+        Arguments:
+            method {python method} -- will be called for each item found in the file
+
+        Keyword Arguments:
+            key_start is the start key, if not given will be start of database when direction = forward, else end
+
+        """
+        def method_zdb(id,data,result0):
+            method_ = result0["method"]
+            obj = self._get(id,data)
+            result0["result"] = method_(id=id,obj=obj,result=result0["result"])
+            return result0
+
+        if self.db.type == "ZDB":
+            result0 = {}
+            result0["result"] = result
+            result0["method"] = method
+
+            result0 = self.db.iterate(method=method_zdb,key_start=key_start,
+                            direction=direction,nrrecords=nrrecords,
+                            _keyonly=_keyonly,result=result0)
+
+            return result0["result"]
+
+        else:
+            #WE IGNORE Nrrecords
+            if not direction=="forward":
+                raise RuntimeError("not implemented, only forward iteration supported")
+            keys = [int(item.decode()) for item in self.db.hkeys("bcdb:%s" % self.key)]
+            keys.sort()
+            if len(keys)==0:
+                return result
+            if key_start==None:
+                key_start = keys[0]
+            for key in keys:
+                if key>=key_start:
+                    obj = self.get(id=key)
+                    result = method(id,obj,result)
+            return result
+
+
+
 
     def __str__(self):
         out = "model:%s\n"%self.key

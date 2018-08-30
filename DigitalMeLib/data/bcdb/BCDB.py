@@ -10,19 +10,42 @@ from .BCDBIndexModel import BCDBIndexModel
 
 class BCDB(JSBASE):
     
-    def __init__(self,zdbclient):
+    def __init__(self,dbclient,reset=False):
         JSBASE.__init__(self)
-        self.zdbclient = zdbclient
+        if  isinstance(dbclient,j.clients.redis.REDIS_CLIENT_CLASS):
+            dbclient.type = "RDB" #means is redis db
+        else:
+            dbclient.type = "ZDB"
+
+        self.dbclient = dbclient
         self.models = {}
         self.logger_enable()
 
-        self.index_create()
+        self.index_create(reset=reset)
+        if reset:
+            if self.dbclient.type == "ZDB":
+                print("IMPLEMENT")
+                j.shell()
+            else:
+                for item in self.dbclient.keys("bcdb:*"):
+                    self.dbclient.delete(item)
         j.data.bcdb.latest = self
 
     def index_create(self,reset=False):
         j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb"))
-        dest = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb",self.zdbclient.instance+".db")
-        j.sal.fs.remove(dest) #TODO:*1 is temporary untill some bugs are fixed
+        if self.dbclient.type == "ZDB":
+            instance = self.dbclient.instance
+        else:
+            if "path" in self.dbclient.connection_pool.connection_kwargs:
+                instance=self.dbclient.connection_pool.connection_kwargs["path"]
+            else:
+                print("need to find addr:port as identifier")
+                j.shell()
+            instance = j.data.text.strip_to_ascii_dense(instance)
+        dest = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb",instance+".db")
+        self.logger.info("bcdb:indexdb:%s"%dest)
+        if reset:
+            j.sal.fs.remove(dest)
         self.sqlitedb = SqliteDatabase(dest)
 
 
@@ -112,4 +135,4 @@ class BCDB(JSBASE):
         delete all objects in the zdb
         :return:
         """
-        self.zdbclient.destroy()
+        self.dbclient.destroy()

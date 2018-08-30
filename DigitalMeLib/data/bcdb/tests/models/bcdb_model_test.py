@@ -19,10 +19,10 @@ class BaseModel(Model):
         database = db
 
 class Index_jumpscale_bcdb_test_house(BaseModel):
-    id = IntegerField()
+    id = IntegerField(unique=True)
     name = TextField(index=True)
     active = BooleanField(index=True)
-    cost = IntegerField(index=True)
+    cost = FloatField(index=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
@@ -39,5 +39,9 @@ class Model(MODEL_CLASS):
         idict["active"] = obj.active
         idict["cost"] = obj.cost_usd
         idict["id"] = obj.id
-        self.index.create(**idict)
+        if not self.index.select().where(self.index.id == obj.id).count()==0:
+            #need to delete previous record from index
+            self.index.delete().where(self.index.id == obj.id).execute()
+        self.index.insert(**idict).execute()
+
     

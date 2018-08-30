@@ -14,7 +14,7 @@ class BaseModel(Model):
         database = db
 
 class Index_{{schema.key}}(BaseModel):
-    id = IntegerField()
+    id = IntegerField(unique=True)
     {%- for field in index.fields %}
     {{field.name}} = {{field.type}}(index=True)
     {%- endfor %}
@@ -46,5 +46,9 @@ class Model(MODEL_CLASS):
         {%- endif %}
         {%- endfor %}
         idict["id"] = obj.id
-        self.index.create(**idict)
+        if not self.index.select().where(self.index.id == obj.id).count()==0:
+            #need to delete previous record from index
+            self.index.delete().where(self.index.id == obj.id).execute()
+        self.index.insert(**idict).execute()
+
     {% endif %}

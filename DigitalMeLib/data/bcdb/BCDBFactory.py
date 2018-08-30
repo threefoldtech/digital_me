@@ -16,10 +16,10 @@ class BCDBFactory(JSBASE):
         self.__jslocation__ = "j.data.bcdb"
         self._code_generation_dir = None
 
-    def get(self, zdbclient):       
-        if j.data.types.string.check(zdbclient):
+    def get(self, dbclient,reset=False):
+        if j.data.types.string.check(dbclient):
             raise RuntimeError("zdbclient cannot be str")
-        return BCDB(zdbclient)
+        return BCDB(dbclient,reset=reset)
 
     @property
     def code_generation_dir(self):
@@ -77,11 +77,11 @@ class BCDBFactory(JSBASE):
         """
 
 
-        def load(start):
+        def load():
     
-            zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
-            db = j.data.bcdb.get(zdb_cl)
-            db.index_create(reset=start)
+            # db_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
+            db_cl = j.core.db #fall back onto redis
+            db = j.data.bcdb.get(db_cl,reset=True)
 
             model = db.model_create(schema=schema)
 
@@ -109,7 +109,7 @@ class BCDBFactory(JSBASE):
 
             return db
 
-        db = load(start=start)
+        db = load()
 
         m = db.model_get(url="despiegk.test")
         query = m.index.select()
@@ -153,15 +153,33 @@ class BCDBFactory(JSBASE):
 
         o.token_price = "10 USD"
         assert o.token_price_usd == 10
-        import pudb; pudb.set_trace()
         m.set(o)
         o2=m.get(o.id)
         assert o2.token_price_usd == 10
 
-        j.shell()
         assert m.index.select().where(m.index.id == o.id).first().token_price == 10
 
-        self.test2()
+        def do(id,obj,result):
+            result[obj.id]=obj.name
+            return result
+
+        result = m.iterate(do, key_start=0, direction="forward",
+                nrrecords=100000, _keyonly=False,
+                result={})
+
+        assert result == {0: 'name0',
+             1: 'name1',
+             2: 'name3',
+             3: 'name3',
+             4: 'name4',
+             5: 'name5',
+             6: 'name6',
+             7: 'name7',
+             8: 'name8',
+             9: 'name9'}
+
+        result = m.iterate(do, key_start=5, direction="forward",result={})
+        assert result == {5: 'name5', 6: 'name6', 7: 'name7', 8: 'name8', 9: 'name9'}
 
         print ("TEST DONE")
 
