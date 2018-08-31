@@ -34,7 +34,7 @@ class BCDBModel(JSBASE):
         if bcdb.dbclient.type == "RDB":
             self.db = bcdb.dbclient
         else:
-            self.db = self.bcdb.zdbclient.namespace_new(name=self.key, maxsize=0, die=False)
+            self.db = self.bcdb.dbclient.namespace_new(name=self.key, maxsize=0, die=False)
         self.index_enable = index_enable
 
     def index_delete(self):
