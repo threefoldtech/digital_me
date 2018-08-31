@@ -3,7 +3,6 @@ JSBASE = j.application.jsbase_get_class()
 
 schema = """
 @url = jumpscale.digitalme.package
-@name = DMPackage
 enabled = false (B)
 start = 0 (D)
 path = "" (S)
@@ -17,7 +16,6 @@ zrbotrepos = (LO) !jumpscale.digitalme.package.zrbotrepos
 schemas = (LO) !jumpscale.digitalme.package.schemas
 
 @url = jumpscale.digitalme.package.docsite
-@name = DMPackageDS
 name = "" (S)
 url = "" (S)
 path = "" (S)
@@ -25,7 +23,6 @@ publish = "" (S)
 enabled = false (B)
 
 @url = jumpscale.digitalme.package.blueprints
-@name = DMPackageBP
 name = "" (S)
 url = "" (S)
 path = "" (S)
@@ -34,49 +31,42 @@ enabled = false (B)
 links = (LO) !jumpscale.digitalme.package.bp.link
 
 @url = jumpscale.digitalme.package.bp.link
-@name = DMPackageBPL
 name = "" (S)
 url = "" (S)
 dest = "" (S)
 enabled = false (B)
 
 @url = jumpscale.digitalme.package.actors
-@name = DMPackageA
 name = "" (S)
 url = "" (S)
 path = "" (S)
 enabled = false (B)
 
 @url = jumpscale.digitalme.package.chatflow
-@name = DMPackageC
 name = "" (S)
 url = "" (S)
 path = "" (S)
 enabled = false (B)
 
 @url = jumpscale.digitalme.package.recipes
-@name = DMPackageR
 name = "" (S)
 url = "" (S)
 path = "" (S)
 enabled = false (B)
 
 @url = jumpscale.digitalme.package.docmacros
-@name = DMPackageDM
 name = "" (S)
 url = "" (S)
 path = "" (S)
 enabled = false (B)
 
 @url = jumpscale.digitalme.package.zrbotrepo
-@name = DMPackageZRR
 name = "" (S)
 url = "" (S)
 path = "" (S)
 enabled = false (B)
 
 @url = jumpscale.digitalme.package.schemas
-@name = DMPackageSC
 name = "" (S)
 url = "" (S)
 path = "" (S)
