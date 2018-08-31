@@ -34,7 +34,8 @@ class BCDBModel(JSBASE):
         if bcdb.dbclient.type == "RDB":
             self.db = bcdb.dbclient
         else:
-            self.db = self.bcdb.dbclient.namespace_new(name=self.key, maxsize=0, die=False)
+            self.db = self.bcdb.dbclient.namespace_new(name=self.key,
+                                                       maxsize=0, die=False)
         self.index_enable = index_enable
 
     def index_delete(self):
@@ -48,7 +49,8 @@ class BCDBModel(JSBASE):
         if bcdb.dbclient.type == "RDB":
             j.shell()
         else:
-            raise RuntimeError("not implemented yet, need to go to db and remove namespace")
+            raise RuntimeError("not implemented yet, need to go to db "
+                                "and remove namespace")
 
     def set(self, data, obj_id=None):
         """
@@ -72,7 +74,8 @@ class BCDBModel(JSBASE):
         elif j.data.types.dict.check(data):
             obj = self.schema.get(data)
         else:
-            raise RuntimeError("Cannot find data type, str,bin,obj or ddict is only supported")
+            raise RuntimeError("Cannot find data type, str,bin,obj or "
+                                "ddict is only supported")
 
 
         bdata = obj._data
@@ -118,7 +121,8 @@ class BCDBModel(JSBASE):
     def get(self, id, capnp=False):
         """
         @PARAM id is an int or a key
-        @PARAM capnp if true will return data as capnp binary object, no hook will be done !
+        @PARAM capnp if true will return data as capnp binary object,
+               no hook will be done !
         @RETURN obj    (.index is in obj)
         """
 
@@ -166,10 +170,12 @@ class BCDBModel(JSBASE):
         result is the result of the previous call to the method
 
         Arguments:
-            method {python method} -- will be called for each item found in the file
+            method {python method} -- will be called for each item found
+            in the file
 
         Keyword Arguments:
-            key_start is the start key, if not given will be start of database when direction = forward, else end
+            key_start is the start key, if not given will be start of 
+            database when direction = forward, else end
 
         """
         def method_zdb(id,data,result0):
@@ -192,8 +198,10 @@ class BCDBModel(JSBASE):
         else:
             #WE IGNORE Nrrecords
             if not direction=="forward":
-                raise RuntimeError("not implemented, only forward iteration supported")
-            keys = [int(item.decode()) for item in self.db.hkeys("bcdb:%s" % self.key)]
+                raise RuntimeError("not implemented, only forward iteration "
+                                   "supported")
+            keys = [int(item.decode()) for item in \
+                    self.db.hkeys("bcdb:%s" % self.key)]
             keys.sort()
             if len(keys)==0:
                 return result

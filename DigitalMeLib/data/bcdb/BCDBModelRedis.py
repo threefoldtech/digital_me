@@ -28,10 +28,12 @@ class BCDBModel(JSBASE):
             if not schema.name:
                 raise RuntimeError("schema name cannot be empty")
 
-        self.db = self.bcdb.dbclient.namespace_new(name=name, maxsize=0, die=False)
-        self.index = j.core.db  # only for now, will need better solution in future
+        self.db = self.bcdb.dbclient.namespace_new(name=name,
+                                                   maxsize=0, die=False)
+        self.index = j.core.db  # only for now, need better solution in future
         self.schema = schema
-        self._index_key = "index:%s:%s" % (self.bcdb.dbclient.instance, self.name)
+        self._index_key = "index:%s:%s" % (self.bcdb.dbclient.instance,
+                                           self.name)
         self.index_load()
 
     def index_delete(self):
@@ -51,7 +53,8 @@ class BCDBModel(JSBASE):
         self.logger.info("build index done")
 
     def destroy(self):
-        raise RuntimeError("not implemented yet, need to go to db and remove namespace")
+        raise RuntimeError("not implemented yet, need to go to db "
+                           "and remove namespace")
 
     def set(self, data, obj_id=None, hook=None):
         """
@@ -75,7 +78,8 @@ class BCDBModel(JSBASE):
         elif j.data.types.dict.check(data):
             obj = self.schema.get(data)
         else:
-            raise RuntimeError("Cannot find data type, str,bin,obj or ddict is only supported")
+            raise RuntimeError("Cannot find data type, str,bin,obj or "
+                           "ddict is only supported")
         bdata = obj.data
 
         # prepare the object for indexing
@@ -135,7 +139,8 @@ class BCDBModel(JSBASE):
 
     def get(self, id, capnp=False, hook=None, only_fields=[]):
         """
-        @PARAM capnp if true will return data as capnp binary object, no hook will be done !
+        @PARAM capnp if true will return data as capnp binary object,
+               no hook will be done !
         @RETURN obj    (.index is in obj)
         """
 
@@ -168,7 +173,8 @@ class BCDBModel(JSBASE):
                 obj = hook(obj)
             return obj
 
-    def find(self, hook=None, capnp=False, total_items_in_page=20, page_number=1, only_fields=[], **args):
+    def find(self, hook=None, capnp=False, total_items_in_page=20, 
+                   page_number=1, only_fields=[], **args):
 
         total_items_in_page = int(total_items_in_page)
         page_number = int(page_number)
@@ -217,7 +223,8 @@ class BCDBModel(JSBASE):
             if current > end:
                 break
 
-            obj = self.get(id=id, capnp=capnp, hook=hook, only_fields=only_fields)
+            obj = self.get(id=id, capnp=capnp, hook=hook,
+                           only_fields=only_fields)
             if not obj:
                 continue
             if capnp:
