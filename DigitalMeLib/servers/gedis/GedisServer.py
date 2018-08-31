@@ -23,8 +23,6 @@ TEMPLATE = """
     port = "9900"
     ssl = false
     adminsecret_ = ""
-    app_dir = ""
-    zdb_instance = ""
     """
 
 def waiter(job):
@@ -63,8 +61,11 @@ class GedisServer(StreamServer, JSConfigBase):
         redis_conn = Redis()
         self.workers_queue =  Queue(connection=redis_conn)
         self.workers_jobs = {}
-        
+        self.cmd_paths = []
+
         self.init()
+
+
 
     def job_schedule(self,method, timeout=60,wait=False,depends_on=None, **kwargs):
         """
@@ -107,21 +108,29 @@ class GedisServer(StreamServer, JSConfigBase):
         if self.code_generated_dir not in sys.path:
             sys.path.append(self.code_generated_dir)
 
+        self.cmd_paths=["%s/systemactors" % j.servers.gedis.path] #add the system actors
+        self.generate()
+
         # # make sure apps dir is created if not exists
         # if self.app_dir.strip() is "":
         #     raise RuntimeError("appdir cannot be empty")
         # j.sal.fs.createDir(self.app_dir)
 
-        # add the cmds to the server (from generated dir + app_dir)
-        self.bcdb_init() #make sure we know the schemas
-        self.code_generate_model_actors() #make sure we have the actors generated for the model, is in server on code generation dir
-
-        #now in code generation dir we have the actors generated for the model
-        #load the commands into the namespace of the server (self.cmds_add)
-        files = j.sal.fs.listFilesInDir(self.code_generated_dir,recursive=True, filter="*.py", exclude=["__*", "test*"]) 
-        files += j.sal.fs.listFilesInDir(self.app_dir+"/actors", recursive=True, filter="*.py", exclude=["__*"])
-        files += j.sal.fs.listFilesInDir("%s/systemactors"%j.servers.gedis.path, recursive=True,filter="*.py", exclude=["__*"])
-        for item in files:
+    def generate(self):
+        """
+        in self.cmd_paths are all the paths we need to go over to find cmds
+        :return:
+        """
+        # # add the cmds to the server (from generated dir + app_dir)
+        # # self.bcdb_init() #make sure we know the schemas
+        # self.code_generate_model_actors() #make sure we have the actors generated for the model, is in server on code generation dir
+        #
+        # #now in code generation dir we have the actors generated for the model
+        # #load the commands into the namespace of the server (self.cmds_add)
+        # files = j.sal.fs.listFilesInDir(self.code_generated_dir,recursive=True, filter="*.py", exclude=["__*", "test*"])
+        # files += j.sal.fs.listFilesInDir(self.app_dir+"/actors", recursive=True, filter="*.py", exclude=["__*"])
+        # files += j.sal.fs.listFilesInDir(, recursive=True,filter="*.py", exclude=["__*"])
+        for item in self.cmd_paths:
             namespace = self.instance + '.' + j.sal.fs.getBaseName(item)[:-3].lower()
             self.logger.debug("cmds generated add:%s"%item)
             self.cmds_add(namespace, path=item)
@@ -132,14 +141,14 @@ class GedisServer(StreamServer, JSConfigBase):
 
         self._inited = True        
 
-    def bcdb_init(self):
-        """
-        result is schema's are loaded & known, can be accesed in self.bcdb
-        """
-        zdb = j.clients.zdb.get(self.config.data["zdb_instance"])
-        bcdb = j.data.bcdb.get(zdb)
-        bcdb.tables_get(j.sal.fs.joinPaths(self.app_dir, 'schemas'))
-        self.bcdb = bcdb     
+    # def bcdb_init(self):
+    #     """
+    #     result is schema's are loaded & known, can be accesed in self.bcdb
+    #     """
+    #     zdb = j.clients.zdb.get(self.config.data["zdb_instance"])
+    #     bcdb = j.data.bcdb.get(zdb)
+    #     bcdb.tables_get(j.sal.fs.joinPaths(self.app_dir, 'schemas'))
+    #     self.bcdb = bcdb
 
     def code_generate_model_actors(self):
         """

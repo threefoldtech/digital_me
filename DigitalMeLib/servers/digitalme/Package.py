@@ -1,7 +1,7 @@
 from jumpscale import j
 JSBASE = j.application.jsbase_get_class()
 
-schema = """
+model = """
 @url = jumpscale.digitalme.package
 enabled = false (B)
 start = 0 (D)
@@ -13,7 +13,7 @@ chatflows = (LO) !jumpscale.digitalme.package.chatflows
 recipes = (LO) !jumpscale.digitalme.package.recipes
 docmacros = (LO) !jumpscale.digitalme.package.docmacros
 zrbotrepos = (LO) !jumpscale.digitalme.package.zrbotrepos
-schemas = (LO) !jumpscale.digitalme.package.schemas
+models = (LO) !jumpscale.digitalme.package.models
 
 @url = jumpscale.digitalme.package.docsite
 name = "" (S)
@@ -66,7 +66,7 @@ url = "" (S)
 path = "" (S)
 enabled = false (B)
 
-@url = jumpscale.digitalme.package.schemas
+@url = jumpscale.digitalme.package.models
 name = "" (S)
 url = "" (S)
 path = "" (S)
@@ -80,9 +80,9 @@ class Package(JSBASE):
     def __init__(self,path):
         JSBASE.__init__(self)
         self.path = j.sal.fs.getDirName(path)
-        j.data.schema.schema_add(schema)
-        self._schema = j.data.schema.schema_get(url="jumpscale.digitalme.package")
-        self.data = self._schema.new()
+        j.data.model.model_add(model)
+        self._model = j.data.model.model_get(url="jumpscale.digitalme.package")
+        self.data = self._model.new()
 
         data = j.data.serializer.toml.load(path)
         #be flexible
@@ -110,11 +110,11 @@ class Package(JSBASE):
                 obj = self.data.blueprints.new({"name":name, "enabled":True,
                                             "path":"%s/blueprints"%(self.path)})
 
-        if "schemas" in dir_items:
+        if "models" in dir_items:
             name = "%s_internal"%(self.name)
-            if name not in self.schemas:
-                obj = self.data.schemas.new({"name":name, "enabled":True,
-                                            "path":"%s/schemas"%(self.path)})
+            if name not in self.models:
+                obj = self.data.models.new({"name":name, "enabled":True,
+                                            "path":"%s/models"%(self.path)})
 
         if "chatflows" in dir_items:
             name = "%s_internal"%(self.name)
@@ -166,10 +166,10 @@ class Package(JSBASE):
                     obj = self.data.actors.new(item)
                     obj.path = j.clients.git.getContentPathFromURLorPath(obj.url)
 
-        if "schemas" in data:
-            for item in data["schemas"]:
-                if item["name"] not in self.schemas:
-                    obj = self.data.schemas.new(item)
+        if "models" in data:
+            for item in data["models"]:
+                if item["name"] not in self.models:
+                    obj = self.data.models.new(item)
                     obj.path = j.clients.git.getContentPathFromURLorPath(obj.url)
 
         if "recipes" in data:
@@ -218,8 +218,8 @@ class Package(JSBASE):
         return [item.name for item in self.data.actors]
 
     @property
-    def schemas(self):
-        return [item.name for item in self.data.schemas]
+    def models(self):
+        return [item.name for item in self.data.models]
 
     def load(self):
         """

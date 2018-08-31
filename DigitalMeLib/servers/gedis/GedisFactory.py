@@ -3,7 +3,7 @@ import os
 from jumpscale import j
 
 from .GedisServer import GedisServer
-from .GedisCmds import GedisActor
+from .GedisCmds import GedisCmds
 from .GedisChatBot import GedisChatBotFactory
 
 JSConfigBase = j.tools.configmanager.base_class_configs
@@ -34,49 +34,44 @@ class GedisFactory(JSConfigBase):
         bot = GedisChatBotFactory()
         bot.test()
 
-    def new(
-            self,
-            instance="test",
-            port=8889,
-            host="localhost",
-            app_dir="",
-            ssl=False,
-            secret="",
-            zdb_instance="",
-            path="",
-            reset=False
-        ):
-        """
-        creates new server on path, if not specified will be current path
-        will start from example app
-
-        js_shell 'j.servers.gedis.new(path="{{DIRS.TMPDIR}}/jumpscale/gedisapp/",reset=True)'
-
-        """
-
-        if path == "":
-            path = j.sal.fs.getcwd()
-        else:
-            path = j.tools.jinja2.text_render(path)
-
-        if reset:
-            j.sal.fs.removeDirTree(path)
-
-        if j.sal.fs.exists("%s/actors" % path) or j.sal.fs.exists("%s/schema" % path):
-            raise RuntimeError("cannot do new app because app or schema dir does exist.")
-
-        src = j.clients.git.getContentPathFromURLorPath(
-            "https://github.com/threefoldtech/jumpscale_lib/tree/development/apps/template")
-        dest = path
-        self.logger.info("copy templates to:%s" % dest)
-
-        gedis = self.configure(instance=instance, port=port, host=host, app_dir=path, ssl=ssl, secret="",
-                               zdb_instance=zdb_instance)
-
-        j.tools.jinja2.copy_dir_render(src, dest, reset=reset, j=j, name="aname", config=gedis.config.data,
-                                       instance=instance)
-
-        self.logger.info("gedis app now in: '%s'\n    do:\n    cd %s;sh start.sh" % (dest, dest))
+#     def new(
+#             self,
+#             instance="test",
+#             port=8889,
+#             host="localhost",
+#             ssl=False,
+#             adminsecret="",
+# ]        ):
+#         """
+#         creates new server on path, if not specified will be current path
+#         will start from example app
+#
+#         js_shell 'j.servers.gedis.new(path="{{DIRS.TMPDIR}}/jumpscale/gedisapp/",reset=True)'
+#
+#         """
+#
+#         if path == "":
+#             path = j.sal.fs.getcwd()
+#         else:
+#             path = j.tools.jinja2.text_render(path)
+#
+#         if reset:
+#             j.sal.fs.removeDirTree(path)
+#
+#         if j.sal.fs.exists("%s/actors" % path) or j.sal.fs.exists("%s/schema" % path):
+#             raise RuntimeError("cannot do new app because app or schema dir does exist.")
+#
+#         # src = j.clients.git.getContentPathFromURLorPath(
+#         #     "https://github.com/threefoldtech/jumpscale_lib/tree/development/apps/template")
+#         # dest = path
+#         # self.logger.info("copy templates to:%s" % dest)
+#
+#         gedis = self.configure(instance=instance, port=port, host=host, ssl=ssl, adminsecret=adminsecret)
+#
+#         # j.tools.jinja2.copy_dir_render(src, dest, reset=reset, j=j, name="aname", config=gedis.config.data,
+#         #                                instance=instance)
+#
+#         self.logger.info("gedis app now in: '%s'\n    do:\n    cd %s;sh start.sh" % (dest, dest))
 
     def geventservers_get(self, instance=""):
         """
@@ -90,10 +85,8 @@ class GedisFactory(JSConfigBase):
             instance="test",
             port=8889,
             host="localhost",
-            app_dir="",
             ssl=False,
-            secret="",
-            zdb_instance="",
+            adminsecret="",
             interactive=False,
             configureclient=True
     ):
@@ -105,14 +98,12 @@ class GedisFactory(JSConfigBase):
             "port": str(port),
             "host": host,
             "adminsecret_": secret,
-            "app_dir": app_dir,
             "ssl": ssl,
-            "zdb_instance": zdb_instance
         }
 
         if configureclient:
             j.clients.gedis.configure(instance=instance,
-                                      host=host, port=port, secret=secret, ssl=ssl, reset=True, get=False)
+                                      host=host, port=port, secret=adminsecret, ssl=ssl, reset=True, get=False)
 
         server=self.get(instance, data, interactive=interactive)
         server.client_configure() #configures the client
@@ -120,9 +111,9 @@ class GedisFactory(JSConfigBase):
 
     def _cmds_get(self, namespace, capnpbin):
         """
-        Used in client only
+        Used in client only, starts from capnpbin (python client)
         """
-        return GedisActor(namespace=namespace, capnpbin=capnpbin)
+        return GedisCmds(namespace=namespace, capnpbin=capnpbin)
 
     @property
     def path(self):

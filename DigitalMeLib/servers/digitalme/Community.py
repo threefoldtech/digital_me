@@ -44,8 +44,7 @@ class Community(JSBASE):
         self.service_dna = {}        #are the classes for services (which can run inside coordinators)
         self.knowledge = []          #are paths to the knowledge to learn
 
-        res = j.data.schema.schema_add(SCHEMA)
-        self.schema_state = res[0]
+        self.schema_state = j.data.schema.schema_add(SCHEMA)
 
         self._key = None
 

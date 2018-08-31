@@ -42,12 +42,14 @@ class DigitalMe(JSBASE):
         if p.name not in self.packages:
             self.packages[p.name]=p
 
-    def start(self,path="",nrworkers=0):
+    def start(self,path="",nrworkers=0,name="test"):
         """
         examples:
 
         js_shell 'j.servers.digitalme.start()'
         js_shell 'j.servers.digitalme.start(nrworkers=4)'
+
+        path can be git url or path
         """
 
         self.rack = self.server_rack_get()
@@ -63,13 +65,15 @@ class DigitalMe(JSBASE):
 
         zdbcl=j.clients.zdb.testdb_server_start_client_get()
 
-        pdir = j.clients.git.getContentPathFromURLorPath(
-            "https://github.com/threefoldtech/digital_me/tree/development/packages")
-
-        name="test"
+        if path is not "":
+            if not j.sal.fs.exists(path):
+                path = j.clients.git.getContentPathFromURLorPath(path)
+        else:
+            path = j.clients.git.getContentPathFromURLorPath(
+                "https://github.com/threefoldtech/digital_me/tree/development/packages")
 
         j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
-                                  zdb_instance=name, secret="", app_dir="", instance=name)
+                                  adminsecret="1234", instance=name)
         # configure a local webserver server (the master one)
         j.servers.web.configure(instance=name, port=8000, port_ssl=0, host="localhost", secret="", ws_dir="")
 
@@ -82,7 +86,7 @@ class DigitalMe(JSBASE):
             rack.workers_start(nrworkers)
 
 
-        self.packages_add(pdir)
+        self.packages_add(path)
 
 
         j.shell()
