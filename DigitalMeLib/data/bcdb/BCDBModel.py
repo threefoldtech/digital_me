@@ -206,7 +206,11 @@ class BCDBModel(JSBASE):
             return result
 
 
-
+    def get_all(self):
+        def do(id,obj,result):
+            result.append(obj)
+            return result
+        return self.iterate(do,result=[])
 
     def __str__(self):
         out = "model:%s\n"%self.key
