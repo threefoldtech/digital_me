@@ -37,16 +37,20 @@ class BCDBFactory(JSBASE):
     def MODEL_CLASS(self):
         return BCDBModel
 
-    @property
-    def PEEWEE_INDEX_CLASS(self):
-        db = j.data.bcdb.latest.sqlitedb
-        class BaseModel(Model):
-            class Meta:
-                database = db
-            def __repr__(self):
-                return (self.__dict__)
-            __str__ = __repr__
-        return BaseModel
+    # XXX needs to call self.get(something) to get latest.sqlitedb:
+    # db = self.get(something).latest.sqlitedb
+    # except this is a property, and you can't pass in an argument
+    # "something" into a property
+    #@property
+    #def PEEWEE_INDEX_CLASS(self):
+    #    db = j.data.bcdb.latest.sqlitedb
+    #    class BaseModel(Model):
+    #        class Meta:
+    #            database = db
+    #        def __repr__(self):
+    #            return (self.__dict__)
+    #        __str__ = __repr__
+    #    return BaseModel
 
     @property
     def _path(self):
