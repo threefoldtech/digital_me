@@ -5,8 +5,7 @@ import time
 
 JSBASE = j.application.jsbase_get_class()
 
-from pysyncobj.batteries import ReplDict
-from pysyncobj import *
+from pysyncobj.batteries import ReplDict, SyncObjConf
 
 
 class RaftServer(JSBASE):
