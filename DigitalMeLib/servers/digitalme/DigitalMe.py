@@ -117,7 +117,8 @@ class DigitalMe(JSBASE):
 
         ws_dir = j.clients.git.getContentPathFromURLorPath(
             "https://github.com/threefoldtech/digital_me/tree/development/digitalme")
-        j.servers.gedis.configure(host="localhost", port="8000", ssl=False, zdb_instance="test",
+        j.servers.gedis.configure(host="localhost", port="8000", ssl=False,
+                                  instance="test",
                                   secret="", app_dir=ws_dir, instance='test')
 
         gedis_server = j.servers.gedis.geventservers_get("test")
