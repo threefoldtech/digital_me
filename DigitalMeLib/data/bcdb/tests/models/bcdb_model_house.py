@@ -22,7 +22,7 @@ MODEL_CLASS = j.data.bcdb.MODEL_CLASS
 class Model(MODEL_CLASS):
 
     def __init__(self,bcdb=None):
-        MODEL_CLASS.__init__(self, schema=SCHEMA)
+        MODEL_CLASS.__init__(self, bcdb=bcdb, schema=SCHEMA)
 
     def _init(self):
         j.shell()

@@ -224,7 +224,10 @@ class ModelOBJ():
         {% endfor %}
         {% for prop in obj.lists %}
         #check if the list has the right type
-        d["{{prop.name}}"] = self.{{prop.alias}}.pylist(ddict=False)
+        if isinstance(self.{{prop.alias}}, List0):
+            d["{{prop.name}}"] = self.{{prop.alias}}.pylist(ddict=False)
+        else:
+            d["{{prop.name}}"] = self.{{prop.alias}}
         {% endfor %}
         if self.id is not None:
             d["id"]=self.id

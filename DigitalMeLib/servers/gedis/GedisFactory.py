@@ -129,7 +129,8 @@ class GedisFactory(JSConfigBase):
 
         if zdb_start:
             cl = j.clients.zdb.testdb_server_start_client_get(
-                start=zdb_start)  # starts & resets a zdb in seq mode with name test
+                reset=zdb_start)  # starts & resets a zdb in
+                                  # seq mode with name test
 
         dest = j.clients.git.getContentPathFromURLorPath(
             "https://github.com/threefoldtech/jumpscale_lib/tree/development/apps/example")
