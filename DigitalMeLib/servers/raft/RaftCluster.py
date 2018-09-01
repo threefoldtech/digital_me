@@ -50,6 +50,6 @@ class RaftCluster(JSConfigBase):
                 sstart(port)
 
         if not j.core.platformtype.myplatform.isMac:
-            print ("issue #33 - implement to find local ipaddr and "
+            raise Exception("issue #33 - implement to find local ipaddr and "
                    "then based on own addr decide to start locally or not")
-            from IPython import embed;embed(colors='Linux')
+            #from IPython import embed;embed(colors='Linux')
