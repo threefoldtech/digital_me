@@ -238,7 +238,9 @@ class Schema(JSBASE):
             self._obj_class = m.ModelOBJ
         return self._obj_class
 
-    def get(self,data={},capnpbin=None):
+    def get(self,data=None,capnpbin=None):
+        if data is None:
+            data = {}
         obj =  self.objclass(schema=self,data=data,capnpbin=capnpbin)
         return obj
 

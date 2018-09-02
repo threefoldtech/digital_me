@@ -78,10 +78,12 @@ class List0(collections.MutableSequence):
             res= [item for item in self._parent]
             return res
         
-    def new(self,data={}):
+    def new(self,data=None):
         """
         return new subitem, only relevant when there are pointer_types used
         """
+        if data is None:
+            data = {}
         if data is not {}:
             s = self.pointer_schema.get(data=data)
         else:

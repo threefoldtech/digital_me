@@ -13,7 +13,9 @@ class GedisBackendClientFactory(JSConfigBase):
         self.__jslocation__ = "j.clients.gedis_backend"
         JSConfigBase.__init__(self, GunClient)
 
-    def get(self, instance="main", data={}, create=True, die=True, interactive=True, type='gun'):
+    def get(self, instance="main", data=None, create=True, die=True, interactive=True, type='gun'):
+        if data is None:
+            data = {}
         if not create and instance not in self.list():
             if die:
                 raise RuntimeError("could not find instance:%s" % (instance))

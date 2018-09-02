@@ -22,7 +22,9 @@ class GedisFactory(JSConfigBase):
         self._code_test_template = None
         self._js_client_template = None
 
-    def get(self, instance='main', data={}, interactive=False):
+    def get(self, instance='main', data=None, interactive=False):
+        if data is None:
+            data = {}
 
         return super(GedisFactory, self).get(instance=instance, data=data, interactive=interactive)        
 

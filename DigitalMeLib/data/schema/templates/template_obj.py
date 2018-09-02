@@ -4,7 +4,9 @@ List0=j.data.schema.list_base_class_get()
 
 class ModelOBJ():
     
-    def __init__(self,schema,data={}, capnpbin=None):
+    def __init__(self,schema,data=None, capnpbin=None):
+        if data is None:
+            data = {}
         self._schema = schema
         self._capnp_schema = schema.capnp_schema
 

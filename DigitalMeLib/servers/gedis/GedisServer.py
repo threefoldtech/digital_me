@@ -32,7 +32,9 @@ def waiter(job):
 
 
 class GedisServer(StreamServer, JSConfigBase):
-    def __init__(self, instance, data={}, parent=None, interactive=False, template=None):
+    def __init__(self, instance, data=None, parent=None, interactive=False, template=None):
+        if data is None:
+            data = {}
         JSConfigBase.__init__(self, instance=instance, data=data, parent=parent, template=template or TEMPLATE, interactive=interactive)
 
         self.static_files = {}

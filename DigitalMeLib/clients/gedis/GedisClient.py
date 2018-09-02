@@ -28,7 +28,9 @@ class CmdsBase():
 
 class GedisClient(JSConfigBase):
 
-    def __init__(self, instance, data={}, parent=None, interactive=False, reset=False,configureonly=False):
+    def __init__(self, instance, data=None, parent=None, interactive=False, reset=False,configureonly=False):
+        if data is None:
+            data = {}
         JSConfigBase.__init__(self, instance=instance, data=data, parent=parent,template=TEMPLATE , interactive=interactive)
 
         j.clients.gedis.latest = self

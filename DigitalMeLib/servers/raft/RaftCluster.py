@@ -14,7 +14,9 @@ JSConfigBase = j.tools.configmanager.base_class_config
 
 class RaftCluster(JSConfigBase):
 
-    def __init__(self,instance, data={}, parent=None, interactive=False):
+    def __init__(self,instance, data=None, parent=None, interactive=False):
+        if data is None:
+            data = {}
         JSConfigBase.__init__(self, instance=instance, data=data,
                               parent=parent, template=TEMPLATE, ui=None, interactive=interactive)
 
