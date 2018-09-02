@@ -40,8 +40,6 @@ class SchemaFactory(JSBASE):
         url = url.lower().strip()
         if url in self.schemas:
             return self.schemas[url]
-        import IPython
-        IPython.embed()
         raise RuntimeError("could not find schema with url:%s"%url)
 
     def schema_add(self, schema, url=None):
@@ -73,7 +71,6 @@ class SchemaFactory(JSBASE):
 
         s = self._schemas_add(schema)
 
-        print ("add url", s.url, url)
         if url is not None:
             s.url = url
 
@@ -101,7 +98,6 @@ class SchemaFactory(JSBASE):
             if l.startswith("@url"):
                 if block is not "":
                     s = Schema(text=block)
-                    print ("_add url", s.url)
                     self.schemas[s.url] = s
                     res.append(s)
                 block = ""
@@ -110,7 +106,6 @@ class SchemaFactory(JSBASE):
 
         if block != "":
             s = Schema(text=block)
-            print ("block _add url", s.url)
             self.schemas[s.url] = s
             res.append(s)
 
@@ -158,7 +153,6 @@ class SchemaFactory(JSBASE):
         """
 
         s = j.data.schema.schema_add(schema)
-        print(s)
 
         o = s.get()
 
