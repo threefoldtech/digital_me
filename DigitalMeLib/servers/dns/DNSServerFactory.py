@@ -1,5 +1,5 @@
 
-from pprint import pprint as print
+from pprint import pprint 
 
 from jumpscale import j
 
@@ -27,7 +27,7 @@ class DNSServerFactory(JSBASE):
         """
         if background:
             if j.core.platformtype.myplatform.isMac and port<1025:
-                print("PLEASE GO TO TMUX SESSION, GIVE IN PASSWD FOR SUDO, do tmux a")
+                pprint("PLEASE GO TO TMUX SESSION, GIVE IN PASSWD FOR SUDO, do tmux a")
                 cmd = "sudo js_shell 'j.servers.dns.start(background=False,port=%s)'"%port
             else:
                 cmd = "js_shell 'j.servers.dns.start(background=False,port=%s)'"%port
@@ -61,7 +61,7 @@ class DNSServerFactory(JSBASE):
         message = b'PING'
         sock = socket.socket(type=socket.SOCK_DGRAM)
         sock.connect(address)
-        print ('Sending %s bytes to %s:%s' % ((len(message), ) + address))
+        pprint ('Sending %s bytes to %s:%s' % ((len(message), ) + address))
         sock.send(message)
         try:
             data, address = sock.recvfrom(8192)
@@ -86,16 +86,16 @@ class DNSServerFactory(JSBASE):
             message = b'PING'
             sock = socket.socket(type=socket.SOCK_DGRAM)
             sock.connect(address)
-            print ('Sending %s bytes to %s:%s' % ((len(message), ) + address))
+            pprint ('Sending %s bytes to %s:%s' % ((len(message), ) + address))
             sock.send(message)
             data, address = sock.recvfrom(8192)
-            print ('%s:%s: got %r' % (address + (data, )))
+            pprint ('%s:%s: got %r' % (address + (data, )))
             assert data == b"PONG"
 
         ping()
 
         ns = j.tools.dnstools.get(["localhost"],port=port)
 
-        print(ns.namerecords_get("google.com"))
-        print(ns.namerecords_get("info.despiegk"))
+        pprint(ns.namerecords_get("google.com"))
+        pprint(ns.namerecords_get("info.despiegk"))
 
