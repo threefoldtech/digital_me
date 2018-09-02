@@ -83,11 +83,9 @@ class List0(collections.MutableSequence):
         return new subitem, only relevant when there are pointer_types used
         """
         if data is None:
-            data = {}
-        if data is not {}:
-            s = self.pointer_schema.get(data=data)
-        else:
             s=self.pointer_schema.new()
+        else:
+            s = self.pointer_schema.get(data=data)
         self.append(s)
         return s
 
