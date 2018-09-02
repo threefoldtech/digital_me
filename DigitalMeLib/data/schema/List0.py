@@ -91,7 +91,12 @@ class List0(collections.MutableSequence):
 
     @property
     def pointer_schema(self):
-        if self._pointer_schema is None:
+        # issue #35 *REALLY* obscure bug, probably down to properties
+        # being accessed in the wrong order (some cached, some not)
+        # by ignoring self._pointer_schema and always re-generating
+        # using schema_get, the problem "goes away".
+        # definitely needs full investigation.
+        if True or self._pointer_schema is None:
             if self.schema_property.pointer_type==None:
                 raise RuntimeError("can only be used when pointer_types used")
             s =  j.data.schema.schema_get(url=self.schema_property.pointer_type)
