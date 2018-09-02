@@ -153,6 +153,7 @@ class SchemaFactory(JSBASE):
         """
 
         s = j.data.schema.schema_add(schema)
+        print (s)
 
         o = s.get()
 
