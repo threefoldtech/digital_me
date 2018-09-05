@@ -227,6 +227,9 @@ class Package(JSBASE):
         """
         rack = j.servers.digitalme.rack
         gedis = j.servers.gedis.latest
+
+        #need to load the blueprints, docsites, actors, ...
+
         for item in self.docsites:
 
             j.shell()

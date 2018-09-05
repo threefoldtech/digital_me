@@ -82,6 +82,7 @@ class DigitalMe(JSBASE):
         self.rack.add("gedis", j.servers.gedis.geventservers_get(name))
         self.rack.add("web", j.servers.web.geventserver_get(name))
 
+
         if nrworkers>0:
             rack.workers_start(nrworkers)
 
