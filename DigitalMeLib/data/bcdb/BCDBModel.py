@@ -31,11 +31,11 @@ class BCDBModel(JSBASE):
                 schema = SCHEMA  # needs to be in code file
             self.schema = j.data.schema.schema_add(schema)
         self.key = j.data.text.strip_to_ascii_dense(self.schema.url).replace(".", "_")
-        if bcdb.dbclient.type == "RDB":
-            self.db = bcdb.dbclient
-        else:
+        if bcdb.dbclient.type == "ZDB":
             self.db = self.bcdb.dbclient.namespace_new(name=self.key,
                                                        maxsize=0, die=False)
+        else:
+            self.db = bcdb.dbclient
         self.index_enable = index_enable
 
     def index_delete(self):
