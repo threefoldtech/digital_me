@@ -30,7 +30,8 @@ class BCDBModel(JSBASE):
             if schema is None:
                 schema = SCHEMA  # needs to be in code file
             self.schema = j.data.schema.schema_add(schema)
-        self.key = j.data.text.strip_to_ascii_dense(self.schema.url).replace(".", "_")
+        key = j.data.text.strip_to_ascii_dense(self.schema.url)
+        self.key = key.replace(".", "_")
         if bcdb.dbclient.dbtype == "ZDB":
             self.db = self.bcdb.dbclient.namespace_new(name=self.key,
                                                        maxsize=0, die=False)
@@ -90,17 +91,23 @@ class BCDBModel(JSBASE):
         l = [acl, crc, signature, bdata]
         data = msgpack.packb(l)
 
-        if self.db.dbtype == "ZDB":
+        if self.db.dbtype == "ETCD":
+            if obj_id is None:
+                # means a new one
+                obj_id = self.db.incr("bcdb:%s:lastid" % self.key)-1
+                ("bcdb:%s" % self.key, obj_id, data)
+            self.db.set(obj_id, data)
+        elif self.db.dbtype == "RDB":
+            if obj_id is None:
+                # means a new one
+                obj_id = self.db.incr("bcdb:%s:lastid" % self.key)-1
+            self.db.hset("bcdb:%s" % self.key, obj_id, data)
+        else:
             if obj_id is None:
                 # means a new one
                 obj_id = self.db.set(data)
             else:
                 self.db.set(data, key=obj_id)
-        else:
-            if obj_id is None:
-                # means a new one
-                obj_id = self.db.incr("bcdb:%s:lastid" % self.key)-1
-            self.db.hset("bcdb:%s" % self.key, obj_id, data)
 
         obj.id = obj_id
 

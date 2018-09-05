@@ -84,8 +84,8 @@ class BCDBFactory(JSBASE):
         def load():
     
             # db_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
-            db_cl = j.core.db #fall back onto redis
-            #db_cl = j.clients.etcd.get()
+            #db_cl = j.core.db #fall back onto redis
+            db_cl = j.clients.etcd.get()
             db = j.data.bcdb.get(db_cl,reset=True)
 
             model = db.model_create(schema=schema)
