@@ -31,7 +31,7 @@ class BCDBModel(JSBASE):
                 schema = SCHEMA  # needs to be in code file
             self.schema = j.data.schema.schema_add(schema)
         self.key = j.data.text.strip_to_ascii_dense(self.schema.url).replace(".", "_")
-        if bcdb.dbclient.type == "ZDB":
+        if bcdb.dbclient.dbtype == "ZDB":
             self.db = self.bcdb.dbclient.namespace_new(name=self.key,
                                                        maxsize=0, die=False)
         else:
@@ -46,7 +46,7 @@ class BCDBModel(JSBASE):
         # self.logger.info("build index done")
 
     def destroy(self):
-        if bcdb.dbclient.type == "RDB":
+        if bcdb.dbclient.dbtype == "RDB":
             j.shell()
         else:
             raise RuntimeError("not implemented yet, need to go to db "
@@ -90,7 +90,7 @@ class BCDBModel(JSBASE):
         l = [acl, crc, signature, bdata]
         data = msgpack.packb(l)
 
-        if self.db.type == "ZDB":
+        if self.db.dbtype == "ZDB":
             if obj_id is None:
                 # means a new one
                 obj_id = self.db.set(data)
@@ -128,7 +128,7 @@ class BCDBModel(JSBASE):
         if id == None:
             raise RuntimeError("id cannot be None")
 
-        if self.db.type == "ZDB":
+        if self.db.dbtype == "RDB":
             data = self.db.get(id)
         else:
             data = self.db.hget("bcdb:%s" % self.key, id)
@@ -183,7 +183,7 @@ class BCDBModel(JSBASE):
             result0["result"] = method_(id=id, obj=obj, result=result0["result"])
             return result0
 
-        if self.db.type == "ZDB":
+        if self.db.dbtype == "ZDB":
             result0 = {}
             result0["result"] = result
             result0["method"] = method

@@ -12,10 +12,6 @@ class BCDB(JSBASE):
     
     def __init__(self,dbclient,reset=False):
         JSBASE.__init__(self)
-        if  isinstance(dbclient,j.clients.redis.REDIS_CLIENT_CLASS):
-            dbclient.type = "RDB" #means is redis db
-        else:
-            dbclient.type = "ZDB"
 
         self.dbclient = dbclient
         self.models = {}
@@ -23,7 +19,7 @@ class BCDB(JSBASE):
 
         self.index_create(reset=reset)
         if reset:
-            if self.dbclient.type == "ZDB":
+            if self.dbclient.dbtype == "ZDB":
                 print("IMPLEMENT")
                 j.shell()
             else:
@@ -33,7 +29,7 @@ class BCDB(JSBASE):
 
     def index_create(self,reset=False):
         j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb"))
-        if self.dbclient.type == "ZDB":
+        if self.dbclient.dbtype == "ZDB":
             instance = self.dbclient.instance
         else:
             if "path" in self.dbclient.connection_pool.connection_kwargs:
