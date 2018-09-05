@@ -121,7 +121,7 @@ class Package(JSBASE):
                 obj = self.data.models.new({"name":name, "enabled":True,
                                             "path":"%s/models"%(self.path)})
 
-        if "chatflow" in dir_items:
+        if "chatflows" in dir_items:
             name = "%s_internal"%(self.name)
             if name not in self.chatflows:
                 obj = self.data.chatflows.new({"name":name, "enabled":True,
@@ -236,6 +236,7 @@ class Package(JSBASE):
         #need to load the blueprints, docsites, actors, ...
         self.chatflows_load()
         self.blueprints_load()
+        self.docsites_load()
 
     def chatflows_load(self):
         for item in self.data.chatflows:
@@ -246,3 +247,9 @@ class Package(JSBASE):
         for blueprint in self.data.blueprints:
             if blueprint.enabled:
                 j.servers.web.latest.loader.paths.append(blueprint.path)
+
+    def docsites_load(self):
+        for doc_site in self.data.docsites:
+            dir_items = j.sal.fs.listDirsInDir(doc_site.path, recursive=False, dirNameOnly=True)
+            for dir_name in dir_items:
+                j.tools.docsites.load(j.sal.fs.joinPaths(doc_site.path, dir_name), name=dir_name)
