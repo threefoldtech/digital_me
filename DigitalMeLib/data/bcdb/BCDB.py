@@ -29,9 +29,7 @@ class BCDB(JSBASE):
 
     def index_create(self,reset=False):
         j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb"))
-        if self.dbclient.dbtype == "ZDB":
-            instance = self.dbclient.instance
-        else:
+        if self.dbclient.dbtype == "RDB":
             if "path" in self.dbclient.connection_pool.connection_kwargs:
                 instance=self.dbclient.connection_pool.connection_kwargs["path"]
             else:
@@ -39,6 +37,8 @@ class BCDB(JSBASE):
                 conn_args = self.dbclient.connection_pool.connection_kwargs
                 instance = "%s:%s" % (conn_args['host'], conn_args['port'])
             instance = j.data.text.strip_to_ascii_dense(instance)
+        else:
+            instance = self.dbclient.instance
         dest = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb",instance+".db")
         self.logger.info("bcdb:indexdb:%s"%dest)
         if reset:
