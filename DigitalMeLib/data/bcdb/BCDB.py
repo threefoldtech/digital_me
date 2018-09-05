@@ -19,12 +19,12 @@ class BCDB(JSBASE):
 
         self.index_create(reset=reset)
         if reset:
-            if self.dbclient.dbtype == "ZDB":
-                print("IMPLEMENT")
-                j.shell()
-            else:
+            if self.dbclient.dbtype == "RDB":
                 for item in self.dbclient.keys("bcdb:*"):
                     self.dbclient.delete(item)
+            else:
+                print("IMPLEMENT")
+                j.shell()
         j.data.bcdb.latest = self
 
     def index_create(self,reset=False):
