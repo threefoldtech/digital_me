@@ -22,6 +22,8 @@ class BCDB(JSBASE):
             if self.dbclient.dbtype == "RDB":
                 for item in self.dbclient.keys("bcdb:*"):
                     self.dbclient.delete(item)
+            elif self.dbclient.dbtype == "ETCD":
+                print("CANNOT DELETE NAMESPACE HERE")
             else:
                 print("IMPLEMENT")
                 j.shell()

@@ -89,6 +89,8 @@ class BCDBFactory(JSBASE):
             db = j.data.bcdb.get(db_cl,reset=True)
 
             model = db.model_create(schema=schema)
+            if model.db.dbtype == 'ETCD':
+                model.db.delete_all()
 
             for i in range(10):
                 o = model.new()
@@ -104,6 +106,7 @@ class BCDBFactory(JSBASE):
                 o.name = "name%s" % i
                 o.email = "info%s@something.com" % i
                 o2 = model.set(o)
+                print (o2.id, i)
                 assert o2.id == i
 
             o3 = model.get(o2.id)

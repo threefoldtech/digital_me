@@ -95,8 +95,8 @@ class BCDBModel(JSBASE):
             if obj_id is None:
                 # means a new one
                 obj_id = self.db.incr("bcdb:%s:lastid" % self.key)-1
-                ("bcdb:%s" % self.key, obj_id, data)
-            self.db.set(obj_id, data)
+                key = ("bcdb:%s:%s" % (self.key, obj_id))
+            self.db.set(key, data)
         elif self.db.dbtype == "RDB":
             if obj_id is None:
                 # means a new one
@@ -137,6 +137,9 @@ class BCDBModel(JSBASE):
 
         if self.db.dbtype == "RDB":
             data = self.db.hget("bcdb:%s" % self.key, id)
+        elif self.db.dbtype == 'ETCD':
+            key = ("bcdb:%s:%s" % (self.key, id))
+            data = self.db.get(key)
         else:
             data = self.db.get(id)
 
@@ -206,8 +209,12 @@ class BCDBModel(JSBASE):
             if not direction == "forward":
                 raise RuntimeError("not implemented, only forward iteration "
                                    "supported")
-            keys = [int(item.decode()) for item in
-                    self.db.hkeys("bcdb:%s" % self.key)]
+            if self.db.dbtype == "ETCD":
+                keys = [int(item.decode()) for item in
+                        self.db.keys("bcdb:%s" % self.key)]
+            else:
+                keys = [int(item.decode()) for item in
+                        self.db.hkeys("bcdb:%s" % self.key)]
             keys.sort()
             if len(keys) == 0:
                 return result
@@ -215,7 +222,7 @@ class BCDBModel(JSBASE):
                 key_start = keys[0]
             for key in keys:
                 if key >= key_start:
-                    obj = self.get(id=key)
+                    obj = self.get(id=str(key))
                     result = method(id, obj, result)
             return result
 
