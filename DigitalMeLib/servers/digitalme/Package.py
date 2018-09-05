@@ -1,5 +1,7 @@
 from jumpscale import j
 JSBASE = j.application.jsbase_get_class()
+import sys
+from importlib import import_module
 
 model = """
 @url = jumpscale.digitalme.package
@@ -95,7 +97,7 @@ class Package(JSBASE):
         elif "enabled" in data:
             self.data.enabled =data["enabled"]
         elif "active" in data:
-            self.data.enabled =data["enabled"]
+            self.data.enabled =data["active"]
 
         self.data.name = j.sal.fs.getBaseName(self.path)
 
@@ -119,7 +121,7 @@ class Package(JSBASE):
                 obj = self.data.models.new({"name":name, "enabled":True,
                                             "path":"%s/models"%(self.path)})
 
-        if "chatflows" in dir_items:
+        if "chatflow" in dir_items:
             name = "%s_internal"%(self.name)
             if name not in self.chatflows:
                 obj = self.data.chatflows.new({"name":name, "enabled":True,
@@ -233,8 +235,14 @@ class Package(JSBASE):
 
         #need to load the blueprints, docsites, actors, ...
         self.chatflows_load()
+        self.blueprints_load()
 
     def chatflows_load(self):
         for item in self.data.chatflows:
             j.servers.gedis.latest.chatbot.chatflows_load(item.path)
         return
+
+    def blueprints_load(self):
+        for blueprint in self.data.blueprints:
+            if blueprint.enabled:
+                j.servers.web.latest.loader.paths.append(blueprint.path)

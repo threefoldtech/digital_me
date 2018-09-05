@@ -2,9 +2,8 @@ from jumpscale import j
 from gevent import monkey
 from .Community import Community
 from .ServerRack import ServerRack
-from .Package import Package
+from .Package import  Package
 from gevent import event, sleep
-
 JSBASE = j.application.jsbase_get_class()
 
 
@@ -50,7 +49,6 @@ class DigitalMe(JSBASE):
 
         path can be git url or path
         """
-
         self.rack = self.server_rack_get()
 
         def install_zrobot():
@@ -74,7 +72,7 @@ class DigitalMe(JSBASE):
         j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
                                   adminsecret="1234", instance=name)
         # configure a local webserver server (the master one)
-        j.servers.web.configure(instance=name, port=8000, port_ssl=0, host="localhost", secret="", ws_dir="")
+        j.servers.web.configure(instance=name, port=8000, port_ssl=0, host="0.0.0.0", secret="", ws_dir="")
 
         monkey.patch_all()
 
@@ -87,6 +85,7 @@ class DigitalMe(JSBASE):
 
 
         self.packages_add(path)
+        j.servers.web.latest.loader.load()
         self.rack.start()
         forever = event.Event()
         try:

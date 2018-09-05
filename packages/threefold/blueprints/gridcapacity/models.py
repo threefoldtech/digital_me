@@ -2,8 +2,8 @@ import os
 
 from jumpscale import j
 
-zdbclient = j.clients.zdb.testdb_server_start_client_get(start=False)
-db = j.data.bcdb.get(zdbclient)
+db_client = j.clients.redis_config.get().redis
+db = j.data.bcdb.get(db_client)
 db.tables_get(os.path.join(os.path.dirname(__file__), 'schemas'))
 
 Location = db.tables['location']
