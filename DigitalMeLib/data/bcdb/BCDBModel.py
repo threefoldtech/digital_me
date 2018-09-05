@@ -6,7 +6,7 @@ JSBASE = j.application.jsbase_get_class()
 
 
 class BCDBModel(JSBASE):
-    def __init__(self,bcdb=None,schema=None,url=None,index_enable=True):
+    def __init__(self, bcdb=None, schema=None, url=None, index_enable=True):
         """
         for query example see http://docs.peewee-orm.com/en/latest/peewee/query_examples.html
 
@@ -28,9 +28,9 @@ class BCDBModel(JSBASE):
             self.schema = j.data.schema.schema_get(url=url)
         else:
             if schema is None:
-                schema = SCHEMA #needs to be in code file
+                schema = SCHEMA  # needs to be in code file
             self.schema = j.data.schema.schema_add(schema)
-        self.key = j.data.text.strip_to_ascii_dense(self.schema.url).replace(".","_")
+        self.key = j.data.text.strip_to_ascii_dense(self.schema.url).replace(".", "_")
         if bcdb.dbclient.type == "RDB":
             self.db = bcdb.dbclient
         else:
@@ -50,7 +50,7 @@ class BCDBModel(JSBASE):
             j.shell()
         else:
             raise RuntimeError("not implemented yet, need to go to db "
-                                "and remove namespace")
+                               "and remove namespace")
 
     def set(self, data, obj_id=None):
         """
@@ -60,7 +60,7 @@ class BCDBModel(JSBASE):
         if ddict will put inside JSOBJ
 
         @RETURN JSOBJ
-        
+
         """
         if j.data.types.string.check(data):
             data = j.data.serializer.json.loads(data)
@@ -75,8 +75,7 @@ class BCDBModel(JSBASE):
             obj = self.schema.get(data)
         else:
             raise RuntimeError("Cannot find data type, str,bin,obj or "
-                                "ddict is only supported")
-
+                               "ddict is only supported")
 
         bdata = obj._data
 
@@ -88,7 +87,7 @@ class BCDBModel(JSBASE):
         crc = b""
         signature = b""
 
-        l = [acl,crc, signature, bdata]
+        l = [acl, crc, signature, bdata]
         data = msgpack.packb(l)
 
         if self.db.type == "ZDB":
@@ -101,7 +100,7 @@ class BCDBModel(JSBASE):
             if obj_id is None:
                 # means a new one
                 obj_id = self.db.incr("bcdb:%s:lastid" % self.key)-1
-            self.db.hset("bcdb:%s"%self.key, obj_id, data)
+            self.db.hset("bcdb:%s" % self.key, obj_id, data)
 
         obj.id = obj_id
 
@@ -112,10 +111,10 @@ class BCDBModel(JSBASE):
     def new(self):
         return self.schema.get()
 
-    def set_pre(self,obj):
+    def set_pre(self, obj):
         return obj
 
-    def index_set(self,obj):
+    def index_set(self, obj):
         pass
 
     def get(self, id, capnp=False):
@@ -137,9 +136,9 @@ class BCDBModel(JSBASE):
         if not data:
             return None
 
-        return self._get(id,data,capnp=capnp)
+        return self._get(id, data, capnp=capnp)
 
-    def _get(self, id, data,capnp=False):
+    def _get(self, id, data, capnp=False):
 
         res = msgpack.unpackb(data)
 
@@ -178,10 +177,10 @@ class BCDBModel(JSBASE):
             database when direction = forward, else end
 
         """
-        def method_zdb(id,data,result0):
+        def method_zdb(id, data, result0):
             method_ = result0["method"]
-            obj = self._get(id,data)
-            result0["result"] = method_(id=id,obj=obj,result=result0["result"])
+            obj = self._get(id, data)
+            result0["result"] = method_(id=id, obj=obj, result=result0["result"])
             return result0
 
         if self.db.type == "ZDB":
@@ -189,41 +188,39 @@ class BCDBModel(JSBASE):
             result0["result"] = result
             result0["method"] = method
 
-            result0 = self.db.iterate(method=method_zdb,key_start=key_start,
-                            direction=direction,nrrecords=nrrecords,
-                            _keyonly=_keyonly,result=result0)
+            result0 = self.db.iterate(method=method_zdb, key_start=key_start,
+                                      direction=direction, nrrecords=nrrecords,
+                                      _keyonly=_keyonly, result=result0)
 
             return result0["result"]
 
         else:
-            #WE IGNORE Nrrecords
-            if not direction=="forward":
+            # WE IGNORE Nrrecords
+            if not direction == "forward":
                 raise RuntimeError("not implemented, only forward iteration "
                                    "supported")
-            keys = [int(item.decode()) for item in \
+            keys = [int(item.decode()) for item in
                     self.db.hkeys("bcdb:%s" % self.key)]
             keys.sort()
-            if len(keys)==0:
+            if len(keys) == 0:
                 return result
-            if key_start==None:
+            if key_start == None:
                 key_start = keys[0]
             for key in keys:
-                if key>=key_start:
+                if key >= key_start:
                     obj = self.get(id=key)
-                    result = method(id,obj,result)
+                    result = method(id, obj, result)
             return result
-
 
     def get_all(self):
-        def do(id,obj,result):
+        def do(id, obj, result):
             result.append(obj)
             return result
-        return self.iterate(do,result=[])
+        return self.iterate(do, result=[])
 
     def __str__(self):
-        out = "model:%s\n"%self.key
-        out += j.data.text.prefix("    ",self.schema.text)
+        out = "model:%s\n" % self.key
+        out += j.data.text.prefix("    ", self.schema.text)
         return out
 
     __repr__ = __str__
-
