@@ -129,9 +129,9 @@ class BCDBModel(JSBASE):
             raise RuntimeError("id cannot be None")
 
         if self.db.dbtype == "RDB":
-            data = self.db.get(id)
-        else:
             data = self.db.hget("bcdb:%s" % self.key, id)
+        else:
+            data = self.db.get(id)
 
         if not data:
             return None
