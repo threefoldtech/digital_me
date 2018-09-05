@@ -6,3 +6,5 @@ name = "base"
 url = "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static"
 dest = "static/"
 
+[chatflow]
+name = "My chat flows"

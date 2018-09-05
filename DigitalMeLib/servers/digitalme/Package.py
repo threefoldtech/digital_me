@@ -9,7 +9,7 @@ path = "" (S)
 docsites = (LO) !jumpscale.digitalme.package.docsite
 blueprints = (LO) !jumpscale.digitalme.package.blueprints
 actors = (LO) !jumpscale.digitalme.package.actors
-chatflows = (LO) !jumpscale.digitalme.package.chatflows
+chatflows = (LO) !jumpscale.digitalme.package.chatflow
 recipes = (LO) !jumpscale.digitalme.package.recipes
 docmacros = (LO) !jumpscale.digitalme.package.docmacros
 zrbotrepos = (LO) !jumpscale.digitalme.package.zrbotrepos
@@ -235,4 +235,6 @@ class Package(JSBASE):
         self.chatflows_load()
 
     def chatflows_load(self):
-        pass
+        for item in self.data.chatflows:
+            j.servers.gedis.latest.chatbot.chatflows_load(item.path)
+        return

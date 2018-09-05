@@ -33,19 +33,16 @@ class GedisChatBotFactory(JSBASE):
         bot = self.sessions[sessionid]
         return bot.q_in.put(val)
 
-    def chatflows_load(self):
+    def chatflows_load(self, chatflows_dir):
         """
-        look for the chat flows exist in the appdir underneath dir "chatflows"
-        will load them all under self.chat_flows
+        look for the chat flows exist in chatflow_dir to load them all under self.chat_flows
         """
-        print("chatflows_load")
-        chatflowdir = "%s/chatflows" % self.ws.config.data["app_dir"]
-        for chatdir in j.sal.fs.listFilesInDir(chatflowdir, recursive=True, filter="*.py", followSymlinks=True):
-            dpath = j.sal.fs.getDirName(chatdir)
+        for chatflow in j.sal.fs.listFilesInDir(chatflows_dir, recursive=True, filter="*.py", followSymlinks=True):
+            dpath = j.sal.fs.getDirName(chatflow)
             if dpath not in sys.path:
                 sys.path.append(dpath)
-            self.logger.info("chat:%s" % chatdir)
-            modulename = j.sal.fs.getBaseName(chatdir)[:-3]
+            self.logger.info("chat:%s" % chatflow)
+            modulename = j.sal.fs.getBaseName(chatflow)[:-3]
             if modulename.startswith("_"):
                 continue
             loaded_module = import_module(modulename)

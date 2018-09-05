@@ -2,9 +2,8 @@ from jumpscale import j
 from gevent import monkey
 from .Community import Community
 from .ServerRack import ServerRack
-from .Package import  Package
-from gevent import time
-import gevent
+from .Package import Package
+from gevent import event, sleep
 
 JSBASE = j.application.jsbase_get_class()
 
@@ -84,19 +83,16 @@ class DigitalMe(JSBASE):
 
 
         if nrworkers>0:
-            rack.workers_start(nrworkers)
+            self.rack.workers_start(nrworkers)
 
 
         self.packages_add(path)
-
-
-        j.shell()
-
-
-
-        from IPython import embed; embed()
-        s
-
+        self.rack.start()
+        forever = event.Event()
+        try:
+            forever.wait()
+        except KeyboardInterrupt:
+            self.rack.stop()
 
     def server_rack_get(self):
 
@@ -161,6 +157,6 @@ class DigitalMe(JSBASE):
 
         rack.start()
 
-        gevent.sleep(1000000000)
+        sleep(1000000000)
 
         rack.stop()
