@@ -12,7 +12,7 @@ class GedisChatBotFactory(JSBASE):
         self.ws = ws
         self.sessions = {}  # open chatsessions
         self.chat_flows = {}  # are the flows to run, code being executed to talk with user
-        self.chatflows_load()
+        # self.chatflows_load()
         self.sessions_id_latest = 0
 
     def session_new(self, topic):

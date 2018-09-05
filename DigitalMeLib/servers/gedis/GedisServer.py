@@ -51,7 +51,7 @@ class GedisServer(StreamServer, JSConfigBase):
         self.host = self.config.data["host"]
         self.port = int(self.config.data["port"])
         self.address = '{}:{}'.format(self.host, self.port)
-        self.app_dir = self.config.data["app_dir"]
+        # self.app_dir = self.config.data["app_dir"]
         self.ssl = self.config.data["ssl"]
 
         self.web_client_code = None
@@ -133,6 +133,12 @@ class GedisServer(StreamServer, JSConfigBase):
         # files += j.sal.fs.listFilesInDir(self.app_dir+"/actors", recursive=True, filter="*.py", exclude=["__*"])
         # files += j.sal.fs.listFilesInDir(, recursive=True,filter="*.py", exclude=["__*"])
         for item in self.cmd_paths:
+            if j.sal.fs.isDir(item):
+                files = j.sal.fs.listFilesAndDirsInDir(item)
+                for file in files:
+                    if not "__" in file:
+                        self.cmd_paths.append(file)
+                continue
             namespace = self.instance + '.' + j.sal.fs.getBaseName(item)[:-3].lower()
             self.logger.debug("cmds generated add:%s"%item)
             self.cmds_add(namespace, path=item)

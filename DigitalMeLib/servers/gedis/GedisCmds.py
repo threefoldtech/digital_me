@@ -49,19 +49,18 @@ class GedisCmds(JSBASE):
         else:
 
             dname = j.sal.fs.getDirName(path)
-            # if dname not in sys.path:
-            #     sys.path.append(dname)
-            # exec("from %s import %s" % (classname, classname))
-            # class_ = eval(classname)
-            key="%s_%s"%(namespace,name)
-            mymodule = SourceFileLoader(key, path).load_module()
-            class_ = eval("mymodule.%s"%self._class_find_name())
+            if dname not in sys.path:
+                sys.path.append(dname)
+            classname = self._class_find_name()
+            exec("from %s import %s" % (classname, classname))
+            class_ = eval(classname)
             self.server.classes[name] = class_()
 
-            j.shell()
+            # j.shell()
 
             self.data = self.schema.new()
             self.data.name = name
+            self.data.namespace = name
 
             for name,item in inspect.getmembers(class_):
                 if name.startswith("_"):

@@ -60,7 +60,7 @@ class SchemaFactory(JSBASE):
             if self._schema_from_url(url) is not None:
                 #check if its url
                 return self._schema_from_url(url)
-            else:
+            elif not schema:
                 raise RuntimeError("url not found for schema:%s"%url)
 
         if schema is None:

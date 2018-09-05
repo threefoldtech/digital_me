@@ -80,8 +80,11 @@ class Package(JSBASE):
     def __init__(self,path):
         JSBASE.__init__(self)
         self.path = j.sal.fs.getDirName(path)
-        j.data.model.model_add(model)
-        self._model = j.data.model.model_get(url="jumpscale.digitalme.package")
+        db_client = j.clients.redis_config.get().redis
+        self.bcdb = j.data.bcdb.get(db_client)
+        schema_model = j.data.bcdb.MODEL_CLASS(bcdb=self.bcdb, schema=model)
+        self.bcdb.model_add(schema_model)
+        self._model = self.bcdb.model_get(url="jumpscale.digitalme.package")
         self.data = self._model.new()
 
         data = j.data.serializer.toml.load(path)
@@ -229,11 +232,7 @@ class Package(JSBASE):
         gedis = j.servers.gedis.latest
 
         #need to load the blueprints, docsites, actors, ...
+        self.chatflows_load()
 
-        for item in self.docsites:
-
-            j.shell()
-
-        for item in self.actors:
-            j.shell()
-            gedis.cmds_add()
+    def chatflows_load(self):
+        pass

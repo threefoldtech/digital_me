@@ -40,7 +40,8 @@ class BCDB(JSBASE):
                 instance=self.dbclient.connection_pool.connection_kwargs["path"]
             else:
                 print("need to find addr:port as identifier")
-                j.shell()
+                conn_args = self.dbclient.connection_pool.connection_kwargs
+                instance = "%s:%s" % (conn_args['host'], conn_args['port'])
             instance = j.data.text.strip_to_ascii_dense(instance)
         dest = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb",instance+".db")
         self.logger.info("bcdb:indexdb:%s"%dest)

@@ -93,13 +93,10 @@ class GedisFactory(JSConfigBase):
             configureclient=True
     ):
 
-        if app_dir == "":
-            app_dir = j.sal.fs.getcwd()
-
         data = {
             "port": str(port),
             "host": host,
-            "adminsecret_": secret,
+            "adminsecret_": adminsecret,
             "ssl": ssl,
         }
 
