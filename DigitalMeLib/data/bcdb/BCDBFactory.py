@@ -175,6 +175,7 @@ class BCDBFactory(JSBASE):
                 nrrecords=100000, _keyonly=False,
                 result={})
 
+        print (result)
         assert result == {0: 'name0',
              1: 'name1',
              2: 'name3',
