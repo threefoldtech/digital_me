@@ -22,7 +22,7 @@ class GedisChatBotFactory(JSBASE):
         self.sessions_id_latest += 1
         topic_method = self.chat_flows[topic]
         bot = GedisChatBotSession(self.sessions_id_latest, topic_method)
-        self.sessions[self.sessions_id_latest] = bot
+        self.sessions[str(self.sessions_id_latest)] = bot
         return self.sessions_id_latest
 
     def session_work_get(self, sessionid):

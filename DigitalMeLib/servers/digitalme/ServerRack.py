@@ -81,7 +81,7 @@ class ServerRack(JSBASE):
                 server.start()
                 started.append(server)
                 name = getattr(server, 'name', None) or server.__class__.__name__ or 'Server'
-                self.logger.info('%s started on %s', name, server.address)
+                self.logger.info('%s started on %s' % (name, server.address))
         except:
             self.stop(started)
             raise
