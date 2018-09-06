@@ -140,10 +140,12 @@ class Package(JSBASE):
                                             "path":"%s/doc_macros"%(self.path)})
 
         if "docs" in dir_items:
-            name = "%s_internal"%(self.name)
-            if name not in self.docsites:
-                obj = self.data.docsites.new({"name":name, "enabled":True,
-                                            "path":"%s/docs"%(self.path)})
+            docs_dir = j.sal.fs.joinPaths(self.path, "docs")
+            dir_items = j.sal.fs.listDirsInDir(docs_dir,
+                                               recursive=False, dirNameOnly=True)
+            for dir_name in dir_items:
+                self.data.docsites.new({"name": dir_name, "enabled": True,
+                                        "path": j.sal.fs.joinPaths(docs_dir, dir_name)})
 
         #TODO: *1 finish & test
 
@@ -250,6 +252,4 @@ class Package(JSBASE):
 
     def docsites_load(self):
         for doc_site in self.data.docsites:
-            dir_items = j.sal.fs.listDirsInDir(doc_site.path, recursive=False, dirNameOnly=True)
-            for dir_name in dir_items:
-                j.tools.docsites.load(j.sal.fs.joinPaths(doc_site.path, dir_name), name=dir_name)
+            j.tools.docsites.load(doc_site.path, doc_site.name)
