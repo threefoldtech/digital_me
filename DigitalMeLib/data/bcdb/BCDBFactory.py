@@ -94,7 +94,10 @@ class BCDBFactory(JSBASE):
             # every schema, not just the model being done, now.  destroying
             # every schema is not thread- or multi-process safe.
             if model.db.dbtype == 'ETCD':
-                model.db.delete_all()
+                try:
+                    model.db.delete_all()
+                except KeyError:
+                    pass
             elif model.db.dbtype == 'RDB':
                 for item in model.db.keys("bcdb:%s" % model.key):
                     model.db.delete(item)
