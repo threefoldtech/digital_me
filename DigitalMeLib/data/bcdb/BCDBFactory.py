@@ -86,11 +86,20 @@ class BCDBFactory(JSBASE):
             # db_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
             #db_cl = j.core.db #fall back onto redis
             db_cl = j.clients.etcd.get()
-            db = j.data.bcdb.get(db_cl,reset=True)
+            db = j.data.bcdb.get(db_cl, reset=False) # don't reset, delete below
 
             model = db.model_create(schema=schema)
+
+            # reset is at too low a level and is destroying absolutely
+            # every schema, not just the model being done, now.  destroying
+            # every schema is not thread- or multi-process safe.
             if model.db.dbtype == 'ETCD':
                 model.db.delete_all()
+            elif model.db.dbtype == 'RDB':
+                for item in model.db.keys("bcdb:%s" % model.key):
+                    model.db.delete(item)
+                model.db.delete("bcdb:%s:lastid" % model.key)
+
 
             for i in range(10):
                 o = model.new()
