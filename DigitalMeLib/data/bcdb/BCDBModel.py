@@ -94,7 +94,7 @@ class BCDBModel(JSBASE):
         if self.db.dbtype == "ETCD":
             if obj_id is None:
                 # means a new one
-                obj_id = self.db.incr("bcdb:%s:lastid" % self.key)-1
+                obj_id = self.db.incr("kbcdb:%s:lastid" % self.key)-1
             key = ("bcdb/%s" % (obj_id))
             self.db.set(key, data)
         elif self.db.dbtype == "RDB":
