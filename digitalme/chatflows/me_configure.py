@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 
 def chat(bot):
     """
@@ -28,7 +28,7 @@ def chat(bot):
 
     """
 
-    R2 = j.tools.jinja2.text_render(j.data.text.strip(R),**locals())
+    R2 = j.tools.jinja2.text_render(j.core.text.strip(R),**locals())
 
     bot.md_show(R2)
 

@@ -4,7 +4,7 @@ import g8storclient
 import hashlib
 import tarfile
 import redis
-from jumpscale import j
+from Jumpscale import j
 
 
 class HubFlist:

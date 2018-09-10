@@ -1,5 +1,5 @@
 
-from jumpscale import j
+from Jumpscale import j
 import inspect
 import imp
 
@@ -90,15 +90,15 @@ class GedisCmd(JSBASE):
 
     @property
     def code_indent(self):
-        return j.data.text.indent(self.cmdobj.code)
+        return j.core.text.indent(self.cmdobj.code)
 
     @property
     def comment_indent(self):
-        return j.data.text.indent(self.cmdobj.comment).rstrip()
+        return j.core.text.indent(self.cmdobj.comment).rstrip()
 
     @property
     def comment_indent2(self):
-        return j.data.text.indent(self.cmdobj.comment,nspaces=8).rstrip()
+        return j.core.text.indent(self.cmdobj.comment,nspaces=8).rstrip()
 
     @property
     def method_generated(self):

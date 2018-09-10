@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 from .GunClient import GunClient
 
 JSConfigBase = j.tools.configmanager.base_class_configs

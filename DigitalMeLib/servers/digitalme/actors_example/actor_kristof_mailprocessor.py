@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 import gevent
 JSBASE = j.servers.digitalme.actor_class_get()
 

@@ -1,5 +1,5 @@
 # from flask import Blueprint
-# from jumpscale import j
+# from Jumpscale import j
 
 # staticpath = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech//jumpscale_weblibs/tree/master/static")
 
@@ -21,7 +21,7 @@
 
 
 from flask import Blueprint
-from jumpscale import j
+from Jumpscale import j
 
 name =  j.sal.fs.getDirName(__file__,True)
 staticpath = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static")

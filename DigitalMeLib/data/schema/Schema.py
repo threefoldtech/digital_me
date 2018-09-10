@@ -33,10 +33,10 @@ class Schema(JSBASE):
             self.url =  self._systemprops["url"]
         out="\nerror in schema:\n"
         out+="    url:%s\n"%self.url
-        out+="    msg:%s\n"%j.data.text.prefix("    ",msg)
+        out+="    msg:%s\n"%j.core.text.prefix("    ",msg)
         if e is not None:
             out+="\nERROR:\n"
-            out+=j.data.text.prefix("        ",str(e))
+            out+=j.core.text.prefix("        ",str(e))
         raise RuntimeError(out)
 
     def _proptype_get(self, txt):

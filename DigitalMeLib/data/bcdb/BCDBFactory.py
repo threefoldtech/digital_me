@@ -1,5 +1,5 @@
 
-from jumpscale import j
+from Jumpscale import j
 
 from .BCDB import BCDB
 

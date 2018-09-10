@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 from .ActorBase import ActorBase
 
 class Coordinator(ActorBase):
@@ -16,7 +16,7 @@ class Coordinator(ActorBase):
     @property
     def key(self):
         if self._key == None:
-            self._key = "%s"%(j.data.text.strip_to_ascii_dense(self.name))
+            self._key = "%s"%(j.core.text.strip_to_ascii_dense(self.name))
         return self._key
 
 

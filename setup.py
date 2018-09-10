@@ -6,7 +6,7 @@ import os
 
 
 def _post_install(libname, libpath):
-    from jumpscale import j
+    from Jumpscale import j
     # add this plugin to the config
     c = j.core.state.configGet('plugins', defval={})
     c[libname] = "%s/github/threefoldtech/digital_me/DigitalMeLib" % j.dirs.CODEDIR

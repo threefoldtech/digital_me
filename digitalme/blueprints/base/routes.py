@@ -1,5 +1,5 @@
 from flask import render_template, redirect, request, url_for
-from jumpscale import j
+from Jumpscale import j
 from blueprints.base import blueprint
 # from blueprints import login_manager
 

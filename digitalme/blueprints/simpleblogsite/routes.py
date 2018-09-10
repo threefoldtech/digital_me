@@ -1,7 +1,7 @@
 import io
 from flask import render_template, redirect, send_file
 from blueprints.simpleblogsite import *
-from jumpscale import j
+from Jumpscale import j
 
 login_manager = j.servers.web.latest.loader.login_manager
 

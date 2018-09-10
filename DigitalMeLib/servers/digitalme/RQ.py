@@ -1,5 +1,5 @@
 
-from jumpscale import j
+from Jumpscale import j
 
 JSBASE = j.application.jsbase_get_class()
 
@@ -23,7 +23,7 @@ import gipc
 # def subprocess(cend,nr):
 #     """
 #     """
-#     from jumpscale import j
+#     from Jumpscale import j
 #     cend.put("log: init %s"%nr)
 #     try:
 #         while True:
@@ -35,7 +35,7 @@ import gipc
 # def subprocess2(nr):
 #     """
 #     """
-#     from jumpscale import j
+#     from Jumpscale import j
 #     import time
 #     time.sleep(1)
 #     if nr/10==int(nr/10):
@@ -60,7 +60,7 @@ def workers(nr=4):
 
 
 from rq import Connection, Worker    
-from jumpscale import j
+from Jumpscale import j
 
 def worker():
     """

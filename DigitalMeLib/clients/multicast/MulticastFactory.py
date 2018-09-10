@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 from .MulticastClient import MulticastClient
 
 JSConfigBase = j.tools.configmanager.base_class_configs

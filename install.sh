@@ -15,5 +15,5 @@ pip3 install flask_sockets html2text pyblake2 flask_login flask_sqlalchemy gipc
 pip3 install -e .
 
 
-python3 -c "from jumpscale import j;j.servers.zdb.build()"
-python3 -c "from jumpscale import j;j.tools.jsloader.generate()"
+python3 -c "from Jumpscale import j;j.servers.zdb.build()"
+python3 -c "from Jumpscale import j;j.tools.jsloader.generate()"

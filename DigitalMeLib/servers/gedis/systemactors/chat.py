@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 
 # BE CAREFUL MASTER IS IN: /code/github/rivine/recordchain/Jumpscale9RecordChain/servers/gedis/base/actors/chat.py
 

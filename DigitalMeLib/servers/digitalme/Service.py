@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 from .ActorBase import ActorBase
 
 class Service(ActorBase):
@@ -19,7 +19,7 @@ class Service(ActorBase):
     @property
     def key(self):
         if self._key == None:
-            self._key ="%s_%s"%(j.data.text.strip_to_ascii_dense(self.name),j.data.text.strip_to_ascii_dense(self.instance))
+            self._key ="%s_%s"%(j.core.text.strip_to_ascii_dense(self.name),j.core.text.strip_to_ascii_dense(self.instance))
         return self._key
 
 

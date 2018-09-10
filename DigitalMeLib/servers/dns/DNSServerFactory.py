@@ -1,7 +1,7 @@
 
 from pprint import pprint as print
 
-from jumpscale import j
+from Jumpscale import j
 
 from .DNSServer import DNSServer
 import os

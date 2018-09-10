@@ -1,6 +1,6 @@
 import os
 import sys
-from jumpscale import j
+from Jumpscale import j
 import imp
 from redis.connection import ConnectionError
 
