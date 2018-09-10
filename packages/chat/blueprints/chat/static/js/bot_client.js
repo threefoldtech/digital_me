@@ -1,3 +1,4 @@
+import {default as client} from '/chat/jsclient.js';
 var stringContentGenerate = function (message){
     return `
     <h4>${message}</h4>

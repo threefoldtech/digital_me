@@ -1,4 +1,4 @@
-from flask import render_template, redirect, jsonify, request
+from flask import render_template, redirect, make_response, request
 from blueprints.chat import *
 from jumpscale import j
 import json
@@ -80,6 +80,17 @@ def add():
 @blueprint.route('/<template>')
 def route_template(template):
     return render_template(template)
+
+@blueprint.route('/jsclient.js')
+def load_js_client():
+    scheme = "ws"
+    if request.scheme == "https":
+        scheme = "wss"
+    js_code = j.servers.gedis.latest.code_js_client
+    js_client = js_code.replace("%%host%%", "{scheme}://{host}/chat/ws/gedis".format(scheme=scheme, host=request.host))
+    res = make_response(js_client)
+    res.headers['content-type'] = "application/javascript"
+    return res
 
 
 @ws_blueprint.route('/ws/gedis')

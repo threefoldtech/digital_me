@@ -1,6 +1,6 @@
 // SERVER_DOMAIN & SERVER_PORT will come from the client.js 
 const client = (function(){
-    var socket = new WebSocket("wss://%%host%%/");
+    var socket = new WebSocket("%%host%%");
     var connected = false
     var connect = ()=> {
         return new Promise(res =>{
