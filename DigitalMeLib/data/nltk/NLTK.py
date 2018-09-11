@@ -13,7 +13,7 @@ CHARS_NONVOWEL = {98:0,99:1,100:2,102:3,103:4,104:5,106:6,107:7,108:8,109:9,110:
 NUMBERS = {48:0,49:1,50:2,51:3,52:4,53:5,54:6,55:7,56:8,57:9}
 NONVOWELS_ORD=[item for item in CHARS_NONVOWEL.keys()]
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class NLTKFactory(JSBASE):

@@ -6,7 +6,7 @@ import sys
 import os
 from .GedisCmd import GedisCmd
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class GedisCmds(JSBASE):

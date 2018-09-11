@@ -10,7 +10,7 @@ from gevent import monkey
 monkey.patch_all()
 # from .protocol import CommandParser, ResponseWriter
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 soaexample = dnslib.SOA(
     mname="ns1.example.com",  # primary name server

@@ -4,7 +4,7 @@ from Jumpscale import j
 from .BCDB import BCDB
 
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class BCDBFactory(JSBASE):

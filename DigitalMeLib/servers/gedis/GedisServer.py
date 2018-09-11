@@ -9,7 +9,7 @@ from .handlers import RedisRequestHandler
 from .GedisChatBot import GedisChatBotFactory
 from .GedisCmds import GedisCmds
 
-JSConfigBase = j.tools.configmanager.base_class_config
+JSConfigBase = j.tools.configmanager.JSBaseClassConfig
 
 
 from rq import Queue

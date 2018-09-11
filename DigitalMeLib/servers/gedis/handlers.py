@@ -4,7 +4,7 @@ from redis.exceptions import ConnectionError
 from geventwebsocket.exceptions import WebSocketError
 from .protocol import RedisResponseWriter, RedisCommandParser, WebsocketResponseWriter, WebsocketsCommandParser
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class Handler(JSBASE):

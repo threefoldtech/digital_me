@@ -2,7 +2,7 @@ from Jumpscale import j
 import msgpack
 import struct
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class BCDBTable(JSBASE):

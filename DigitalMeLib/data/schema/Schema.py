@@ -3,7 +3,7 @@ import imp
 from Jumpscale import j
 from .SchemaProperty import SchemaProperty
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 import copy
 
 class Schema(JSBASE):

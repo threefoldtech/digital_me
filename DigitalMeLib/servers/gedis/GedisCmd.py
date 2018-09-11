@@ -5,7 +5,7 @@ import imp
 
 import os
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 class GedisCmd(JSBASE):
     def __init__(self,cmds,cmd):

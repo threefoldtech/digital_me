@@ -3,7 +3,7 @@ import gevent
 import sys
 from importlib import import_module
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class GedisChatBotFactory(JSBASE):

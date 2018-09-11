@@ -6,7 +6,7 @@ from .ServerRack import ServerRack
 from gevent import time
 import gevent
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class DigitalMe(JSBASE):
