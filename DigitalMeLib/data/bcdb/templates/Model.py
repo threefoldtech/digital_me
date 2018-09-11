@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 
 {% if index.include_schema %}
 SCHEMA="""

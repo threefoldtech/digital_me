@@ -1,6 +1,6 @@
 import os
 
-from jumpscale import j
+from Jumpscale import j
 
 from .GedisServer import GedisServer
 from .GedisCmds import GedisCmds

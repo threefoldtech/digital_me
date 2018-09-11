@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 
 schema = """
 @url = despiegk.test

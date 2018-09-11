@@ -2,7 +2,7 @@ import os
 import sys
 
 from flask import Blueprint, jsonify, url_for
-from jumpscale import j
+from Jumpscale import j
 from .flask_itsyouonline import configure, callback
 from . import settings
 

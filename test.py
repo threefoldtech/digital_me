@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 
 p = j.tools.prefab.local
 p.runtimes.pip.install("dnslib,nameparser,gevent,unidecode")

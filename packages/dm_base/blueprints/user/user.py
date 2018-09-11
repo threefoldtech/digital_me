@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 import requests
 from flask import current_app, redirect, request, session
 import flask_login
-from jumpscale import j
+from Jumpscale import j
 
 ITSYOUONLINEV1 = "https://itsyou.online/v1"
 

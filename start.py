@@ -5,7 +5,7 @@ import sys
 from gevent import monkey, signal, event, spawn
 monkey.patch_all()
 
-from jumpscale import j
+from Jumpscale import j
 
 zdb_start = True
 name = "test"

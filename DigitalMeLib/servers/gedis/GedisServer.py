@@ -1,6 +1,6 @@
 import sys
 import os
-from jumpscale import j
+from Jumpscale import j
 from gevent.pool import Pool
 from gevent import time
 import gevent

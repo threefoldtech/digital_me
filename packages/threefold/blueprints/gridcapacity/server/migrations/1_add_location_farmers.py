@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 from JumpscaleLib.servers.grid_capacity.server.models import Farmer, Location
 # connect to db
 zdbclient = j.clients.zdb.testdb_server_start_client_get(start=False)

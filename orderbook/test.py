@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 print("[-] starting server")
 
 #TODO, can we autoconfigure client & server, is all for test anyhow

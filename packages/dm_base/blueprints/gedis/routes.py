@@ -1,6 +1,6 @@
 from flask import render_template, redirect, request, url_for
 from blueprints.gedis import *
-from jumpscale import j
+from Jumpscale import j
 import gevent
 
 login_manager = j.servers.web.latest.loader.login_manager

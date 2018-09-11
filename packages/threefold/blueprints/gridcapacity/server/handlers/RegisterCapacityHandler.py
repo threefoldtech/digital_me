@@ -8,7 +8,7 @@ import jsonschema
 from jsonschema import Draft4Validator
 
 from flask import jsonify, request
-from jumpscale import j
+from Jumpscale import j
 
 from gridcapacity.models import Capacity, NodeRegistration, NodeNotFoundError, Farmer, FarmerRegistration
 from .jwt import validate_farmer_id, FarmerInvalid

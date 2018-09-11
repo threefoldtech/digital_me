@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 
 from redis.exceptions import ConnectionError
 from geventwebsocket.exceptions import WebSocketError

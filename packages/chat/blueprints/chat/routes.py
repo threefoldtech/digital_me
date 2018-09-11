@@ -1,6 +1,6 @@
 from flask import render_template, redirect, make_response, request
 from blueprints.chat import *
-from jumpscale import j
+from Jumpscale import j
 import json
 
 login_manager = j.servers.web.latest.loader.login_manager

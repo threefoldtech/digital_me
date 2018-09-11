@@ -2,7 +2,7 @@ import json
 import asyncio
 import websockets
 from .utils import newuid, new_node, ham_mix
-from jumpscale import j
+from Jumpscale import j
 
 JSConfigBase = j.tools.configmanager.base_class_config
 

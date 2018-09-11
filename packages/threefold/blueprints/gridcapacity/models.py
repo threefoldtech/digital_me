@@ -1,6 +1,6 @@
 import os
 
-from jumpscale import j
+from Jumpscale import j
 
 db_client = j.clients.redis_config.get().redis
 db = j.data.bcdb.get(db_client)

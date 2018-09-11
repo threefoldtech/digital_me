@@ -1,5 +1,5 @@
 import os
-from jumpscale import j
+from Jumpscale import j
 from .flist import HubFlist, HubPublicFlist
 
 class HubMerger:

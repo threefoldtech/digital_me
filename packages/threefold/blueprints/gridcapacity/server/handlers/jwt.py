@@ -1,6 +1,6 @@
 
 import jose.jwt
-from jumpscale import j
+from Jumpscale import j
 
 from gridcapacity.models import Farmer
 

@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 
 print("[-] zerodb started / configured")
 #zerodb 

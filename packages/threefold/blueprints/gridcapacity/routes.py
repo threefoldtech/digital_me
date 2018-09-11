@@ -1,5 +1,5 @@
 from flask import render_template, redirect, request, url_for
-from jumpscale import j
+from Jumpscale import j
 from . import blueprint
 login_manager = j.servers.web.latest.loader.login_manager
 from .server import handlers

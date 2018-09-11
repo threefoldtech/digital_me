@@ -1,4 +1,4 @@
-from jumpscale import j
+from Jumpscale import j
 from gevent import monkey
 from .Community import Community
 from .ServerRack import ServerRack
