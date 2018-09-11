@@ -6,7 +6,7 @@ import sys
 import os
 from .GedisCmd import GedisCmd
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class GedisCmds(JSBASE):
@@ -104,7 +104,7 @@ class GedisCmds(JSBASE):
         """
         return code,comment,schema_in, schema_out
         """
-        txt=j.data.text.strip(txt)
+        txt=j.core.text.strip(txt)
         code = ""
         comment = ""
         schema_in = ""
@@ -159,8 +159,8 @@ class GedisCmds(JSBASE):
                 code+="%s\n"%line
                 continue
             raise RuntimeError()
-        return j.data.text.strip(code),j.data.text.strip(comment),j.data.text.strip(schema_in),\
-            j.data.text.strip(schema_out),j.data.text.strip(args)
+        return j.core.text.strip(code),j.core.text.strip(comment),j.core.text.strip(schema_in),\
+            j.core.text.strip(schema_out),j.core.text.strip(args)
             
 
     def cmd_exists(self,name):

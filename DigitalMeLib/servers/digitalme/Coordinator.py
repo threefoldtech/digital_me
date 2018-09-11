@@ -17,10 +17,10 @@ class Coordinator(ActorBase):
         pass
 
     def service_get(self,name,instance="main",capnp_data=None):
-        name = j.data.text.strip_to_ascii_dense(name)
+        name = j.core.text.strip_to_ascii_dense(name)
         if not "*" in self.services_allowed and not name in self.services_allowed:
             raise RuntimeError("service:%s not allowed in coordinator:%s"%(name,self))
-        instance = j.data.text.strip_to_ascii_dense(instance)
+        instance = j.core.text.strip_to_ascii_dense(instance)
         key="%s_%s"%(name,instance)
         if key not in self.services:
             if name not in self.community.service_dna:
@@ -47,7 +47,7 @@ class Coordinator(ActorBase):
     @property
     def key(self):
         if self._key == None:
-            self._key = "%s"%(j.data.text.strip_to_ascii_dense(self.name))
+            self._key = "%s"%(j.core.text.strip_to_ascii_dense(self.name))
         return self._key
 
 

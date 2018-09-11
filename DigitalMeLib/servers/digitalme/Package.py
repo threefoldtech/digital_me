@@ -1,5 +1,5 @@
 from Jumpscale import j
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 import sys
 from importlib import import_module
 
@@ -89,7 +89,7 @@ class Package(JSBASE):
         self._model = self.bcdb.model_get(url="jumpscale.digitalme.package")
         self.data = self._model.new()
 
-        data = j.data.serializer.toml.load(path)
+        data = j.data.serializers.toml.load(path)
         #be flexible
         #std value is False
         if "enable" in data:

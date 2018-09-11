@@ -9,7 +9,7 @@ from .handlers import RedisRequestHandler
 from .GedisChatBot import GedisChatBotFactory
 from .GedisCmds import GedisCmds
 
-JSConfigBase = j.tools.configmanager.base_class_config
+JSConfigBase = j.tools.configmanager.JSBaseClassConfig
 
 
 from rq import Queue
@@ -294,7 +294,7 @@ class GedisServer(StreamServer, JSConfigBase):
                 return None, "need to have arguments, none given"
             if len(request) > 2:
                 return None, "more than 1 argument given, needs to be json"
-            o = cmd.schema_in.get(data=j.data.serializer.json.loads(request[1]))
+            o = cmd.schema_in.get(data=j.data.serializers.json.loads(request[1]))
             args = [a.strip() for a in cmd.cmdobj.args.split(',')]
             if 'schema_out' in args:
                 args.remove('schema_out')

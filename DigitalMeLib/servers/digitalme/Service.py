@@ -24,7 +24,7 @@ class Service(ActorBase):
     @property
     def _key(self):
         if self.__key == None:
-            self.__key ="%s_%s"%(j.data.text.strip_to_ascii_dense(self.name),j.data.text.strip_to_ascii_dense(self.instance))
+            self.__key ="%s_%s"%(j.core.text.strip_to_ascii_dense(self.name),j.core.text.strip_to_ascii_dense(self.instance))
         return self.__key
 
 

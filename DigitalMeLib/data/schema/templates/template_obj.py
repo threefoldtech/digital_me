@@ -149,11 +149,11 @@ class ModelOBJ():
             except Exception as e:
                 msg="\nERROR: could not create capnp message\n"
                 try:
-                    msg+=j.data.text.indent(j.data.serializer.json.dumps(ddict,sort_keys=True,indent=True),4)+"\n"
+                    msg+=j.core.text.indent(j.data.serializers.json.dumps(ddict,sort_keys=True,indent=True),4)+"\n"
                 except:
-                    msg+=j.data.text.indent(str(ddict),4)+"\n"
+                    msg+=j.core.text.indent(str(ddict),4)+"\n"
                 msg+="schema:\n"
-                msg+=j.data.text.indent(str(self._schema.capnp_schema),4)+"\n"
+                msg+=j.core.text.indent(str(self._schema.capnp_schema),4)+"\n"
                 msg+="error was:\n%s\n"%e
                 raise RuntimeError(msg)
 
@@ -268,13 +268,13 @@ class ModelOBJ():
 
     @property
     def _json(self):
-        return j.data.serializer.json.dumps(self._ddict)
+        return j.data.serializers.json.dumps(self._ddict)
 
     @property
     def _msgpack(self):
-        return j.data.serializer.msgpack.dumps(self._ddict)
+        return j.data.serializers.msgpack.dumps(self._ddict)
 
     def __str__(self):
-        return j.data.serializer.json.dumps(self._ddict_hr,sort_keys=True, indent=True)
+        return j.data.serializers.json.dumps(self._ddict_hr,sort_keys=True, indent=True)
 
     __repr__ = __str__

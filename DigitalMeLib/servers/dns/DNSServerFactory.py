@@ -5,7 +5,7 @@ from Jumpscale import j
 
 from .DNSServer import DNSServer
 import os
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 from gevent import socket
 
 #http://mirror1.malwaredomains.com/files/justdomains  domains we should not query, lets download & put in redis core

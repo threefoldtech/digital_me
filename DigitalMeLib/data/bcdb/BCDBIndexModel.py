@@ -1,7 +1,7 @@
 from Jumpscale import j
 import os
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class IndexField():

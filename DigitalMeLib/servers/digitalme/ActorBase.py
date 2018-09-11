@@ -6,7 +6,7 @@ from gevent import spawn
 import inspect
 
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 

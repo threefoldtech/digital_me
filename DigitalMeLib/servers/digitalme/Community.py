@@ -3,7 +3,7 @@ from Jumpscale import j
 import os
 import sys
 from importlib import import_module
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 from gevent import spawn
 import gevent
 
@@ -58,7 +58,7 @@ class Community(JSBASE):
         gevent.sleep(1000000000000)
 
     def coordinator_get(self,name,capnp_data=None):
-        name = j.data.text.strip_to_ascii_dense(name)
+        name = j.core.text.strip_to_ascii_dense(name)
         if name not in self.coordinators:
             if name not in self.coordinator_dna:
                 raise RuntimeError("did not find coordinator dna:%s"%name)
@@ -135,7 +135,7 @@ class Community(JSBASE):
         if not "SCHEMA" in module.__dict__:
             module.SCHEMA = "" #add empty schema because is not there
 
-        name = j.data.text.strip_to_ascii_dense(name)
+        name = j.core.text.strip_to_ascii_dense(name)
         
         #will check if we didn't define url/name in beginning of schema
         schema1=""

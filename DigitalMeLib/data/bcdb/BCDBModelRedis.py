@@ -2,7 +2,7 @@ from Jumpscale import j
 import msgpack
 import struct
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class BCDBModel(JSBASE):
@@ -67,7 +67,7 @@ class BCDBModel(JSBASE):
         
         """
         if j.data.types.string.check(data):
-            data = j.data.serializer.json.loads(data)
+            data = j.data.serializers.json.loads(data)
             obj = self.schema.get(data)
         elif j.data.types.bytes.check(data):
             obj = self.schema.get(capnpbin=data)
@@ -228,20 +228,20 @@ class BCDBModel(JSBASE):
             if not obj:
                 continue
             if capnp:
-                obj = j.data.serializer.msgpack.dumps([id, obj])
+                obj = j.data.serializers.msgpack.dumps([id, obj])
             final.append(obj)
         if capnp:
-            final = j.data.serializer.msgpack.dumps(final)
+            final = j.data.serializers.msgpack.dumps(final)
         return final
 
     # def find(self, total_items_in_page=20, page_number=1, only_fields=[], {{find_args}}):
     #     items = self.redis.execute_command("model_%s.find" % self.name, total_items_in_page, page_number, only_fields,
     #                                        {{kwargs}})
-    #     items = j.data.serializer.msgpack.loads(items)
+    #     items = j.data.serializers.msgpack.loads(items)
     #     result = []
     #
     #     for item in items:
-    #         id, data = j.data.serializer.msgpack.loads(item)
+    #         id, data = j.data.serializers.msgpack.loads(item)
     #         obj = self.schema.get(capnpbin=data)
     #         obj.id = id
     #         result.append(obj)

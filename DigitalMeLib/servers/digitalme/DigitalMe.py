@@ -4,7 +4,7 @@ from .Community import Community
 from .ServerRack import ServerRack
 from .Package import  Package
 from gevent import event, sleep
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class DigitalMe(JSBASE):
@@ -55,9 +55,9 @@ class DigitalMe(JSBASE):
             path = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/0-robot")
             j.sal.process.execute("cd %s;pip install -e ." % path)
 
-        if "_zrobot" not in j.servers.__dict__.keys():
-            # means not installed yet
-            install_zrobot()
+        # if "_zrobot" not in j.servers.__dict__.keys():
+        #     # means not installed yet
+        #     install_zrobot()
 
 
         zdbcl=j.clients.zdb.testdb_server_start_client_get()

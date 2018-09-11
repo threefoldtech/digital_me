@@ -4,7 +4,7 @@ from orderbook.lib.orderbook import OrderBook
 from orderbook.lib.matcher import Matcher
 from orderbook.lib.trader import Trader
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class order_book(JSBASE):

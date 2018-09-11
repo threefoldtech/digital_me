@@ -2,7 +2,7 @@
 
 from Jumpscale import j
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 SCHEMA="""
 {{obj.text}}
@@ -25,7 +25,7 @@ class model_{{obj.name}}(JSBASE):
             obj = self.schema.get(data=ddict)
             data = obj.data
         else:
-            id,data = j.data.serializer.msgpack.loads(data_in)
+            id,data = j.data.serializers.msgpack.loads(data_in)
 
         res=self.table.set(data=data, obj_id=id, hook=self.hook_set)
         if res.id == None:
@@ -34,7 +34,7 @@ class model_{{obj.name}}(JSBASE):
         if j.servers.gedis.latest.serializer:
             return j.servers.gedis.latest.return_serializer.dumps(res.ddict)
         else:
-            return j.data.serializer.msgpack.dumps([res.id,res.data])
+            return j.data.serializers.msgpack.dumps([res.id,res.data])
 
     def get(self, id):
         id=int(id.decode())
@@ -43,7 +43,7 @@ class model_{{obj.name}}(JSBASE):
         if j.servers.gedis.latest.serializer:
             return j.servers.gedis.latest.return_serializer.dumps(obj.ddict)
         else:
-            return j.data.serializer.msgpack.dumps([obj.id,obj.data])
+            return j.data.serializers.msgpack.dumps([obj.id,obj.data])
 
     def find(self, total_items_in_page=20, page_number=1, only_fields=[], {{find_args}}):
         #TODO:*1 what is this, who uses it?

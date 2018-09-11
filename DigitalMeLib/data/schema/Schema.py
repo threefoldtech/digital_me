@@ -3,7 +3,7 @@ import imp
 from Jumpscale import j
 from .SchemaProperty import SchemaProperty
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 import copy
 import os
 
@@ -39,12 +39,12 @@ class Schema(JSBASE):
             self.url =  self._systemprops["url"]
         out="\nerror in schema:\n"
         out+="    url:%s\n"%self.url
-        out+="    msg:%s\n"%j.data.text.prefix("    ",msg)
+        out+="    msg:%s\n"%j.core.text.prefix("    ",msg)
         if schema:
             out+="    schema:\n%s"%schema
         if e is not None:
             out+="\nERROR:\n"
-            out+=j.data.text.prefix("        ",str(e))
+            out+=j.core.text.prefix("        ",str(e))
         raise RuntimeError(out)
 
     def _proptype_get(self, txt):
@@ -82,7 +82,7 @@ class Schema(JSBASE):
     def _schema_from_text(self, schema):
         self.logger.debug("load schema:\n%s" % schema)
 
-        self.text = j.data.text.strip(schema)
+        self.text = j.core.text.strip(schema)
 
         self.hash = j.data.hash.blake2_string(schema)
 

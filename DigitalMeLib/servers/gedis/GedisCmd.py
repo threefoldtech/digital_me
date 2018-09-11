@@ -5,7 +5,7 @@ import imp
 
 import os
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 class GedisCmd(JSBASE):
     def __init__(self,cmds,cmd):
@@ -90,15 +90,15 @@ class GedisCmd(JSBASE):
 
     @property
     def code_indent(self):
-        return j.data.text.indent(self.cmdobj.code)
+        return j.core.text.indent(self.cmdobj.code)
 
     @property
     def comment_indent(self):
-        return j.data.text.indent(self.cmdobj.comment).rstrip()
+        return j.core.text.indent(self.cmdobj.comment).rstrip()
 
     @property
     def comment_indent2(self):
-        return j.data.text.indent(self.cmdobj.comment,nspaces=8).rstrip()
+        return j.core.text.indent(self.cmdobj.comment,nspaces=8).rstrip()
 
     @property
     def method_generated(self):

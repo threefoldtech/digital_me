@@ -2,7 +2,7 @@ from Jumpscale import j
 import msgpack
 import struct
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class BCDBModel(JSBASE):
@@ -30,7 +30,7 @@ class BCDBModel(JSBASE):
             if schema is None:
                 schema = SCHEMA  # needs to be in code file
             self.schema = j.data.schema.schema_add(schema)
-        key = j.data.text.strip_to_ascii_dense(self.schema.url)
+        key = j.core.text.strip_to_ascii_dense(self.schema.url)
         self.key = key.replace(".", "_")
         if bcdb.dbclient.dbtype == "RDB":
             self.db = bcdb.dbclient
@@ -64,7 +64,7 @@ class BCDBModel(JSBASE):
 
         """
         if j.data.types.string.check(data):
-            data = j.data.serializer.json.loads(data)
+            data = j.data.serializers.json.loads(data)
             obj = self.schema.get(data)
         elif j.data.types.bytes.check(data):
             obj = self.schema.get(capnpbin=data)
@@ -237,7 +237,7 @@ class BCDBModel(JSBASE):
 
     def __str__(self):
         out = "model:%s\n" % self.key
-        out += j.data.text.prefix("    ", self.schema.text)
+        out += j.core.text.prefix("    ", self.schema.text)
         return out
 
     __repr__ = __str__

@@ -6,7 +6,7 @@ from .BCDBModel import BCDBModel
 from peewee import Model
 import os
 import sys
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class BCDBFactory(JSBASE):

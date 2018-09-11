@@ -3,7 +3,7 @@ from Jumpscale import j
 import sys
 from peewee import *
 import os
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 from .BCDBIndexModel import BCDBIndexModel
 
@@ -38,7 +38,7 @@ class BCDB(JSBASE):
                 print("need to find addr:port as identifier")
                 conn_args = self.dbclient.connection_pool.connection_kwargs
                 instance = "%s:%s" % (conn_args['host'], conn_args['port'])
-            instance = j.data.text.strip_to_ascii_dense(instance)
+            instance = j.core.text.strip_to_ascii_dense(instance)
         else:
             instance = self.dbclient.instance
         dest = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb",instance+".db")
@@ -64,7 +64,7 @@ class BCDB(JSBASE):
         imodel.enable = True
         imodel.include_schema = include_schema
         tpath = "%s/templates/Model.py"%j.data.bcdb._path
-        key = j.data.text.strip_to_ascii_dense(schema.url).replace(".","_")
+        key = j.core.text.strip_to_ascii_dense(schema.url).replace(".","_")
         schema.key = key
         if dest is None:
             dest = "%s/model_%s.py"%(j.data.bcdb.code_generation_dir,key)
