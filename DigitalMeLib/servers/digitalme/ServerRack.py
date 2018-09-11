@@ -31,12 +31,12 @@ class ServerRack(JSBASE):
         REMARK: make sure that subprocesses are run before adding gevent servers
 
         """
-        self._monkeypatch()
+        monkey.patch_all(subprocess=False)
         self.servers[name]=server
 
     def _monkeypatch(self):
         if not self._monkeypatch_done:
-            monkey.patch_all()
+            monkey.patch_all(subprocess=False)
             self._monkeypatch_done = True
 
     def _nomonkeypatch_check(self):

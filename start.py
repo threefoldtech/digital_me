@@ -3,7 +3,7 @@ from importlib import import_module
 import sys
 
 from gevent import monkey, signal, event, spawn
-monkey.patch_all()
+monkey.patch_all(subprocess=False)
 
 from Jumpscale import j
 
