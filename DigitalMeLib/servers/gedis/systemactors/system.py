@@ -24,7 +24,7 @@ class system(JSBASE):
         res = {}        
         for key,item in j.data.schema.schemas.items():
             res[key] = item.text
-        return j.data.serializer.msgpack.dumps(res)
+        return j.data.serializers.msgpack.dumps(res)
 
     def api_meta(self):
         """
@@ -37,7 +37,7 @@ class system(JSBASE):
         res["cmds"]={}
         for key,item in s.items():
             res["cmds"][key] = item.data.data
-        return j.data.serializer.msgpack.dumps(res)
+        return j.data.serializers.msgpack.dumps(res)
 
     def schema_urls(self):
         """
@@ -45,7 +45,7 @@ class system(JSBASE):
 
         """  
         s=self.server.schema_urls
-        return j.data.serializer.msgpack.dumps(s)
+        return j.data.serializers.msgpack.dumps(s)
 
     def filemonitor_paths(self,schema_out):
         """

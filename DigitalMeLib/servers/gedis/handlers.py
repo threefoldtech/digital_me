@@ -51,13 +51,13 @@ class Handler(JSBASE):
 
                 try:
                     # Try capnp
-                    id, data = j.data.serializer.msgpack.loads(request[1])
+                    id, data = j.data.serializers.msgpack.loads(request[1])
                     o = cmd.schema_in.get(capnpbin=data)
                     if id:
                         o.id = id
                 except:
                     # Try Json
-                    o = cmd.schema_in.get(data=j.data.serializer.json.loads(request[1]))
+                    o = cmd.schema_in.get(data=j.data.serializers.json.loads(request[1]))
 
                 args = [a.strip() for a in cmd.cmdobj.args.split(',')]
                 if 'schema_out' in args:

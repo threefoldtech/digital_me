@@ -77,7 +77,7 @@ class RedisResponseWriter(object):
         elif isinstance(value, bytes):
             self._bulkbytes(value)
         else:
-            value = j.data.serializer.json.dumps(value, encoding='utf-8')
+            value = j.data.serializers.json.dumps(value, encoding='utf-8')
             self._bulk(value)
 
     def status(self, msg="OK"):
@@ -114,7 +114,7 @@ class WebsocketResponseWriter():
         self.socket = socket
 
     def encode(self, data):
-        self.socket.send(j.data.serializer.json.dumps(data, encoding='utf-8'))
+        self.socket.send(j.data.serializers.json.dumps(data, encoding='utf-8'))
 
     def error(self, msg):
         self.socket.send(msg)

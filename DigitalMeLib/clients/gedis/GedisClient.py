@@ -56,18 +56,18 @@ class GedisClient(JSConfigBase):
             raise RuntimeError('Can not ping server')
         # this will make sure we have all the local schemas
         schemas_meta = self.redis.execute_command("system.core_schemas_get")
-        schemas_meta = j.data.serializer.msgpack.loads(schemas_meta)
+        schemas_meta = j.data.serializers.msgpack.loads(schemas_meta)
         for key,txt in schemas_meta.items():
             if key not in j.data.schema.schemas:
                 j.data.schema.schema_from_text(txt,url=key)
 
         schema_urls = self.redis.execute_command("system.schema_urls")
-        self.schema_urls = j.data.serializer.msgpack.loads(schema_urls)
+        self.schema_urls = j.data.serializers.msgpack.loads(schema_urls)
 
         try:
             # LOW LEVEL AT THIS TIME BUT TO SHOW SOMETHING
             cmds_meta =self.redis.execute_command("system.api_meta")
-            cmds_meta = j.data.serializer.msgpack.loads(cmds_meta)
+            cmds_meta = j.data.serializers.msgpack.loads(cmds_meta)
             self.namespace = cmds_meta["namespace"]
             for namespace_full, capnpbin in cmds_meta["cmds"].items():
                 shortname = namespace_full.split(".")[-1]

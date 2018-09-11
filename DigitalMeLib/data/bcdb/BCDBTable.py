@@ -64,7 +64,7 @@ class BCDBTable(JSBASE):
         
         """
         if j.data.types.string.check(data):
-            data = j.data.serializer.json.loads(data)
+            data = j.data.serializers.json.loads(data)
             obj = self.schema.get(data)
         elif j.data.types.bytes.check(data):
             obj = self.schema.get(capnpbin=data)
@@ -221,8 +221,8 @@ class BCDBTable(JSBASE):
             if not obj:
                 continue
             if capnp:
-                obj = j.data.serializer.msgpack.dumps([id, obj])
+                obj = j.data.serializers.msgpack.dumps([id, obj])
             final.append(obj)
         if capnp:
-            final = j.data.serializer.msgpack.dumps(final)
+            final = j.data.serializers.msgpack.dumps(final)
         return final
