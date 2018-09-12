@@ -20,7 +20,11 @@ const client = (function(){
                   resolve(e.data)
               }
               if (args.length != 0){
-                  socket.send(command + " " + args)
+                  var message = {
+                    "command": command,
+                    "args": args
+                  }
+                  socket.send(JSON.stringify(message))
               } else {
                   socket.send(command)
               }

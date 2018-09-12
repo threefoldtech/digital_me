@@ -290,11 +290,10 @@ class GedisServer(StreamServer, JSConfigBase):
     @staticmethod
     def process_command(cmd, request):
         if cmd.schema_in:
-            if len(request) < 2:
+            if not request.get("args"):
                 return None, "need to have arguments, none given"
-            if len(request) > 2:
-                return None, "more than 1 argument given, needs to be json"
-            o = cmd.schema_in.get(data=j.data.serializers.json.loads(request[1]))
+
+            o = cmd.schema_in.get(data=j.data.serializers.json.loads(request["args"]))
             args = [a.strip() for a in cmd.cmdobj.args.split(',')]
             if 'schema_out' in args:
                 args.remove('schema_out')
@@ -311,8 +310,8 @@ class GedisServer(StreamServer, JSConfigBase):
             if cmd.schema_out:
                 params["schema_out"] = cmd.schema_out
         else:
-            if len(request) > 1:
-                params = request[1:]
+            if request.get("args"):
+                params = request["args"]
                 if cmd.schema_out:
                     params.append(cmd.schema_out)
             else:
