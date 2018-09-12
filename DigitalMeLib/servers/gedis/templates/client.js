@@ -19,15 +19,12 @@ const client = (function(){
               socket.onmessage = function(e) {
                   resolve(e.data)
               }
-              if (args.length != 0){
-                  var message = {
-                    "command": command,
-                    "args": args
-                  }
-                  socket.send(JSON.stringify(message))
-              } else {
-                  socket.send(command)
+              var message = {
+                "command": command,
+                "args": args
               }
+              socket.send(JSON.stringify(message))
+
           })})
       }
     
