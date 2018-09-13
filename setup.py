@@ -79,7 +79,10 @@ setup(
         'g8storclient',
         'gipc',
         'rq-dashboard',
-        'cryptocompare'
+        'cryptocompare',
+        'flask_login',
+        'flask_sockets'
+        # 'flask_sqlalchemy'
     ],
     cmdclass={
         'install': install,
