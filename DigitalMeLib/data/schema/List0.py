@@ -31,7 +31,7 @@ class List0(collections.MutableSequence):
     def __delitem__(self, index):
         self._copyFromParent()
         self._inner_list.__delitem__(index )
-        self._parentobj.changed_list = True
+        self._parentobj._changed_list = True
 
     def insert(self, index, value):
         self._copyFromParent()
@@ -41,7 +41,7 @@ class List0(collections.MutableSequence):
             if not "_JSOBJ" in value.__dict__:
                 raise RuntimeError("need to insert JSOBJ, use .new() on list before inserting.")
         self._inner_list.insert(index, value)
-        self._parentobj.changed_list = True
+        self._parentobj._changed_list = True
 
     def __setitem__(self, index, value):
         self._copyFromParent()
@@ -51,7 +51,7 @@ class List0(collections.MutableSequence):
             if not "_JSOBJ" in value.__dict__:
                 raise RuntimeError("need to insert JSOBJ, use .new() on list before inserting.")
         self._inner_list.__setitem__(index, value)
-        self._parentobj.changed_list = True
+        self._parentobj._changed_list = True
 
     def __getitem__(self, index):
         if self.schema_property.pointer_type is not None:
@@ -73,25 +73,33 @@ class List0(collections.MutableSequence):
             if self.schema_property.pointer_type is None:
                 return self._inner_list
             else:
-                return [item.ddict if ddict else item.ddict_hr for item in self._inner_list]
+                return [item._ddict if ddict else item._ddict_hr for item in self._inner_list]
         else:
             res= [item for item in self._parent]
             return res
         
-    def new(self):
+    def new(self,data=None):
         """
         return new subitem, only relevant when there are pointer_types used
         """
-        s=self.pointer_schema.new()
+        if data is None:
+            s=self.pointer_schema.new()
+        else:
+            s = self.pointer_schema.get(data=data)
         self.append(s)
         return s
 
     @property
     def pointer_schema(self):
-        if self._pointer_schema is None:
+        # issue #35 *REALLY* obscure bug, probably down to properties
+        # being accessed in the wrong order (some cached, some not)
+        # by ignoring self._pointer_schema and always re-generating
+        # using schema_get, the problem "goes away".
+        # definitely needs full investigation.
+        if True or self._pointer_schema is None:
             if self.schema_property.pointer_type==None:
                 raise RuntimeError("can only be used when pointer_types used")
-            s =  j.data.schema.schema_from_url(self.schema_property.pointer_type)
+            s =  j.data.schema.schema_get(url=self.schema_property.pointer_type)
             self._pointer_schema = s
         return self._pointer_schema
 

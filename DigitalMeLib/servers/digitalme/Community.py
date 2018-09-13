@@ -10,6 +10,26 @@ import gevent
 from .Coordinator import Coordinator
 from .Service import Service
 
+SCHEMA = """
+@url = digital.me.state
+@name = DMState
+state = "new,init,active,error" (S)  #needs to become enumeration, so no mistakes can be made, now string
+actions = "" (LO) !digital.me.action
+
+@url = digital.me.action
+@name = DMAction
+name = ""
+time_ask = 0 (D)            #when was it asked to start
+time_start = 0 (D)          #if 0 then not started then still needs to execute
+time_end = 0 (D)            #if end date then was ok
+blocked = False (B)         #blocked means stop trying to execute, cannot continue
+error = False (B)           #if error, encountered error, as ling as timeout_error not reached keep on trying
+timeout_exec = 0 (I)        #max time to try and execute, in sec
+timeout_error = 0 (I)       #max time to try to execute even in error state
+error_msg = "" (S) 
+"""
+
+
 class Community(JSBASE):
     """
     is a set of coordinators
@@ -24,6 +44,8 @@ class Community(JSBASE):
         self.service_dna = {}        #are the classes for services (which can run inside coordinators)
         self.knowledge = []          #are paths to the knowledge to learn
 
+        self.schema_state = j.data.schema.schema_add(SCHEMA)
+
         self._key = None
 
     def coordinator_class_get(self):
@@ -35,20 +57,34 @@ class Community(JSBASE):
     def start(self):
         gevent.sleep(1000000000000)
 
+<<<<<<< HEAD
     def coordinator_get(self,name="main",capnp_data=None):
+=======
+    def coordinator_get(self,name,capnp_data=None):
+>>>>>>> development
         name = j.core.text.strip_to_ascii_dense(name)
         if name not in self.coordinators:
             if name not in self.coordinator_dna:
                 raise RuntimeError("did not find coordinator dna:%s"%name)
-            self.actors[key] = self.coordinator_dna[name](community=self,name=name,instance=instance)
+            schema_obj = self.coordinator_dna[name].schema_obj
             if capnp_data is not None:
-                self.actors[key].data = self.actors[key].schema.get(capnpbin=capnp_data)          
-        return self.actors[key]
+                data = schema_obj.get(capnpbin=capnp_data)
+            else:
+                data = schema_obj.new()
+            self.coordinators[name] = self.coordinator_dna[name].Coordinator(community=self,name=name,data=data)
+
+        return self.coordinators[name]
+
+
 
     def error_raise(self,msg,e=None,cat=""):
         msg="ERROR in %s\n"%self
         msg+="msg\n"
-        raise j.exceptions.Input(msg,eco=e)
+        if "input" in cat:
+            raise j.exceptions.Input(msg)
+        else:
+            raise RuntimeError(msg)
+
 
 
     def knowledge_learn(self,path=""):
@@ -86,10 +122,10 @@ class Community(JSBASE):
             
             if modulename.startswith("service_"):
                 name = modulename[8:]
-                self.coordinator_dna[name] = self._module_fix(module,name,"service")
+                self.service_dna[name] = self._module_fix(module,name,"service")
             else:
                 name = modulename[12:]
-                self.service_dna[name] = self._module_fix(module,name,"coordinator")
+                self.coordinator_dna[name] = self._module_fix(module,name,"coordinator")
 
     def knowledge_refresh(self):
         """
@@ -100,9 +136,15 @@ class Community(JSBASE):
 
     def _module_fix(self,module,name,cat):
         
+<<<<<<< HEAD
         if not "SCHEMA" in module.__dict__:  
             raise RuntimeError("could not find SCHEMA in module:%s"%module)     
             
+=======
+        if not "SCHEMA" in module.__dict__:
+            module.SCHEMA = "" #add empty schema because is not there
+
+>>>>>>> development
         name = j.core.text.strip_to_ascii_dense(name)
         
         #will check if we didn't define url/name in beginning of schema
@@ -114,18 +156,34 @@ class Community(JSBASE):
                 continue
             if line.startswith("@"):
                 raise RuntimeError("Schema:\n%s\nshould not define name & url at start, will be added automatically."%name)
+            if "digital.me.state" in line:
+                continue
+            if line.startswith("name =") or line.startswith("name="):
+                continue
+            if line.startswith("instance =") or line.startswith("instance="):
+                continue
             schema1+="%s\n"%line
             
         splitted=[item.strip().lower() for item in name.split("_")]
         if len(splitted)<2:
-            raise RuntimeError("unique name for actor needs to be at least 2 parts separated with .Now:%s"%name)
+            raise RuntimeError("unique name for coordinator or service needs to be at least 2 parts separated with .Now:%s"%name)
 
         SCHEMA2="@url = %s.%s\n"% (cat,".".join(splitted))
         SCHEMA2+="@name = %s\n"% "_".join(splitted)
         SCHEMA2+=schema1
+        SCHEMA2+="stateobj = (O) !digital.me.state\n"
 
+        #default properties
+        if "description = " not in SCHEMA2:
+            SCHEMA2 += "description = \"\"\n"
+        SCHEMA2 += "name = \"\"\n"
+        if cat == "service":
+            SCHEMA2 += "instance = \"\"\n"
+        if "state = " not in SCHEMA2:
+            SCHEMA2 += "state = \"new,active,error,halted,deleted\" (S)\n"  #TODO: *1 needs enumeration
+        print(SCHEMA2)
         try:
-            module.schema_obj = j.data.schema.schema_add(SCHEMA2)
+            module.schema_obj = j.data.schema.schema_add(SCHEMA2)[0]
         except Exception as e:
             self.error_raise("cannot parse schema:%s"%SCHEMA2,e=e)
 

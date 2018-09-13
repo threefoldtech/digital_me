@@ -1,0 +1,21 @@
+{% extends "user/layout.html" %}
+{% block title %} Admin Register {%endblock%}
+{% block helpline %} It seems that this is your first time to be here<br/> Please register an admin user{%endblock%}
+{% block content %}
+<form method="post">
+    <div class="form-group">
+        <input type="text" class="form-control" name="username" placeholder="Username">
+    </div>
+
+    <div class="form-group">
+        <input type="password" class="form-control" name="password" placeholder="Password">
+    </div>
+    <div class="form-group">
+        <input type="password" class="form-control" name="confirm_password" placeholder="Confirm Password">
+    </div>
+    <div class="forgot">
+        <a href="{{iyo_url}}">Register with itsyou.online</a>
+    </div>
+    <button type="submit" class="btn btn-primary">Register</button>
+</form>
+{%endblock%}

@@ -18,6 +18,10 @@ class SchemaFactory(JSBASE):
         self.schemas = {}
 
     @property
+    def SCHEMA_CLASS(self):
+        return Schema
+
+    @property
     def code_generation_dir(self):
         if not self._code_generation_dir:
             path = j.sal.fs.joinPaths(j.dirs.VARDIR, "codegen", "schema")
@@ -32,16 +36,53 @@ class SchemaFactory(JSBASE):
     def reset(self):
         self.schemas = {}
 
-    def schema_from_text(self, txt,url=None):
-        s = Schema(text=txt, url=url)
-        if s.url:
-            self.schemas[s.url] = s
+    def schema_get(self,url=None):
+        url = url.lower().strip()
+        if url in self.schemas:
+            return self.schemas[url]
+        raise RuntimeError("could not find schema with url:%s"%url)
+
+    def schema_add(self, schema, url=None):
+        """
+        can be the url of the schema
+
+        schema can be text
+        can be more than 1 schema in the text but only the first one will be used
+
+        can also be a path of a schema file
+
+        :param schema_text or schema_path or schema_url
+        :param url normally None because specified as part of schema, can be specified independent of whats specified
+        :return: schema
+        """
+
+        if url is not None:
+            if self._schema_from_url(url) is not None:
+                #check if its url
+                return self._schema_from_url(url)
+            elif not schema:
+                raise RuntimeError("url not found for schema:%s"%url)
+
+        if schema is None:
+            raise RuntimeError("schema cannot be None")
+
+        if j.sal.fs.exists(schema):
+            schema = j.sal.fs.fileGetContents(schema)
+
+        s = self._schemas_add(schema)
+
+        if url is not None:
+            s.url = url
+
         return s
 
-    def schema_add(self, txt):
+    def _schemas_add(self, txt):
         """
         add schema text (can be multile blocks starting with @) to this class
         result schema's can be found from self.schema_from_url(...)
+
+        only the first one will be returned
+
         """
         block = ""
         state = "start"
@@ -56,38 +97,29 @@ class SchemaFactory(JSBASE):
 
             if l.startswith("@url"):
                 if block is not "":
-                    res.append(self.schema_from_text(block))
+                    s = Schema(text=block)
+                    self.schemas[s.url] = s
+                    res.append(s)
                 block = ""
 
             block += "%s\n" % line
 
         if block != "":
-            res.append(self.schema_from_text(block))
+            s = Schema(text=block)
+            self.schemas[s.url] = s
+            res.append(s)
 
-        return res
+        return res[0]
 
-    def schema_from_url(self, url):
+    def _schema_from_url(self, url):
         """
         url e.g. despiegk.test
         """
+        if url is None:
+            return None
         url = url.lower().strip()
         if url in self.schemas:
             return self.schemas[url]
-        else:
-            raise RuntimeError("could not find schema with url:%s" % url)
-
-    @property
-    def template_engine(self):
-        if self._template_engine is None:
-            from jinja2 import Environment, PackageLoader
-
-            self._template_engine = Environment(
-                loader=PackageLoader(
-                    'DigitalMeLib.data.schema', 'templates'),
-                trim_blocks=True,
-                lstrip_blocks=True,
-            )
-        return self._template_engine
 
     def list_base_class_get(self):
         return List0
@@ -106,7 +138,6 @@ class SchemaFactory(JSBASE):
         """
         schema = """
         @url = despiegk.test
-        @name = TestObj
         llist2 = "" (LS) #L means = list, S=String        
         nr = 4
         date_start = 0 (D)
@@ -121,8 +152,8 @@ class SchemaFactory(JSBASE):
         #pool_type = "managed,unmanaged" (E)  #NOT DONE FOR NOW
         """
 
-        s = j.data.schema.schema_from_text(schema)
-        print(s)
+        s = j.data.schema.schema_add(schema)
+        print (s)
 
         o = s.get()
 
@@ -135,15 +166,34 @@ class SchemaFactory(JSBASE):
         o.llist5.append(2)
         o.U = 1.1
         o.nr = 1
-        o.token_price = "10 EUR"
+        o.token_price = "10 USD"
         o.description = "something"
 
-        o.cobj
+
+        usd2usd = o.token_price_usd # convert USD-to-USD... same value
+        assert usd2usd == 10
+        inr = o.token_price_cur('inr')
+        #print ("convert 10 USD to INR", inr)
+        assert inr > 100 # ok INR is pretty high... check properly in a bit...
+        eur = o.token_price_eur
+        #print ("convert 10 USD to EUR", eur)
+        cureur = j.clients.currencylayer.cur2usd['eur']
+        curinr = j.clients.currencylayer.cur2usd['inr']
+        #print (cureur, curinr, o.token_price)
+        assert usd2usd*cureur == eur
+        assert usd2usd*curinr == inr
+
+        # try EUR to USD as well
+        o.token_price = "10 EUR"
+        assert o.token_price == b'\x000\n\x00\x00\x00'
+        eur2usd = o.token_price_usd
+        assert eur2usd*cureur == 10
+
+        o._cobj
 
         schema = """
         @url = despiegk.test2
-        @name = TestObj
-        llist2 = "" (LS)        
+        llist2 = "" (LS)
         nr = 4
         date_start = 0 (D)
         description = ""
@@ -152,13 +202,12 @@ class SchemaFactory(JSBASE):
         llist = []
 
         @url = despiegk.test3
-        @name = TestObj2
         llist = []
         description = ""
         """
         j.data.schema.schema_add(schema)
-        s1 = self.schema_from_url("despiegk.test2")
-        s2 = self.schema_from_url("despiegk.test3")
+        s1 = self.schema_get(url="despiegk.test2")
+        s2 = self.schema_get(url="despiegk.test3")
 
         o1 = s1.get()
         o2 = s2.get()
@@ -172,7 +221,6 @@ class SchemaFactory(JSBASE):
         """
         schema0 = """
         @url = despiegk.test.group
-        @name = Group
         description = ""
         llist = "" (LO) !despiegk.test.users
         listnum = "" (LI)
@@ -180,7 +228,6 @@ class SchemaFactory(JSBASE):
 
         schema1 = """
         @url = despiegk.test.users
-        @name = User
         nr = 4
         date_start = 0 (D)
         description = ""
@@ -188,14 +235,15 @@ class SchemaFactory(JSBASE):
         cost_estimate:hw_cost = 0.0 (N) #this is a comment
         """
 
-        s1 = self.schema_from_text(schema1)
-        s0 = self.schema_from_text(schema0)
-
+        s1 = self.schema_add(schema1)
+        s0 = self.schema_add(schema0)
         print(s0)
         o = s1.get()
 
+
         print(s1.capnp_schema)
         print(s0.capnp_schema)
+        
 
         print("TEST 2 OK")
 
@@ -208,26 +256,23 @@ class SchemaFactory(JSBASE):
 
         """
         SCHEMA = """
-        @url = jumpscale.gedis.cmd
-        @name = GedisCmd
+        @url = jumpscale.schema.test3.cmd
         name = ""
         comment = ""
         schemacode = ""
 
-        @url = jumpscale.gedis.serverschema
-        @name = GedisServerSchema
-        cmds = (LO) !jumpscale.gedis.cmd
+        @url = jumpscale.schema.test3.serverschema
+        cmds = (LO) !jumpscale.schema.test3.cmdbox
 
-        @url = jumpscale.gedis.cmd1
+        @url = jumpscale.schema.test3.cmdbox
         @name = GedisServerCmd1
-        cmd = (O) !jumpscale.gedis.cmd
-        cmd2 = (O) !jumpscale.gedis.cmd
+        cmd = (O) !jumpscale.schema.test3.cmd
+        cmd2 = (O) !jumpscale.schema.test3.cmd
         
         """
         self.schema_add(SCHEMA)
-        s1 = self.schema_from_url("jumpscale.gedis.cmd")
-        s2 = self.schema_from_url("jumpscale.gedis.serverschema")
-        s3 = self.schema_from_url("jumpscale.gedis.cmd1")
+        s2 = self.schema_get("jumpscale.schema.test3.serverschema")
+        s3 = self.schema_get("jumpscale.schema.test3.cmdbox")
 
         o = s2.get()
         for i in range(4):
@@ -238,13 +283,13 @@ class SchemaFactory(JSBASE):
         o.cmds[2].name="testxx"
         assert o.cmds[2].name=="testxx" 
 
-        bdata = o.data
+        bdata = o._data
 
         o2 = s2.get(capnpbin=bdata)
 
-        assert o.ddict == o2.ddict
+        assert o._ddict == o2._ddict
 
-        print (o.data)
+        print (o._data)
 
         o3 = s3.get()
         o3.cmd.name = "test"
@@ -252,10 +297,10 @@ class SchemaFactory(JSBASE):
         assert o3.cmd.name == "test"
         assert o3.cmd2.name == "test"
 
-        bdata = o3.data
+        bdata = o3._data
         o4 = s3.get(capnpbin=bdata)
-        assert o4.ddict == o3.ddict
+        assert o4._ddict == o3._ddict
 
-        assert o3.data == o4.data
+        assert o3._data == o4._data
 
         print("TEST 3 OK")

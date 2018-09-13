@@ -1,0 +1,14 @@
+{
+  "IYO_CONFIG": {
+    "organization": "abdoorg",
+    "client_secret": "SECRET",
+    "callback_uri": "http://localhost:5050/iyo/callback",
+    "callback_path": "/iyo/callback",
+    "scope": [
+      "user:name",
+      "user:email"
+    ],
+    "get_jwt": false,
+    "offline_access": false
+  }
+}

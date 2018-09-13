@@ -5,6 +5,7 @@ from .SchemaProperty import SchemaProperty
 
 JSBASE = j.application.JSBaseClass
 import copy
+import os
 
 class Schema(JSBASE):
     def __init__(self, text=None, url=""):
@@ -27,13 +28,23 @@ class Schema(JSBASE):
         if text:
             self._schema_from_text(text)
 
-    def error_raise(self,msg,e=None):
+    @property
+    def _path(self):
+        return j.sal.fs.getDirName(os.path.abspath(__file__))
+
+
+    def error_raise(self,msg,e=None,schema=None):
 
         if self.url == "" and "url" in self._systemprops:
             self.url =  self._systemprops["url"]
         out="\nerror in schema:\n"
         out+="    url:%s\n"%self.url
         out+="    msg:%s\n"%j.core.text.prefix("    ",msg)
+<<<<<<< HEAD
+=======
+        if schema:
+            out+="    schema:\n%s"%schema
+>>>>>>> development
         if e is not None:
             out+="\nERROR:\n"
             out+=j.core.text.prefix("        ",str(e))
@@ -74,7 +85,7 @@ class Schema(JSBASE):
     def _schema_from_text(self, schema):
         self.logger.debug("load schema:\n%s" % schema)
 
-        self.text = schema
+        self.text = j.core.text.strip(schema)
 
         self.hash = j.data.hash.blake2_string(schema)
 
@@ -129,7 +140,7 @@ class Schema(JSBASE):
                 alias=alias[:-1]
 
             if propname in ["id"]:
-                self.error_raise("do not use 'id' in your schema, is reserved for system.")
+                self.error_raise("do not use 'id' in your schema, is reserved for system.",schema=schema)
 
             return (propname, alias, jumpscaletype, defvalue, comment, pointer_type)
 
@@ -148,7 +159,7 @@ class Schema(JSBASE):
             if line.startswith("#"):
                 continue
             if "=" not in line:
-                self.error_raise("did not find =, need to be there to define field")
+                self.error_raise("did not find =, need to be there to define field",schema=schema)
 
             propname, alias, jumpscaletype, defvalue, comment, pointer_type = process(line)
 
@@ -191,17 +202,14 @@ class Schema(JSBASE):
             raise RuntimeError("hash cannot be empty")
         return "f"+self.hash[1:16]  #first bit needs to be 1
 
-    @property
-    def code_template(self):
-        if self._template == None:
-            self._template = j.data.schema.template_engine.get_template("template_obj.py")
-        return self._template
+    def _code_template_render(self,**args):
+        tpath = "%s/templates/template_obj.py"%self._path
+        return j.tools.jinja2.file_render(tpath, write=False, dest=None, **args)
 
-    @property
-    def capnp_template(self):
-        if self._capnp_template == None:
-            self._capnp_template = j.data.schema.template_engine.get_template("schema.capnp")
-        return self._capnp_template
+    def _capnp_template_render(self,**args):
+        tpath = "%s/templates/schema.capnp"%self._path
+        return j.tools.jinja2.file_render(tpath, write=False, dest=None, **args)
+
 
     @property
     def code(self):
@@ -210,18 +218,17 @@ class Schema(JSBASE):
             prop.default_as_python_code
         for prop in self.lists:
             prop.default_as_python_code
-        code = self.code_template.render(obj=self)
+        code = self._code_template_render(obj=self)
         return code
+
+    @property
+    def capnp_schema_text(self):
+        return self._capnp_template_render(obj=self)
 
     @property
     def capnp_schema(self):
-        code = self.capnp_template.render(obj=self)
-        return code
-
-    @property
-    def capnp(self):
         if not self._capnp:
-            self._capnp =  j.data.capnp.getSchemaFromText(self.capnp_schema)
+            self._capnp =  j.data.capnp.getSchemaFromText(self.capnp_schema_text)
         return self._capnp
 
     @property
@@ -234,13 +241,17 @@ class Schema(JSBASE):
             self._obj_class = m.ModelOBJ
         return self._obj_class
 
-    def get(self,data={},capnpbin=None, only_fields=[]):
-        # @TODO: implement only_fields
+    def get(self,data=None,capnpbin=None):
+        if data is None:
+            data = {}
         obj =  self.objclass(schema=self,data=data,capnpbin=capnpbin)
         return obj
 
-    def new(self, only_fields=[]):
-        return self.get(only_fields=only_fields)
+    def new(self):
+        """
+        same as self.get() but with no data
+        """
+        return self.get()
 
     @property
     def index_list(self):
@@ -249,7 +260,15 @@ class Schema(JSBASE):
             for prop in self.properties:
                 if prop.index:
                     self._index_list.append(prop.alias)
-        return self._index_list                    
+        return self._index_list
+
+    @property
+    def index_properties(self):
+        _index_list = []
+        for prop in self.properties:
+            if prop.index:
+                _index_list.append(prop)
+        return _index_list
             
     def __str__(self):
         out=""

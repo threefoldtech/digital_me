@@ -77,7 +77,8 @@ setup(
         'python-jose>=1.3.2',
         'g8storclient',
         'gipc',
-        'rq-dashboard'
+        'rq-dashboard',
+        'cryptocompare'
     ],
     cmdclass={
         'install': install,

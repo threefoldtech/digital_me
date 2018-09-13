@@ -58,7 +58,7 @@ class system(JSBASE):
         r = schema_out.new()
 
         #monitor changes for the docsites (markdown)
-        for key,item in j.tools.markdowndocs.docsites.items():
+        for key,item in j.tools.docsites.docsites.items():
             r.paths.append(item.path)
 
         #monitor change for the webserver  (schema's are in there)
@@ -95,12 +95,9 @@ class system(JSBASE):
         #             j.servers.web.latest.app.app.register_blueself.logger.info(bp)
         #             return
 
-        from IPython import embed;embed(colors='Linux')
-        s
-
         # Check if docsite is changed
         if changeobj.is_directory:
-            docsites = j.tools.markdowndocs.docsites
+            docsites = j.tools.docsites.docsites
             for _, docsite in docsites.items():
                 if docsite.path in changeobj.src_path:
                     docsite.load()

@@ -52,4 +52,4 @@ class RaftServerFactory(JSConfigBase):
         """
         js_shell 'j.servers.raftserver.test_nopasswd()'
         """
-        self.start_local(nrservers=30,startport=6000,cmd="j.servers.raftserver.example_server_class_get()",secret="")
+        self.start_local(nrservers=4,startport=6000,cmd="j.servers.raftserver.example_server_class_get()",secret="")

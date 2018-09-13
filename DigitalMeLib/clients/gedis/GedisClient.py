@@ -28,7 +28,9 @@ class CmdsBase():
 
 class GedisClient(JSConfigBase):
 
-    def __init__(self, instance, data={}, parent=None, interactive=False, reset=False,configureonly=False):
+    def __init__(self, instance, data=None, parent=None, interactive=False, reset=False,configureonly=False):
+        if data is None:
+            data = {}
         JSConfigBase.__init__(self, instance=instance, data=data, parent=parent,template=TEMPLATE , interactive=interactive)
 
         j.clients.gedis.latest = self
@@ -59,7 +61,7 @@ class GedisClient(JSConfigBase):
         schemas_meta = j.data.serializers.msgpack.loads(schemas_meta)
         for key,txt in schemas_meta.items():
             if key not in j.data.schema.schemas:
-                j.data.schema.schema_from_text(txt,url=key)
+                j.data.schema.schema_get(txt,url=key)
 
         schema_urls = self.redis.execute_command("system.schema_urls")
         self.schema_urls = j.data.serializers.msgpack.loads(schema_urls)
@@ -90,7 +92,7 @@ class GedisClient(JSConfigBase):
             dest = os.path.join(self.code_generated_dir, "%s.py"%fname)
 
             if reset or not j.sal.fs.exists(dest):
-                schema = j.data.schema.schema_from_url(schema_url)
+                schema = j.data.schema.schema_get(url=schema_url)
                 args = sorted([p for p in schema.properties if p.index], key=lambda p:p.name)
 
                 find_args = ''.join(["{0}={1},".format(p.name, p.default_as_python_code) for p in args]).strip(',')

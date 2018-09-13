@@ -10,6 +10,9 @@ import gevent
 
 
 class ServerRack(JSBASE):
+    """
+    is a group of gedis servers in a virtual rack
+    """
 
     def __init__(self):
         JSBASE.__init__(self)
@@ -66,7 +69,8 @@ class ServerRack(JSBASE):
     def zrobot_start(self):
         # get zrobot instance
         self._monkeypatch()
-        self.zrobot = j.servers.zrobot.get(name, data={"template_repo": "git@github.com:threefoldtech/0-templates.git",
+        self.zrobot = j.servers.zrobot.get(name,
+                                    data={"template_repo": "git@github.com:threefoldtech/0-templates.git",
                                     "block": False})
 
     def start(self):
@@ -77,7 +81,7 @@ class ServerRack(JSBASE):
                 server.start()
                 started.append(server)
                 name = getattr(server, 'name', None) or server.__class__.__name__ or 'Server'
-                self.logger.info('%s started on %s', name, server.address)
+                self.logger.info('%s started on %s' % (name, server.address))
         except:
             self.stop(started)
             raise

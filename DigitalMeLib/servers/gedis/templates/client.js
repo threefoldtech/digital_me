@@ -1,6 +1,6 @@
 // SERVER_DOMAIN & SERVER_PORT will come from the client.js 
 const client = (function(){
-    var socket = new WebSocket("wss://%%host%%/");
+    var socket = new WebSocket("%%host%%");
     var connected = false
     var connect = ()=> {
         return new Promise(res =>{
@@ -30,7 +30,7 @@ const client = (function(){
     var client = {}
     
     {% for command in commands %}
-    client.{{command.namespace.split('.')[1]}} = {
+    client.{{command.data.namespace.split('.')[1]}} = {
     {% for  name, cmd in command.cmds.items() %}
         "{{name}}": async ({{cmd.args_client.strip(",").replace("False", "false").replace("True", "true") if cmd.args_client.strip() != ",schema_out" else ""}}) => {
         {% if cmd.schema_in %}
@@ -43,9 +43,9 @@ const client = (function(){
             {{prop.name}}.forEach(function(item){args["{{prop.name}}"].push(item)})
             {% endif %}
             {% endfor %}
-            return await execute("{{command.namespace.split('.')[1]}}.{{name}}", JSON.stringify(args))
+            return await execute("{{command.data.namespace.split('.')[1]}}.{{name}}", JSON.stringify(args))
         {% else %}
-            return await execute("{{command.namespace.split('.')[1]}}.{{name}}", "")
+            return await execute("{{command.data.namespace.split('.')[1]}}.{{name}}", "")
         {% endif %}
         },
     {% endfor %}

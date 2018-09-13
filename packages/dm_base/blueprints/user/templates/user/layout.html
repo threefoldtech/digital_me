@@ -1,0 +1,31 @@
+<html>
+<head>
+    <link rel="stylesheet" href="/static/bootstrap3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/user/static/css/style.css">
+</head>
+<body>
+<div class="container">
+    <div class="login-form">
+        <div class="main-div">
+            <div class="panel">
+                <h2>{%block title%}{%endblock%}</h2>
+                <p>{%block helpline%}{%endblock%}</p>
+            </div>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <ul class="center">
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

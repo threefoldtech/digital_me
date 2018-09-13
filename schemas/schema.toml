@@ -1,0 +1,41 @@
+# Sell Order
+@url = digitalme.dnsrecord
+@name = dnsrecord
+type = "" (S)   # A, AAAA, NS, MX, CNAME, TXT, PTR
+val = "" (S)
+
+#who am I, this is my own information
+@url = digitalme.circle.me
+@name = dm_myself
+name = "" (S) 
+alias = [""] (LS)
+privkey = "" (S)
+email = [""] (LS)
+#list of admin circles who have unlimited access to this circle
+admins = [] (LI)
+#who are the members of this circle, this does not give them unlimited rights but can use some services of this circle
+members = [] (LI) 
+secret = "" (S)
+otp = "" (S)
+iyouser = "" (S)
+
+
+@url = digitalme.circle
+@name = dm_circle
+#unique global name
+name = "" (S) 
+#unique aliases
+alias = [""] (LS)
+ipaddr = "" (S)
+ipaddr6 = "" (S)
+pubkey = "" (S)
+#only used for the subcircles of my circle
+privkey = "" (S)
+#used to store initial data for a digital me, its a service we optionally do for each DM who asks us too
+#max 1kbyte and needs to be signed by the digital.me source
+data = "" (S)
+#my own accounting to know who belongs to a circle, I keep id's thats why i need to remember
+members = [] (LI) 
+secret = "" (S)
+otp = "" (S)
+

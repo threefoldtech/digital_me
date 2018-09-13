@@ -3,7 +3,7 @@
 
 from Jumpscale import j
 
-# JSBASE = j.application.jsbase_get_class()
+# JSBASE = j.application.JSBaseClass
 
 class CMDS():
     
@@ -45,7 +45,7 @@ class CMDS():
             args.{{prop.name}}.append(item)
         {% endfor %}
 
-        res = self._redis.execute_command("{{obj.cmds_name_lower}}.{{name}}",j.data.serializer.msgpack.dumps([id if not callable(id) else None, args.data]))
+        res = self._redis.execute_command("{{obj.cmds_name_lower}}.{{name}}",j.data.serializers.msgpack.dumps([id if not callable(id) else None, args.data]))
 
         {% else %}
         {% set args = cmd.cmdobj.args.split(',') if cmd.cmdobj.args else [] %}

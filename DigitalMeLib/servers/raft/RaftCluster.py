@@ -14,7 +14,9 @@ JSConfigBase = j.tools.configmanager.JSBaseClassConfig
 
 class RaftCluster(JSConfigBase):
 
-    def __init__(self,instance, data={}, parent=None, interactive=False):
+    def __init__(self,instance, data=None, parent=None, interactive=False):
+        if data is None:
+            data = {}
         JSConfigBase.__init__(self, instance=instance, data=data,
                               parent=parent, template=TEMPLATE, ui=None, interactive=interactive)
 
@@ -50,5 +52,6 @@ class RaftCluster(JSConfigBase):
                 sstart(port)
 
         if not j.core.platformtype.myplatform.isMac:
-            print ("implement to find local ipaddr and then based on own addr decide to start locally or not")
-            from IPython import embed;embed(colors='Linux')
+            raise Exception("issue #33 - implement to find local ipaddr and "
+                   "then based on own addr decide to start locally or not")
+            #from IPython import embed;embed(colors='Linux')
