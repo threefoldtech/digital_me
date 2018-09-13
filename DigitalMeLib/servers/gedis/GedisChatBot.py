@@ -7,7 +7,7 @@ JSBASE = j.application.JSBaseClass
 
 
 class GedisChatBotFactory(JSBASE):
-    def __init__(self, ws):
+    def __init__(self,ws):
         JSBASE.__init__(self)
         self.ws = ws
         self.sessions = {}  # open chatsessions
@@ -106,7 +106,7 @@ class GedisChatBotSession(JSBASE):
 
 def test(factory):
     sid = "123"
-    factory.session_new(sid)
+    factory.session_new("test_chat")
     nr = 0
     while True:
         factory.session_work_get(sid)

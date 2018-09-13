@@ -60,6 +60,7 @@ setup(
         'Jumpscale>=9.4.0-rc4',
         'Jumpscale>=9.4.0-rc4',
         'gevent>=1.2.1',
+        'gevent-websocket',
         'grequests>=0.3.0',
         'peewee>=2.9.2',
         'pudb>=2017.1.2',

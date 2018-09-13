@@ -35,6 +35,7 @@ class GedisFactory(JSConfigBase):
         """
         bot = GedisChatBotFactory()
         bot.test()
+        #TODO:*1 not working
 
 #     def new(
 #             self,
@@ -132,17 +133,18 @@ class GedisFactory(JSConfigBase):
                                   # seq mode with name test
 
         dest = j.clients.git.getContentPathFromURLorPath(
-            "https://github.com/threefoldtech/jumpscale_lib/tree/development/apps/example")
-        gedis = self.configure(instance="test", port=8888, host="localhost", app_dir=dest, ssl=False,
-                               zdb_instance="test", secret="1234", interactive=False)
+            "https://github.com/threefoldtech/digital_me/tree/development_simple/packages/circles/actors")
+        gedis = self.configure(instance="test", port=8888, host="localhost", ssl=False,
+                            secret="1234", interactive=False)
+
+
 
         # we need to run multiple servers, lets get a rack for gevent
         rack = j.servers.gevent_servers_racks.get()
-
         rack.add(j.servers.gedis.geventserver_get("test"))
 
-        from IPython import embed;
-        embed(colors='Linux')
+        j.shell()
+
 
 
 
