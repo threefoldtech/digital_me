@@ -149,19 +149,12 @@ class ModelOBJ():
             except Exception as e:
                 msg="\nERROR: could not create capnp message\n"
                 try:
-<<<<<<< HEAD
                     msg+=j.core.text.indent(j.data.serializer.json.dumps(ddict,sort_keys=True,indent=True),4)+"\n"
                 except:
                     msg+=j.core.text.indent(str(ddict),4)+"\n"
                 msg+="schema:\n"
                 msg+=j.core.text.indent(str(self.schema.capnp_schema),4)+"\n"
-=======
-                    msg+=j.core.text.indent(j.data.serializers.json.dumps(ddict,sort_keys=True,indent=True),4)+"\n"
-                except:
-                    msg+=j.core.text.indent(str(ddict),4)+"\n"
-                msg+="schema:\n"
-                msg+=j.core.text.indent(str(self._schema.capnp_schema),4)+"\n"
->>>>>>> development
+
                 msg+="error was:\n%s\n"%e
                 raise RuntimeError(msg)
 

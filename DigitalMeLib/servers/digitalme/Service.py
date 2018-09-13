@@ -22,17 +22,16 @@ class Service(ActorBase):
         return self.data.instance
 
     @property
-<<<<<<< HEAD
     def key(self):
         if self._key == None:
             self._key ="%s_%s"%(j.core.text.strip_to_ascii_dense(self.name),j.core.text.strip_to_ascii_dense(self.instance))
         return self._key
-=======
-    def _key(self):
-        if self.__key == None:
-            self.__key ="%s_%s"%(j.core.text.strip_to_ascii_dense(self.name),j.core.text.strip_to_ascii_dense(self.instance))
-        return self.__key
->>>>>>> development
+# =======
+#     def _key(self):
+#         if self.__key == None:
+#             self.__key ="%s_%s"%(j.core.text.strip_to_ascii_dense(self.name),j.core.text.strip_to_ascii_dense(self.instance))
+#         return self.__key
+# >> development
 
 
     def __str__(self):

@@ -5,13 +5,9 @@ from peewee import *
 import os
 JSBASE = j.application.JSBaseClass
 
-<<<<<<< HEAD
-JSBASE = j.application.JSBaseClass
 
 from .BCDBTable import BCDBTable
-=======
 from .BCDBIndexModel import BCDBIndexModel
->>>>>>> development
 
 
 class BCDB(JSBASE):

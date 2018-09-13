@@ -40,11 +40,11 @@ class Schema(JSBASE):
         out="\nerror in schema:\n"
         out+="    url:%s\n"%self.url
         out+="    msg:%s\n"%j.core.text.prefix("    ",msg)
-<<<<<<< HEAD
-=======
+
+        #TODO:*1 not sure this is right?
         if schema:
             out+="    schema:\n%s"%schema
->>>>>>> development
+
         if e is not None:
             out+="\nERROR:\n"
             out+=j.core.text.prefix("        ",str(e))

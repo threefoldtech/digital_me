@@ -2,15 +2,11 @@
 from Jumpscale import j
 
 from .BCDB import BCDB
-<<<<<<< HEAD
-
-
-=======
 from .BCDBModel import BCDBModel
 from peewee import Model
 import os
 import sys
->>>>>>> development
+
 JSBASE = j.application.JSBaseClass
 
 

@@ -7,11 +7,6 @@ import inspect
 
 
 JSBASE = j.application.JSBaseClass
-<<<<<<< HEAD
-=======
-
-
->>>>>>> development
 
 class ActorBase(JSBASE):
 

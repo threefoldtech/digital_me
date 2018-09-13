@@ -57,11 +57,8 @@ class Community(JSBASE):
     def start(self):
         gevent.sleep(1000000000000)
 
-<<<<<<< HEAD
     def coordinator_get(self,name="main",capnp_data=None):
-=======
-    def coordinator_get(self,name,capnp_data=None):
->>>>>>> development
+
         name = j.core.text.strip_to_ascii_dense(name)
         if name not in self.coordinators:
             if name not in self.coordinator_dna:
@@ -136,15 +133,9 @@ class Community(JSBASE):
 
     def _module_fix(self,module,name,cat):
         
-<<<<<<< HEAD
-        if not "SCHEMA" in module.__dict__:  
+        if not "SCHEMA" in module.__dict__:
             raise RuntimeError("could not find SCHEMA in module:%s"%module)     
             
-=======
-        if not "SCHEMA" in module.__dict__:
-            module.SCHEMA = "" #add empty schema because is not there
-
->>>>>>> development
         name = j.core.text.strip_to_ascii_dense(name)
         
         #will check if we didn't define url/name in beginning of schema

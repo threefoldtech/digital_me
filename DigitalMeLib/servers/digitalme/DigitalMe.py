@@ -1,19 +1,13 @@
 from Jumpscale import j
-<<<<<<< HEAD
+
 import gevent
 
-from .Community import Community
-from .ServerRack import ServerRack
-from gevent import time
-import gevent
-
-=======
 from gevent import monkey
 from .Community import Community
 from .ServerRack import ServerRack
 from .Package import  Package
 from gevent import event, sleep
->>>>>>> development
+
 JSBASE = j.application.JSBaseClass
 
 

@@ -1,10 +1,8 @@
 from Jumpscale import j
 
-<<<<<<< HEAD
+
 # BE CAREFUL MASTER IS IN: /code/github/rivine/recordchain/Jumpscale9RecordChain/servers/gedis/base/actors/chat.py
 
-=======
->>>>>>> development
 JSBASE = j.application.JSBaseClass
 
 
