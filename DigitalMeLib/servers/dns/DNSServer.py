@@ -7,7 +7,7 @@ import dnslib
 # from gevent.pool import Pool
 from gevent.server import DatagramServer
 from gevent import monkey
-monkey.patch_all()
+monkey.patch_all(subprocess=False)
 # from .protocol import CommandParser, ResponseWriter
 
 JSBASE = j.application.JSBaseClass

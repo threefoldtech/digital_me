@@ -84,7 +84,7 @@ class DigitalMe(JSBASE):
         # configure a local webserver server (the master one)
         j.servers.web.configure(instance=name, port=8000, port_ssl=0, host="0.0.0.0", secret="", ws_dir="")
 
-        monkey.patch_all()
+        monkey.patch_all(subprocess=False)
 
         self.rack.add("gedis", j.servers.gedis.geventservers_get(name))
         self.rack.add("web", j.servers.web.geventserver_get(name))

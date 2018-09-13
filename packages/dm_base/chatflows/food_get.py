@@ -8,7 +8,7 @@ def chat(bot):
     res={}
     food = bot.string_ask("What do you need to eat?")
     amount = bot.int_ask("Enter the amount you need to eat from %s in grams:" % food)
-    sides = bot.multi_choice("Choose your side dishes: ", ['rice', 'fries', 'saute', 'smash potato'])    
+    sides = bot.multi_choice("Choose your side dishes: ", ['rice', 'fries', 'saute', 'smash potato'])
     drink = bot.single_choice("Choose your Drink: ", ['tea', 'coffee', 'lemon'])
 
 

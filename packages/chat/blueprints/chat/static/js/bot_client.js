@@ -128,7 +128,7 @@ var generateSlide = function(res) {
         } else if (res['cat'] === "single_choice"){
             value = $("input[name='value']:checked").val();
         } else if (res['cat'] === "multi_choice"){
-            values = [];
+            let values = [];
             $("input[name='value[]']:checked").each( function () {
                 values.push($(this).val());
             });
