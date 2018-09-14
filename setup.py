@@ -7,12 +7,7 @@ import os
 
 def _post_install(libname, libpath):
     from Jumpscale import j
-    # add this plugin to the config
-    c = j.core.state.configGet('plugins', defval={})
-    c[libname] = "%s/github/threefoldtech/digital_me/DigitalMeLib" % j.dirs.CODEDIR
-    # c[libname] = libpath
-    j.core.state.configSet('plugins', c)
-    j.tools.jsloader.generate()
+    j.core.jsgenerator.generate()
 
 
 class install(_install):
@@ -47,7 +42,7 @@ except ImportError:
 
 setup(
     name='DigitalMeLib',
-    version='9.4.0-rc4',
+    version='9.5.1',
     description='Framework behind digitalme',
     long_description=long_description,
     url='https://github.com/Jumpscale/lib',
@@ -57,8 +52,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'Jinja2>=2.9.6',
-        'Jumpscale>=9.4.0-rc4',
-        'Jumpscale>=9.4.0-rc4',
+        'Jumpscale>=9.5.1',
         'gevent>=1.2.1',
         'gevent-websocket',
         'grequests>=0.3.0',
@@ -81,7 +75,8 @@ setup(
         'rq-dashboard',
         'cryptocompare',
         'flask_login',
-        'flask_sockets'
+        'flask_sockets',
+        'dnslib'
         # 'flask_sqlalchemy'
     ],
     cmdclass={

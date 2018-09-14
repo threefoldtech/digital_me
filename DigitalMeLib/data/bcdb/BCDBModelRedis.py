@@ -28,12 +28,10 @@ class BCDBModel(JSBASE):
             if not schema.name:
                 raise RuntimeError("schema name cannot be empty")
 
-        self.db = self.bcdb.dbclient.namespace_new(name=name,
-                                                   maxsize=0, die=False)
-        self.index = j.core.db  # only for now, need better solution in future
+        self.db = self.bcdb.zdbclient.namespace_new(name=name, maxsize=0, die=False)
+        self.index = j.core.db  # only for now, will need better solution in future
         self.schema = schema
-        self._index_key = "index:%s:%s" % (self.bcdb.dbclient.instance,
-                                           self.name)
+        self._index_key = "index:%s:%s" % (self.bcdb.zdbclient.instance, self.name)
         self.index_load()
 
     def index_delete(self):

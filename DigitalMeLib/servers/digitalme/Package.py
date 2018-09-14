@@ -239,6 +239,13 @@ class Package(JSBASE):
         self.chatflows_load()
         self.blueprints_load()
         self.docsites_load()
+        self.models_load()
+
+    def models_load(self):
+        for item in self.models:
+            j.shell()
+            w
+        return
 
     def chatflows_load(self):
         for item in self.data.chatflows:

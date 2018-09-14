@@ -4,9 +4,7 @@ import sys
 from peewee import *
 import os
 JSBASE = j.application.JSBaseClass
-
-
-from .BCDBTable import BCDBTable
+from redis import StrictRedis
 from .BCDBIndexModel import BCDBIndexModel
 
 
@@ -14,6 +12,10 @@ class BCDB(JSBASE):
     
     def __init__(self,dbclient,reset=False):
         JSBASE.__init__(self)
+        if  isinstance(dbclient,j.clients.redis.REDIS_CLIENT_CLASS) or isinstance(dbclient,StrictRedis):
+            dbclient.type = "RDB" #means is redis db
+        else:
+            dbclient.type = "ZDB"
 
         self.dbclient = dbclient
         self.models = {}
@@ -21,19 +23,18 @@ class BCDB(JSBASE):
 
         self.index_create(reset=reset)
         if reset:
-            if self.dbclient.dbtype == "RDB":
+            if self.dbclient.type == "ZDB":
+                pass
+            else:
                 for item in self.dbclient.keys("bcdb:*"):
                     self.dbclient.delete(item)
-            elif self.dbclient.dbtype == "ETCD":
-                print("CANNOT DELETE NAMESPACE HERE?")
-            else:
-                print("IMPLEMENT")
-                j.shell()
         j.data.bcdb.latest = self
 
     def index_create(self,reset=False):
         j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb"))
-        if self.dbclient.dbtype == "RDB":
+        if self.dbclient.type == "ZDB":
+            instance = self.dbclient.instance
+        else:
             if "path" in self.dbclient.connection_pool.connection_kwargs:
                 instance=self.dbclient.connection_pool.connection_kwargs["path"]
             else:
@@ -41,8 +42,6 @@ class BCDB(JSBASE):
                 conn_args = self.dbclient.connection_pool.connection_kwargs
                 instance = "%s:%s" % (conn_args['host'], conn_args['port'])
             instance = j.core.text.strip_to_ascii_dense(instance)
-        else:
-            instance = self.dbclient.instance
         dest = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb",instance+".db")
         self.logger.info("bcdb:indexdb:%s"%dest)
         if reset:

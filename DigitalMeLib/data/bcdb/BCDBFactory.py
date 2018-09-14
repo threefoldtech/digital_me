@@ -38,20 +38,16 @@ class BCDBFactory(JSBASE):
     def MODEL_CLASS(self):
         return BCDBModel
 
-    # XXX needs to call self.get(something) to get latest.sqlitedb:
-    # db = self.get(something).latest.sqlitedb
-    # except this is a property, and you can't pass in an argument
-    # "something" into a property
-    #@property
-    #def PEEWEE_INDEX_CLASS(self):
-    #    db = j.data.bcdb.latest.sqlitedb
-    #    class BaseModel(Model):
-    #        class Meta:
-    #            database = db
-    #        def __repr__(self):
-    #            return (self.__dict__)
-    #        __str__ = __repr__
-    #    return BaseModel
+    @property
+    def PEEWEE_INDEX_CLASS(self):
+        db = j.data.bcdb.latest.sqlitedb
+        class BaseModel(Model):
+            class Meta:
+                database = db
+            def __repr__(self):
+                return (self.__dict__)
+            __str__ = __repr__
+        return BaseModel
 
     @property
     def _path(self):
@@ -84,25 +80,13 @@ class BCDBFactory(JSBASE):
 
         def load():
     
-            # db_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
-            #db_cl = j.core.db #fall back onto redis
-            db_cl = j.clients.etcd.get()
-            db = j.data.bcdb.get(db_cl, reset=False) # don't reset, delete below
+            db_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
 
+            # db_cl = j.core.db #fall back onto redis
+
+
+            db = j.data.bcdb.get(db_cl,reset=True)
             model = db.model_create(schema=schema)
-
-            # reset is at too low a level and is destroying absolutely
-            # every schema, not just the model being done, now.  destroying
-            # every schema is not thread- or multi-process safe.
-            if model.db.dbtype == 'ETCD':
-                try:
-                    model.db.delete_all()
-                except KeyError:
-                    pass
-            elif model.db.dbtype == 'RDB':
-                for item in model.db.keys("bcdb:%s" % model.key):
-                    model.db.delete(item)
-                model.db.delete("bcdb:%s:lastid" % model.key)
 
 
             for i in range(10):
