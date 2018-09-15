@@ -89,7 +89,7 @@ class DigitalMe(JSBASE):
 
 
         self.packages_add(path)
-        j.servers.web.latest.loader.load()
+        j.servers.web.latest.loader.load() #TODO:*1 need to check if this one ok
         self.rack.start()
         forever = event.Event()
         try:

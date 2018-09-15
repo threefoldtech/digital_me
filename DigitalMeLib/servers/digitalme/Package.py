@@ -116,6 +116,8 @@ class Package(JSBASE):
                                             "path":"%s/blueprints"%(self.path)})
 
         if "models" in dir_items:
+            j.shell()
+            w
             name = "%s_internal"%(self.name)
             if name not in self.models:
                 obj = self.data.models.new({"name":name, "enabled":True,
