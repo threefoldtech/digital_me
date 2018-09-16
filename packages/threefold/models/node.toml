@@ -1,0 +1,13 @@
+
+@url = threefold.grid.node
+node_zos_hostid* = ""
+node_zt_id* = ""
+date_last_up* = 0 (D)
+description = ""
+ipaddr* = ""
+sysadmin* = (B)
+up_ping* = (B)
+up_zos* = (B)
+up_zerotier* = (B)
+tf_dir_found* = (B)
+error* = ""

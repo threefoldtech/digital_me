@@ -1,8 +1,8 @@
 from Jumpscale import j
-import sys
-libpath = j.sal.fs.getDirName(__file__)
-if libpath not in sys.path:
-    sys.path.append(libpath)
+# import sys
+# libpath = j.sal.fs.getDirName(__file__)
+# if libpath not in sys.path:
+#     sys.path.append(libpath)
 
 from orderbook.orderbook import OrderBook
 from orderbook.matcher import Matcher
