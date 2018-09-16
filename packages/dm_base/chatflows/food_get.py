@@ -1,4 +1,5 @@
 from Jumpscale import j
+#THIS IS A TEST CHAT
 
 def chat(bot):
     """

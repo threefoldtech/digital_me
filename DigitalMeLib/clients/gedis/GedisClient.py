@@ -151,6 +151,7 @@ class GedisClient(JSConfigBase):
                 port=port,
                 password=secret,
                 ssl=d["ssl"],
-                ssl_ca_certs=ssl_certfile
+                ssl_ca_certs=ssl_certfile,
+                ping=False
             )
         return self._redis

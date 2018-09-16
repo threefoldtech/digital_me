@@ -19,7 +19,6 @@ class BCDB(JSBASE):
 
         self.dbclient = dbclient
         self.models = {}
-        self.logger_enable()
 
         self.index_create(reset=reset)
         if reset:
@@ -38,18 +37,18 @@ class BCDB(JSBASE):
             if "path" in self.dbclient.connection_pool.connection_kwargs:
                 instance=self.dbclient.connection_pool.connection_kwargs["path"]
             else:
-                print("need to find addr:port as identifier")
+                # print("need to find addr:port as identifier")
                 conn_args = self.dbclient.connection_pool.connection_kwargs
                 instance = "%s:%s" % (conn_args['host'], conn_args['port'])
             instance = j.core.text.strip_to_ascii_dense(instance)
         dest = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb",instance+".db")
-        self.logger.info("bcdb:indexdb:%s"%dest)
+        self.logger.debug("bcdb:indexdb:%s"%dest)
         if reset:
             j.sal.fs.remove(dest)
         self.sqlitedb = SqliteDatabase(dest)
 
 
-    def model_create(self, schema,dest=None, include_schema=True):
+    def model_create(self, schema,dest=None, include_schema=True,overwrite=False):
         """
         :param include_schema, if True schema is added to generated code
         :param schema: j.data.schema ...
@@ -57,25 +56,35 @@ class BCDB(JSBASE):
         :return: model
         """
         if j.data.types.string.check(schema):
+            if j.sal.fs.exists(schema):
+                schema = j.sal.fs.fileGetContents(schema)
             schema = j.data.schema.schema_add(schema)
         else:
             if not isinstance(schema, j.data.schema.SCHEMA_CLASS):
                 raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
+
         imodel = BCDBIndexModel(schema=schema)
         imodel.enable = True
         imodel.include_schema = include_schema
         tpath = "%s/templates/Model.py"%j.data.bcdb._path
         key = j.core.text.strip_to_ascii_dense(schema.url).replace(".","_")
         schema.key = key
+
         if dest is None:
-            dest = "%s/model_%s.py"%(j.data.bcdb.code_generation_dir,key)
-        self.logger.debug("render model:%s"%dest)
-        j.tools.jinja2.file_render(tpath, write=True, dest=dest, schema=schema, index=imodel)
+            dest = "%s/model_%s.py" % (j.data.bcdb.code_generation_dir, key)
+
+        if overwrite or not j.sal.fs.exists(dest):
+            self.logger.debug("render model:%s"%dest)
+            j.tools.jinja2.file_render(tpath, write=True, dest=dest, schema=schema, index=imodel)
+
         return self.model_add(dest)
 
     def model_add(self,model_or_path):
         """
         add model to BCDB
+        can be from a class or from path
+        is path to python file
+
         """
         if isinstance(model_or_path, j.data.bcdb.MODEL_CLASS):
             self.models[model_or_path.schema.url] = model_or_path
@@ -98,14 +107,19 @@ class BCDB(JSBASE):
         tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="*.toml", followSymlinks=True)
         for schemapath in tocheck:
             dest = "%s/bcdb_model_%s.py"%(j.sal.fs.getDirName(schemapath),j.sal.fs.getBaseName(schemapath, True))
-            if overwrite or not j.sal.fs.exists(dest):
-                self.model_create(schemapath,dest=dest)
+            self.model_create(schemapath,dest=dest,overwrite=overwrite)
+
 
         tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="*.py", followSymlinks=True)
         for classpath in tocheck:
             self.model_add(classpath)
 
     def _model_add_from_path(self,classpath):
+        """
+        actual place where we load the python class in mem, never done by enduser
+        :param classpath:
+        :return:
+        """
         dpath = j.sal.fs.getDirName(classpath)
         if dpath not in sys.path:
             sys.path.append(dpath)
@@ -119,6 +133,7 @@ class BCDB(JSBASE):
             model_module = import_module(modulename)
             self.logger.debug("ok")
         except Exception as e:
+            j.shell()
             raise RuntimeError("could not import module:%s" % modulename, e)
         model = model_module.Model(bcdb=self)
         self.models[model.schema.url] = model

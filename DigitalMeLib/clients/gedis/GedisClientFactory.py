@@ -42,15 +42,12 @@ class GedisClientFactory(JSConfigBase):
         self._template_code_client = None
         self._code_model_template = None
 
-    def get(
-        self,
-        instance='main',
-        data={},
-        reset=False,
-        configureonly=False
-    ):
-        client = super(GedisClientFactory, self).get(instance=instance, data=data, reset=reset,configureonly=configureonly)
+    def get(self,instance='main',data={},reset=False,configureonly=False):
+
+        client = super(GedisClientFactory, self).get(instance=instance, data=data, reset=reset,
+                                                     configureonly=configureonly)
         if configureonly:
+            print("CONFIGURE ONLY")
             return
 
         if client._connected:
@@ -69,7 +66,7 @@ class GedisClientFactory(JSConfigBase):
         ssl=True,
         ssl_cert_file="",
         reset=False, get=True
-    ):
+        ):
 
         data = {}
 

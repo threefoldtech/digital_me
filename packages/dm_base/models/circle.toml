@@ -1,0 +1,22 @@
+
+
+@url = digitalme.circle
+#unique global name
+name = "" (S) 
+#unique aliases
+alias = [""] (LS)
+ipaddr = "" (S)
+ipaddr6 = "" (S)
+pubkey = "" (S)
+#only used for the subcircles of my circle
+privkey = "" (S)
+#used to store initial data for a digital me, its a service we optionally do for each DM who asks us too
+#max 1kbyte and needs to be signed by the digital.me source
+data = "" (S)
+#my own accounting to know who belongs to a circle, I keep id's thats why i need to remember
+members = [] (LI) 
+secret = "" (S)
+otp = "" (S)
+
+
+

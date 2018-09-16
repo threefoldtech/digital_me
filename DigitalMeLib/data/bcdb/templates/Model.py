@@ -1,4 +1,5 @@
 from Jumpscale import j
+#GENERATED CODE, can now change
 
 {% if index.include_schema %}
 SCHEMA="""

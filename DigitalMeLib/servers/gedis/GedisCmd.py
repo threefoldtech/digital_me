@@ -114,6 +114,6 @@ class GedisCmd(JSBASE):
         return self._method
 
     def __repr__(self):
-        return 'CMD:%s:%s' % (self.cmds.rstrip(".py"),self.name)
+        return '%s:%s' % (str(self.cmds).rstrip(".py"),self.name)
 
     __str__ = __repr__

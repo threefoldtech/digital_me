@@ -7,6 +7,7 @@ JSBASE = j.application.JSBaseClass
 from gevent import spawn
 from gevent import monkey
 import gevent
+from gevent import event
 
 
 class ServerRack(JSBASE):
@@ -85,6 +86,13 @@ class ServerRack(JSBASE):
         except:
             self.stop(started)
             raise
+
+        forever = event.Event()
+        try:
+            forever.wait()
+        except KeyboardInterrupt:
+            self.stop()
+
 
     def stop(self, servers=None):
         self.logger.info("stopping server rack")

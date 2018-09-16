@@ -1,0 +1,8 @@
+
+# Wallet
+@url = jumpscale.example.wallet
+jwt = "" (S)                # JWT Token
+addr* = ""                   # Address
+ipaddr = (ipaddr)           # IP Address
+email = "" (S)              # Email address
+username = "" (S)           # User name

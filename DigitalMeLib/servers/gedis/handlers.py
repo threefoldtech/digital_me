@@ -112,21 +112,27 @@ class Handler(JSBASE):
         self.logger.debug('(%s) command cache miss')
 
         if not '.' in cmd:
-            return None, 'Invalid command (%s) : model is missing. proper format is {model}.{cmd}'
+            pre="system_core"
+            post=cmd
+            # return None, 'Invalid command (%s) : model is missing. proper format is {model}.{cmd}'
+        else:
+            pre, post = cmd.split(".", 1)
 
-        pre, post = cmd.split(".", 1)
-
-        namespace = self.instance + "." + pre
+        namespace = self.instance + "_" + pre
 
         if namespace not in self.classes:
+            j.shell()
             return None, "Cannot find namespace:%s " % (namespace)
 
         if namespace not in self.cmds_meta:
+            j.shell()
             return None, "Cannot find namespace:%s" % (namespace)
 
         meta = self.cmds_meta[namespace]
 
+
         if not post in meta.cmds:
+            j.shell()
             return None, "Cannot find method with name:%s in namespace:%s" % (post, namespace)
 
         cmd_obj = meta.cmds[post]

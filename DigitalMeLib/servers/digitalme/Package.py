@@ -116,8 +116,6 @@ class Package(JSBASE):
                                             "path":"%s/blueprints"%(self.path)})
 
         if "models" in dir_items:
-            j.shell()
-            w
             name = "%s_internal"%(self.name)
             if name not in self.models:
                 obj = self.data.models.new({"name":name, "enabled":True,
@@ -242,11 +240,12 @@ class Package(JSBASE):
         self.blueprints_load()
         self.docsites_load()
         self.models_load()
+        self.docmacros_load()
+        self.actors_load()
 
     def models_load(self):
-        for item in self.models:
-            j.shell()
-            w
+        for item in self.data.models:
+            j.data.bcdb.latest.models_add(item.path)
         return
 
     def chatflows_load(self):
@@ -262,3 +261,13 @@ class Package(JSBASE):
     def docsites_load(self):
         for doc_site in self.data.docsites:
             j.tools.docsites.load(doc_site.path, doc_site.name)
+
+    def docmacros_load(self):
+        for item in self.data.doc_macros:
+            j.tools.docsites.macros_load(item.path)
+
+    def actors_load(self):
+        for item in self.data.actors:
+            j.shell()
+            w
+            j.tools.docsites.macros_load(item.path)

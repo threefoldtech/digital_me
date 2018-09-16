@@ -1,8 +1,12 @@
 from Jumpscale import j
+import sys
+libpath = j.sal.fs.getDirName(__file__)
+if libpath not in sys.path:
+    sys.path.append(libpath)
 
-from orderbook.lib.orderbook import OrderBook
-from orderbook.lib.matcher import Matcher
-from orderbook.lib.trader import Trader
+from orderbook.orderbook import OrderBook
+from orderbook.matcher import Matcher
+from orderbook.trader import Trader
 
 JSBASE = j.application.JSBaseClass
 

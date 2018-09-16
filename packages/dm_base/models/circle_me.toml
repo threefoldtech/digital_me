@@ -1,0 +1,15 @@
+
+
+#who am I, this is my own information
+@url = digitalme.circle.me
+name = "" (S) 
+alias = [""] (LS)
+privkey = "" (S)
+email = [""] (LS)
+#list of admin circles who have unlimited access to this circle
+admins = [] (LI)
+#who are the members of this circle, this does not give them unlimited rights but can use some services of this circle
+members = [] (LI) 
+secret = "" (S)
+otp = "" (S)
+iyouser = "" (S)

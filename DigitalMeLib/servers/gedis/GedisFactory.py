@@ -29,54 +29,7 @@ class GedisFactory(JSConfigBase):
         return super(GedisFactory, self).get(instance=instance, data=data, interactive=interactive)        
 
 
-    def chatbot_test(self):
-        """
-        js_shell 'j.servers.gedis.chatbot_test()'
-        """
-        bot = GedisChatBotFactory()
-        bot.test()
-        #TODO:*1 not working
-
-#     def new(
-#             self,
-#             instance="test",
-#             port=8889,
-#             host="localhost",
-#             ssl=False,
-#             adminsecret="",
-# ]        ):
-#         """
-#         creates new server on path, if not specified will be current path
-#         will start from example app
-#
-#         js_shell 'j.servers.gedis.new(path="{{DIRS.TMPDIR}}/jumpscale/gedisapp/",reset=True)'
-#
-#         """
-#
-#         if path == "":
-#             path = j.sal.fs.getcwd()
-#         else:
-#             path = j.tools.jinja2.text_render(path)
-#
-#         if reset:
-#             j.sal.fs.removeDirTree(path)
-#
-#         if j.sal.fs.exists("%s/actors" % path) or j.sal.fs.exists("%s/schema" % path):
-#             raise RuntimeError("cannot do new app because app or schema dir does exist.")
-#
-#         # src = j.clients.git.getContentPathFromURLorPath(
-#         #     "https://github.com/threefoldtech/jumpscale_lib/tree/development/apps/template")
-#         # dest = path
-#         # self.logger.info("copy templates to:%s" % dest)
-#
-#         gedis = self.configure(instance=instance, port=port, host=host, ssl=ssl, adminsecret=adminsecret)
-#
-#         # j.tools.jinja2.copy_dir_render(src, dest, reset=reset, j=j, name="aname", config=gedis.config.data,
-#         #                                instance=instance)
-#
-#         self.logger.info("gedis app now in: '%s'\n    do:\n    cd %s;sh start.sh" % (dest, dest))
-
-    def geventservers_get(self, instance=""):
+    def geventserver_get(self, instance=""):
         """
         return redis_server
         """
@@ -119,63 +72,109 @@ class GedisFactory(JSConfigBase):
     def path(self):
         return j.sal.fs.getDirName(os.path.abspath(__file__))
 
-    def test(self, zdb_start=True):
+    def test_server_start(self):
+        """
+        this method is only used when not used in digitalme
+        js_shell 'j.servers.gedis.test_server_start()'
+
+        """
+
+        gedis = self.get(instance="test")
+
+        zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=False)
+        db = j.data.bcdb.get(zdb_cl)
+        path = j.clients.git.getContentPathFromURLorPath(
+            "https://github.com/threefoldtech/digital_me/tree/development_simple/packages/examples/models")
+        j.data.bcdb.latest.models_add(path)
+
+
+        path = j.clients.git.getContentPathFromURLorPath(
+            "https://github.com/threefoldtech/digital_me/tree/development_simple/packages/examples/actors")
+        gedis.cmds_add("orderbook", path+"/order_book_example.py")
+
+        gedis.start()
+
+
+
+    def test(self,zdb_start=True):
         """
         js_shell 'j.servers.gedis.test(zdb_start=False)'
         """
 
-        # remove configuration of the gedis factory
-        self.delete("test")
-
         if zdb_start:
-            cl = j.clients.zdb.testdb_server_start_client_get(
-                reset=zdb_start)  # starts & resets a zdb in
-                                  # seq mode with name test
+            # remove configuration of the gedis factory
+            self.delete("test")
+            cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
 
-        dest = j.clients.git.getContentPathFromURLorPath(
-            "https://github.com/threefoldtech/digital_me/tree/development_simple/packages/circles/actors")
         gedis = self.configure(instance="test", port=8888, host="localhost", ssl=False,
-                            secret="1234", interactive=False)
+                               adminsecret="1234", interactive=False)
 
+        print("START GEDIS IN TMUX")
+        cmd = "js_shell 'j.servers.gedis.test_server_start()'"
+        j.tools.tmux.execute(
+            cmd,
+            session='main',
+            window='gedis_test',
+            pane='main',
+            session_reset=False,
+            window_reset=True
+        )
 
+        res = j.sal.nettools.waitConnectionTest("localhost", int(gedis.config.data["port"]), timeoutTotal=1000)
+        if res == False:
+            raise RuntimeError("Could not start gedis server on port:%s" % int(gedis.config.data["port"]))
+        self.logger.info("gedis server '%s' started" % gedis.instance)
 
-        # we need to run multiple servers, lets get a rack for gevent
-        rack = j.servers.gevent_servers_racks.get()
-        rack.add(j.servers.gedis.geventserver_get("test"))
+        cl = gedis.client_get()
 
         j.shell()
 
 
 
+    # def chatbot_test(self):
+    #     """
+    #     js_shell 'j.servers.gedis.chatbot_test()'
+    #     """
+    #     bot = GedisChatBotFactory()
+    #     bot.test()
+    #     #TODO:*1 not working
 
+#     def new(
+#             self,
+#             instance="test",
+#             port=8889,
+#             host="localhost",
+#             ssl=False,
+#             adminsecret="",
+# ]        ):
+#         """
+#         creates new server on path, if not specified will be current path
+#         will start from example app
+#
+#         js_shell 'j.servers.gedis.new(path="{{DIRS.TMPDIR}}/jumpscale/gedisapp/",reset=True)'
+#
+#         """
+#
+#         if path == "":
+#             path = j.sal.fs.getcwd()
+#         else:
+#             path = j.tools.jinja2.text_render(path)
+#
+#         if reset:
+#             j.sal.fs.removeDirTree(path)
+#
+#         if j.sal.fs.exists("%s/actors" % path) or j.sal.fs.exists("%s/schema" % path):
+#             raise RuntimeError("cannot do new app because app or schema dir does exist.")
+#
+#         # src = j.clients.git.getContentPathFromURLorPath(
+#         #     "https://github.com/threefoldtech/jumpscale_lib/tree/development/apps/template")
+#         # dest = path
+#         # self.logger.info("copy templates to:%s" % dest)
+#
+#         gedis = self.configure(instance=instance, port=port, host=host, ssl=ssl, adminsecret=adminsecret)
+#
+#         # j.tools.jinja2.copy_dir_render(src, dest, reset=reset, j=j, name="aname", config=gedis.config.data,
+#         #                                instance=instance)
+#
+#         self.logger.info("gedis app now in: '%s'\n    do:\n    cd %s;sh start.sh" % (dest, dest))
 
-
-        # @property
-        # def code_server_template(self):
-        #     if self._template_code_server is None:
-        #         self._template_code_server = self.template_engine.get_template("template.py")
-        #     return self._template_code_server
-
-        # @property
-        # def code_model_template(self):
-        #     if self._code_model_template is None:
-        #         self._code_model_template = self.template_engine.get_template("ModelBase.py")
-        #     return self._code_model_template
-
-        # @property
-        # def js_client_template(self):
-        #     if self._js_client_template is None:
-        #         self._js_client_template = self.template_engine.get_template("client.js")
-        #     return self._js_client_template
-
-        # @property
-        # def code_start_template(self):
-        #     if self._code_start_template is None:
-        #         self._code_start_template = self.template_engine.get_template("start.py")
-        #     return self._code_start_template
-
-        # @property
-        # def code_test_template(self):
-        #     if self._code_test_template is None:
-        #         self._code_test_template = self.template_engine.get_template("test.py")
-        #     return self._code_test_template

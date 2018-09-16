@@ -49,10 +49,11 @@ class GedisCmds(JSBASE):
         else:
 
             dname = j.sal.fs.getDirName(path)
+            cname = j.sal.fs.getBaseName(path)[:-3]
             if dname not in sys.path:
                 sys.path.append(dname)
             classname = self._class_find_name()
-            exec("from %s import %s" % (classname, classname))
+            exec("from %s import %s" % (cname, classname))
             class_ = eval(classname)
             self.server.classes[name] = class_()
 

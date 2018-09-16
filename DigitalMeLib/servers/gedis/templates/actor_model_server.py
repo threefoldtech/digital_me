@@ -5,29 +5,29 @@ from Jumpscale import j
 JSBASE = j.application.JSBaseClass
 
 SCHEMA="""
-{{obj.text}}
+{{schema.text}}
 """
 
-class model_{{obj.name}}(JSBASE):
+class model_{{schema.name}}(JSBASE):
     
     def __init__(self):
         JSBASE.__init__(self)        
-        self.namespace = "{{obj.name}}"
-        self.url = "{{obj.url}}"
-        self.bcdb = j.servers.gedis.latest.bcdb
-        self.table = self.bcdb.tables["{{obj.name}}"]
-        self.schema = self.table.schema
+        self.namespace = "{{model.key}}"
+        self.url = "{{schema.url}}"
+        self.bcdb = j.data.bcdb.latest
+        self.model = self.bcdb.models["{{schema.url}}"]
+        self.schema = self.model.schema
 
     def set(self,data_in):
         if j.servers.gedis.latest.serializer:
             #e.g. for json
             ddict = j.servers.gedis.latest.return_serializer.loads(data_in)
             obj = self.schema.get(data=ddict)
-            data = obj.data
+            data = schema.data
         else:
             id,data = j.data.serializers.msgpack.loads(data_in)
 
-        res=self.table.set(data=data, obj_id=id, hook=self.hook_set)
+        res=self.model.set(data=data, key=id)
         if res.id == None:
             raise RuntimeError("cannot be None")
 
@@ -38,36 +38,21 @@ class model_{{obj.name}}(JSBASE):
 
     def get(self, id):
         id=int(id.decode())
-        obj = self.table.get(id=id, hook=self.hook_get)
+        obj = self.model.get(id=id)
         print("get")
         if j.servers.gedis.latest.serializer:
             return j.servers.gedis.latest.return_serializer.dumps(obj.ddict)
         else:
             return j.data.serializers.msgpack.dumps([obj.id,obj.data])
 
-    def find(self, total_items_in_page=20, page_number=1, only_fields=[], {{find_args}}):
+    def find(self, total_items_in_page=20, page_number=1, only_fields=[], **args):
         #TODO:*1 what is this, who uses it?
         if isinstance(only_fields, bytes):
             import ast
             only_fields = ast.literal_eval(only_fields.decode())
-        return self.table.find(hook=self.hook_get, capnp=True, total_items_in_page=total_items_in_page,
+        return self.model.find(hook=self.hook_get, capnp=True, total_items_in_page=total_items_in_page,
                                page_number=page_number, only_fields=only_fields, {{kwargs}})
         
     def new(self):
-        return self.table.new()
-
-    def hook_set(self,obj,index=None):
-        """
-        before an object is set in the DB it will pass through this function, 
-        this allows addional manipulation of object or security checks
-        """
-        return obj
-
-    def hook_get(self,obj):
-        """
-        after an object is retreived from DB but before send to the consumer
-        it will pass through this function, 
-        this allows addional manipulation of object or security checks
-        """
-        return obj
+        return self.model.new()
 

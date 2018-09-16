@@ -194,6 +194,8 @@ class BCDBFactory(JSBASE):
         js_shell 'j.data.bcdb.test2(start=False)'
         """
 
+        #make sure we remove the maybe already previously generated model file
+        j.sal.fs.remove("%s/tests/models/bcdb_model_test.py"%self._path)
 
         zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
         db = j.data.bcdb.get(zdb_cl)
@@ -201,7 +203,7 @@ class BCDBFactory(JSBASE):
 
         db.models_add("%s/tests"%self._path,overwrite=True)
 
-        m = db.model_get('jumpscale.bcdb.test.house2')
+        m = db.model_get('jumpscale.bcdb.test.house')
 
         o = m.new()
         o.cost = "10 USD"
@@ -213,5 +215,7 @@ class BCDBFactory(JSBASE):
         assert data.cost_usd == 10
 
         assert o.cost_usd == 10
+
+        assert m.index.select().first().cost == 10.0  #is always in usd
 
         print ("TEST2 DONE, but is still minimal")

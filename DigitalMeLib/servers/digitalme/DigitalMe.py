@@ -91,11 +91,6 @@ class DigitalMe(JSBASE):
         self.packages_add(path)
         j.servers.web.latest.loader.load() #TODO:*1 need to check if this one ok
         self.rack.start()
-        forever = event.Event()
-        try:
-            forever.wait()
-        except KeyboardInterrupt:
-            self.rack.stop()
 
     def server_rack_get(self):
 
