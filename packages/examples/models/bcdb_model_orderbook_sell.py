@@ -3,6 +3,7 @@ from Jumpscale import j
 
 
 SCHEMA="""
+# Sell Order
 @url = jumpscale.example.order.sell
 comment = ""
 currency_to_sell* = "" (S)   # currency types BTC/ETH/XRP/TFT
@@ -16,10 +17,9 @@ approved* = (B)              # if True, object will be scheduled for matching, f
 owner_email_addr = (S)      # email addr used through IYO when order was created
 wallet_addr* = (S)           # Wallet address
 
-
 """
 from peewee import *
-db = j.data.bcdb.latest.sqlitedb
+db = j.data.bcdb.bcdb_instances["test"].sqlitedb
 
 class BaseModel(Model):
     class Meta:

@@ -4,7 +4,7 @@ import sys
 JSBASE = j.application.JSBaseClass
 
 
-class order_book_example(JSBASE):
+class order_book(JSBASE):
     """
     """
     def __init__(self):
@@ -12,7 +12,7 @@ class order_book_example(JSBASE):
 
 
     def echo(self, msg):
-        return echo
+        return msg
 
 
     def wallet_set(self,wallet):

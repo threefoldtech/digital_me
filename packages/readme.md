@@ -20,6 +20,7 @@ Apart from the subdirectories as specified above digital me will also checkout g
 ```toml
 
 enable = false
+namespace = threefold.grid
 
 [[actors]]
 name = 
@@ -88,9 +89,10 @@ url = ""
 
 - are highlevel chat flows, communication with users
 
-## schemas
+## models
 
-- jumpscale schema's
+- jumpscale schema's convert into models
+- see j.data.bcdb
 
 ## recipe's
 

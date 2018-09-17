@@ -3,6 +3,8 @@ from Jumpscale import j
 
 
 SCHEMA="""
+
+# Wallet
 @url = jumpscale.example.wallet
 jwt = "" (S)                # JWT Token
 addr* = ""                   # Address
@@ -10,10 +12,9 @@ ipaddr = (ipaddr)           # IP Address
 email = "" (S)              # Email address
 username = "" (S)           # User name
 
-
 """
 from peewee import *
-db = j.data.bcdb.latest.sqlitedb
+db = j.data.bcdb.bcdb_instances["test"].sqlitedb
 
 class BaseModel(Model):
     class Meta:

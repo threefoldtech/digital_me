@@ -2,6 +2,7 @@ from .handlers import WebsocketRequestHandler
 from geventwebsocket.handler import WebSocketHandler
 from gevent import pywsgi
 
+#THINK IS NOT USED AT THIS POINT
 
 class JSAPIServer():
     def __init__(self):

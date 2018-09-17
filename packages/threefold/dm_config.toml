@@ -1,5 +1,6 @@
 
 enable = true
+namespace = threefold.grid
 
 [[docsite]]
 name = "foundation"

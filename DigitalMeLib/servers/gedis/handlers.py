@@ -8,12 +8,13 @@ JSBASE = j.application.JSBaseClass
 
 
 class Handler(JSBASE):
-    def __init__(self, instance, cmds, classes, cmds_meta):
+    def __init__(self, gedis_server):
         JSBASE.__init__(self)
-        self.cmds = cmds
-        self.classes = classes
-        self.instance = instance
-        self.cmds_meta = cmds_meta
+        self.gedis_server=gedis_server
+        self.cmds = {}            #caching of commands
+        self.classes = self.gedis_server.classes
+        self.cmds_meta = self.gedis_server.cmds_meta
+        self.namespace = "system"
 
     def _handle_request(self, socket, address):
         self.logger.info('connection from {}'.format(address))
@@ -32,6 +33,11 @@ class Handler(JSBASE):
 
             cmd = request[0]
             redis_cmd = cmd.decode("utf-8").lower()
+
+            #special command to put the client on right namespace
+            if redis_cmd == "select":
+                self.namespace = params[0].decode()
+                return self.response.encode("OK")
 
             params = {}
 
@@ -92,11 +98,10 @@ class Handler(JSBASE):
                 self.logger.debug("Callback done and result {} , type {}".format(result, type(result)))
             except Exception as e:
                 print("exception in redis server")
-                eco = j.errorhandler.parsePythonExceptionObject(e)
-                msg = str(eco)
+                j.errorhandler.try_except_error_process(e, die=False)
+                msg = str(e)
                 msg += "\nCODE:%s:%s\n" % (cmd.namespace, cmd.name)
-                print (msg)
-                self.response.error(e.args[0])
+                self.response.error(msg)
                 continue
             self.logger.debug(
                 "response:{}:{}:{}".format(address, cmd, result))
@@ -106,48 +111,64 @@ class Handler(JSBASE):
             self.response.encode(result)
 
     def get_command(self, cmd):
-        if cmd in self.cmds:
-            return self.cmds[cmd], ''
 
         self.logger.debug('(%s) command cache miss')
 
-        if not '.' in cmd:
-            pre="system_core"
-            post=cmd
-            # return None, 'Invalid command (%s) : model is missing. proper format is {model}.{cmd}'
+        if cmd=="auth":
+            namespace = "system"
+            actor = "system"
+        elif '.' in cmd:
+            splitted = cmd.split(".", 1)
+            if len(splitted)==2:
+                namespace = self.namespace
+                actor = splitted[0]
+                if "__" in actor:
+                    actor = actor.split("__",1)[1]
+                cmd = splitted[1]
+            else:
+                raise RuntimeError("cmd not properly formatted")
         else:
-            pre, post = cmd.split(".", 1)
-
-        namespace = self.instance + "_" + pre
-
-        if namespace not in self.classes:
             j.shell()
-            return None, "Cannot find namespace:%s " % (namespace)
 
-        if namespace not in self.cmds_meta:
+        key="%s__%s"%(namespace,actor)
+        key_cmd = "%s__%s"%(key,cmd)
+
+        #caching so we don't have to eval every time
+        if key_cmd in self.cmds:
+            return self.cmds[key_cmd], ''
+
+        if namespace=="system" and key not in self.classes:
+            #we will now check if the info is in default namespace
+            key = "default__%s" % actor
+
+        if key not in self.classes:
             j.shell()
-            return None, "Cannot find namespace:%s" % (namespace)
+            return None, "Cannot find cmd with key:%s in classes" % (namespace)
 
-        meta = self.cmds_meta[namespace]
+        if key not in self.cmds_meta:
+            j.shell()
+            return None, "Cannot find cmd with key:%s in cmds_meta" % (namespace)
 
+        meta = self.cmds_meta[key]
 
-        if not post in meta.cmds:
+        #check cmd exists in the metadata
+        if not cmd in meta.cmds:
             j.shell()
             return None, "Cannot find method with name:%s in namespace:%s" % (post, namespace)
 
-        cmd_obj = meta.cmds[post]
+        cmd_obj = meta.cmds[cmd]
 
         try:
-            cl = self.classes[namespace]
-            m = eval("cl.%s" % (post))
+            cl = self.classes[key]
+            m = eval("cl.%s" % (cmd))
         except Exception as e:
             return None, "Could not execute code of method '%s' in namespace '%s'\n%s" % (pre, namespace, e)
 
         cmd_obj.method = m
 
-        self.cmds[cmd] = cmd_obj
+        self.cmds[key_cmd] = cmd_obj
 
-        return self.cmds[cmd], ""
+        return self.cmds[key_cmd], ""
 
     def handle(self, socket, address):
         """

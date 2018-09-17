@@ -62,11 +62,12 @@ class GedisFactory(JSConfigBase):
         server.client_configure() #configures the client
         return server
 
-    def _cmds_get(self, namespace, capnpbin):
+    def _cmds_get(self, key, capnpbin):
         """
         Used in client only, starts from capnpbin (python client)
         """
-        return GedisCmds(namespace=namespace, capnpbin=capnpbin)
+        namespace, name = key.split("__")
+        return GedisCmds(namespace=namespace,name=name, capnpbin=capnpbin)
 
     @property
     def path(self):
@@ -82,15 +83,16 @@ class GedisFactory(JSConfigBase):
         gedis = self.get(instance="test")
 
         zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=False)
-        db = j.data.bcdb.get(zdb_cl)
+        bcdb = j.data.bcdb.get(zdb_cl,namespace="test")
         path = j.clients.git.getContentPathFromURLorPath(
             "https://github.com/threefoldtech/digital_me/tree/development_simple/packages/examples/models")
-        j.data.bcdb.latest.models_add(path)
+        bcdb.models_add(path=path)
 
 
         path = j.clients.git.getContentPathFromURLorPath(
             "https://github.com/threefoldtech/digital_me/tree/development_simple/packages/examples/actors")
-        gedis.cmds_add("orderbook", path+"/order_book_example.py")
+        gedis.actors_add(namespace="orderbook", path=path)
+        gedis.models_add(namespace="orderbook", models=bcdb)
 
         gedis.start()
 
@@ -125,9 +127,13 @@ class GedisFactory(JSConfigBase):
             raise RuntimeError("Could not start gedis server on port:%s" % int(gedis.config.data["port"]))
         self.logger.info("gedis server '%s' started" % gedis.instance)
 
-        cl = gedis.client_get()
+        cl = gedis.client_get(namespace="orderbook")
 
-        j.shell()
+        assert cl.order_book.echo("s") == b"s"
+
+        #TODO: *1 need to make some tests with schemas now
+
+        # j.shell()
 
 
 

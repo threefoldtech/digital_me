@@ -13,33 +13,44 @@ class system(JSBASE):
     def ping(self):
         return "PONG"
 
+    def auth(self,secret,namespace=""):
+        secret = secret.decode()
+        #check admin secret
+        if self.server.config.data["adminsecret_"]==secret:
+            return "OK"
+
+        j.shell()
+        return "AUTHERROR"
+
     def ping_bool(self):
         return True
 
-    def core_schemas_get(self):
+    def core_schemas_get(self,namespace):
         """
         return all core schemas as understood by the server, is as text, can be processed by j.data.schema
 
         """
-        res = {}        
+        namespace = namespace.decode()
+        res = {}
         for key,item in j.data.schema.schemas.items():
+            #TODO: should prob limit to namespace
             res[key] = item.text
         return j.data.serializers.msgpack.dumps(res)
 
-    def api_meta(self):
+    def api_meta(self,namespace):
         """
         return the api meta information
 
-        """  
-        s=self.server.cmds_meta
-        res={}
-        res["namespace"] = self.server.instance
+        """
+        namespace = namespace.decode()
+        res = {}
         res["cmds"]={}
-        for key,item in s.items():
-            res["cmds"][key] = item.data.data
+        for key,item in self.server.cmds_meta.items():
+            if item.namespace == namespace:
+                res["cmds"][key] = item.data._data
         return j.data.serializers.msgpack.dumps(res)
 
-    def schema_urls(self):
+    def schema_urls(self,*args):
         """
         return the api meta information
 

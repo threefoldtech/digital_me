@@ -4,7 +4,7 @@ import struct
 
 JSBASE = j.application.JSBaseClass
 
-
+#is the base class for the model which gets generated from the template
 class BCDBModel(JSBASE):
     def __init__(self, bcdb=None, schema=None, url=None, index_enable=True):
         """
@@ -21,9 +21,9 @@ class BCDBModel(JSBASE):
         JSBASE.__init__(self)
 
         if bcdb is None:
-            # bcdb = j.data.bcdb.latest
             raise RuntimeError("bcdb should be set")
         self.bcdb = bcdb
+        self.namespace = bcdb.namespace
         if url is not None:
             self.schema = j.data.schema.schema_get(url=url)
         else:

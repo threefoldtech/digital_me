@@ -16,11 +16,13 @@ class BCDBFactory(JSBASE):
         JSBASE.__init__(self)
         self.__jslocation__ = "j.data.bcdb"
         self._code_generation_dir = None
+        self.bcdb_instances = {}  #key is the namespace
 
-    def get(self, dbclient,reset=False):
+    def get(self, dbclient,namespace="default", reset=False):
         if j.data.types.string.check(dbclient):
             raise RuntimeError("zdbclient cannot be str")
-        return BCDB(dbclient,reset=reset)
+        self.bcdb_instances[namespace] = BCDB(dbclient,namespace=namespace,reset=reset)
+        return self.bcdb_instances[namespace]
 
     @property
     def code_generation_dir(self):
@@ -37,17 +39,6 @@ class BCDBFactory(JSBASE):
     @property
     def MODEL_CLASS(self):
         return BCDBModel
-
-    @property
-    def PEEWEE_INDEX_CLASS(self):
-        db = j.data.bcdb.latest.sqlitedb
-        class BaseModel(Model):
-            class Meta:
-                database = db
-            def __repr__(self):
-                return (self.__dict__)
-            __str__ = __repr__
-        return BaseModel
 
     @property
     def _path(self):
@@ -85,7 +76,7 @@ class BCDBFactory(JSBASE):
             # db_cl = j.core.db #fall back onto redis
 
 
-            db = j.data.bcdb.get(db_cl,reset=True)
+            db = j.data.bcdb.get(db_cl,namespace="test",reset=True)
             model = db.model_create(schema=schema)
 
 

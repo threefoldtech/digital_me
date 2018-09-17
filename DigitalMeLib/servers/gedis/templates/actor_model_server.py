@@ -14,7 +14,7 @@ class model_{{schema.name}}(JSBASE):
         JSBASE.__init__(self)        
         self.namespace = "{{model.key}}"
         self.url = "{{schema.url}}"
-        self.bcdb = j.data.bcdb.latest
+        self.bcdb = j.data.bcdb.bcdb_instances["{{model.namespace}}"]
         self.model = self.bcdb.models["{{schema.url}}"]
         self.schema = self.model.schema
 

@@ -8,6 +8,7 @@ from redis.connection import ConnectionError
 TEMPLATE = """
 host = "127.0.0.1"
 port = "9900"
+namespace = "default"
 adminsecret_ = ""
 ssl = false
 sslkey = ""
@@ -34,6 +35,7 @@ class GedisClient(JSConfigBase):
         JSConfigBase.__init__(self, instance=instance, data=data, parent=parent,template=TEMPLATE , interactive=interactive)
 
         j.clients.gedis.latest = self
+        self.namespace = self.config.data["namespace"]
 
         self.code_generated_dir = j.sal.fs.joinPaths(j.dirs.VARDIR, "codegen", "gedis", instance, "client")
         j.sal.fs.createDir(self.code_generated_dir)
@@ -57,33 +59,29 @@ class GedisClient(JSConfigBase):
         if test != b'PONG':
             raise RuntimeError('Can not ping server')
         # this will make sure we have all the local schemas
-        schemas_meta = self.redis.execute_command("system.core_schemas_get")
+        schemas_meta = self.redis.execute_command("system.core_schemas_get",self.namespace)
         schemas_meta = j.data.serializers.msgpack.loads(schemas_meta)
         for key,txt in schemas_meta.items():
             if key not in j.data.schema.schemas:
-                j.data.schema.schema_get(txt,url=key)
+                j.data.schema.schema_add(txt)
 
         schema_urls = self.redis.execute_command("system.schema_urls")
         self.schema_urls = j.data.serializers.msgpack.loads(schema_urls)
 
         try:
-            # LOW LEVEL AT THIS TIME BUT TO SHOW SOMETHING
-            cmds_meta =self.redis.execute_command("system.api_meta")
+            cmds_meta =self.redis.execute_command("system.api_meta",self.namespace)
             cmds_meta = j.data.serializers.msgpack.loads(cmds_meta)
-            self.namespace = cmds_meta["namespace"]
-            for namespace_full, capnpbin in cmds_meta["cmds"].items():
-                shortname = namespace_full.split(".")[-1]
-                if not shortname.startswith("model"):
-                    self.cmds_meta[namespace_full] = j.servers.gedis.cmds_get(
-                        namespace_full,
-                        capnpbin
-                    ).cmds
+            for key, capnpbin in cmds_meta["cmds"].items():
+                if not "__model_" in key:
+                    self.cmds_meta[key] = j.servers.gedis._cmds_get(key,capnpbin).cmds
         except ConnectionError:
             self.logger.error('Connection error')
             self._connected  = False
             return
 
         self.generate(reset=reset)
+
+        self.redis.execute_command("select",self.namespace)
 
     def generate(self, reset=False):
         for schema_url in self.schema_urls:
@@ -121,13 +119,15 @@ class GedisClient(JSConfigBase):
 
             m=imp.load_source(name=fname, pathname=dest)
             self.logger.debug("cmds:%s"%fname)
+            if "__" in cmds_name_lower:
+                cmds_name_lower = cmds_name_lower.split("__",1)[1]
             self.cmds.__dict__[cmds_name_lower] =m.CMDS(client=self,cmds=cmds.cmds)
 
     @property
     def redis(self):
         """
         this gets you a redis instance, when executing commands you have to send the name of the function without
-        the postfix _cmd as is, do not capitlize it
+        the postfix _cmd as is, do not capitalize it
         if it is testtest_cmd, then you should call it by testtest
 
         :return: redis instance

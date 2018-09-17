@@ -3,12 +3,12 @@ from Jumpscale import j
 
 {% if index.include_schema %}
 SCHEMA="""
-{{schema.text}}
+{{schema_text}}
 """
 {%- endif %}
 {%- if index.enable %}
 from peewee import *
-db = j.data.bcdb.latest.sqlitedb
+db = j.data.bcdb.bcdb_instances["{{bcdb.namespace}}"].sqlitedb
 
 class BaseModel(Model):
     class Meta:

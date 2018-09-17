@@ -3,11 +3,12 @@ JSBASE = j.application.JSBaseClass
 import sys
 from importlib import import_module
 
-model = """
+SCHEMA_PACKAGE = """
 @url = jumpscale.digitalme.package
 enabled = false (B)
 start = 0 (D)
 path = "" (S)
+namespace = "" (S)
 docsites = (LO) !jumpscale.digitalme.package.docsite
 blueprints = (LO) !jumpscale.digitalme.package.blueprints
 actors = (LO) !jumpscale.digitalme.package.actors
@@ -82,14 +83,18 @@ class Package(JSBASE):
     def __init__(self,path):
         JSBASE.__init__(self)
         self.path = j.sal.fs.getDirName(path)
-        db_client = j.clients.redis_config.get().redis
-        self.bcdb = j.data.bcdb.get(db_client)
-        schema_model = j.data.bcdb.MODEL_CLASS(bcdb=self.bcdb, schema=model)
-        self.bcdb.model_add(schema_model)
-        self._model = self.bcdb.model_get(url="jumpscale.digitalme.package")
-        self.data = self._model.new()
 
-        data = j.data.serializers.toml.load(path)
+        #use redis to make the packages persistent, so we can autoreload them later, #TODO: not done now
+        self._bcdb_core = j.data.bcdb.get(j.core.db,namespace="system") #get system namespace for own metadata
+        self._bcdb_core.model_create(schema=SCHEMA_PACKAGE)
+        self._model = self._bcdb_core.model_get(url="jumpscale.digitalme.package")
+
+        self.data = self._model.new()
+        data = j.data.serializers.toml.load(path)  #path is the toml file
+
+        self.namespace = data.get("namespace","default")  #fall back on default value "default" for the namespace
+        #each package is part of a namespace
+
         #be flexible
         #std value is False
         if "enable" in data:
@@ -146,8 +151,6 @@ class Package(JSBASE):
             for dir_name in dir_items:
                 self.data.docsites.new({"name": dir_name, "enabled": True,
                                         "path": j.sal.fs.joinPaths(docs_dir, dir_name)})
-
-        #TODO: *1 finish & test
 
         if "docsite" in data:
             for item in data["docsite"]:
@@ -245,7 +248,8 @@ class Package(JSBASE):
 
     def models_load(self):
         for item in self.data.models:
-            j.data.bcdb.latest.models_add(item.path)
+            bcdb = j.data.bcdb.bcdb_instances[self.namespace]
+            bcdb.models_add(item.path)
         return
 
     def chatflows_load(self):

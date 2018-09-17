@@ -11,14 +11,16 @@ JSBASE = j.application.JSBaseClass
 
 class GedisCmds(JSBASE):
     """
-    all commands captured in a capnp object, which can be stored in redis or any other keyvaluestor
+    cmds understood by gedis server
     """
     
-    def __init__(self,server=None, name="",path=None,capnpbin=None):
+    def __init__(self, server=None, namespace="default", name="", path="", capnpbin=None):
         JSBASE.__init__(self)
 
-        if path is None:
+        if path is "" and capnpbin==None:
             raise RuntimeError("path cannot be None")
+
+        self.namespace = namespace
 
         self.path=path
 
@@ -27,6 +29,7 @@ class GedisCmds(JSBASE):
         SCHEMA = """
         @url = jumpscale.gedis.cmd
         @name = GedisCmds
+        namespace = ""
         name = ""
         comment = ""
         code = "" 
@@ -55,13 +58,16 @@ class GedisCmds(JSBASE):
             classname = self._class_find_name()
             exec("from %s import %s" % (cname, classname))
             class_ = eval(classname)
-            self.server.classes[name] = class_()
 
-            # j.shell()
+            if namespace in cname and cname.startswith("model"):
+                cname = "model_%s" % cname.split(namespace, 1)[1].strip("_")
+            key="%s__%s"%(self.namespace,cname)
+
+            self.server.classes[key] = class_()
 
             self.data = self.schema.new()
             self.data.name = name
-            self.data.namespace = name
+            self.data.namespace = self.namespace
 
             for name,item in inspect.getmembers(class_):
                 if name.startswith("_"):
@@ -75,7 +81,6 @@ class GedisCmds(JSBASE):
                     cmd.name = name
                     code = inspect.getsource(item)
                     cmd.code,cmd.comment,cmd.schema_in, cmd.schema_out, cmd.args= self._method_source_process(code)
-
 
 
     @property

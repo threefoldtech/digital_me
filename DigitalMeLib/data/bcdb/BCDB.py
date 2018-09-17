@@ -10,14 +10,15 @@ from .BCDBIndexModel import BCDBIndexModel
 
 class BCDB(JSBASE):
     
-    def __init__(self,dbclient,reset=False):
+    def __init__(self,dbclient,namespace="default",reset=False):
         JSBASE.__init__(self)
-        if  isinstance(dbclient,j.clients.redis.REDIS_CLIENT_CLASS) or isinstance(dbclient,StrictRedis):
+        if isinstance(dbclient,j.clients.redis.REDIS_CLIENT_CLASS) or isinstance(dbclient,StrictRedis):
             dbclient.type = "RDB" #means is redis db
         else:
             dbclient.type = "ZDB"
 
         self.dbclient = dbclient
+        self.namespace = namespace
         self.models = {}
 
         self.index_create(reset=reset)
@@ -27,28 +28,16 @@ class BCDB(JSBASE):
             else:
                 for item in self.dbclient.keys("bcdb:*"):
                     self.dbclient.delete(item)
-        j.data.bcdb.latest = self
 
     def index_create(self,reset=False):
         j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb"))
-        if self.dbclient.type == "ZDB":
-            instance = self.dbclient.instance
-        else:
-            if "path" in self.dbclient.connection_pool.connection_kwargs:
-                instance=self.dbclient.connection_pool.connection_kwargs["path"]
-            else:
-                # print("need to find addr:port as identifier")
-                conn_args = self.dbclient.connection_pool.connection_kwargs
-                instance = "%s:%s" % (conn_args['host'], conn_args['port'])
-            instance = j.core.text.strip_to_ascii_dense(instance)
-        dest = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb",instance+".db")
+        dest = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb",self.namespace+".db")
         self.logger.debug("bcdb:indexdb:%s"%dest)
         if reset:
             j.sal.fs.remove(dest)
         self.sqlitedb = SqliteDatabase(dest)
 
-
-    def model_create(self, schema,dest=None, include_schema=True,overwrite=False):
+    def model_create(self, schema,dest=None, include_schema=True,overwrite=True):
         """
         :param include_schema, if True schema is added to generated code
         :param schema: j.data.schema ...
@@ -57,11 +46,14 @@ class BCDB(JSBASE):
         """
         if j.data.types.string.check(schema):
             if j.sal.fs.exists(schema):
-                schema = j.sal.fs.fileGetContents(schema)
-            schema = j.data.schema.schema_add(schema)
+                schema_text = j.sal.fs.fileGetContents(schema)
+            else:
+                schema_text = schema
+            schema = j.data.schema.schema_add(schema_text)
         else:
             if not isinstance(schema, j.data.schema.SCHEMA_CLASS):
                 raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
+            schema_text = schema.text
 
         imodel = BCDBIndexModel(schema=schema)
         imodel.enable = True
@@ -75,7 +67,10 @@ class BCDB(JSBASE):
 
         if overwrite or not j.sal.fs.exists(dest):
             self.logger.debug("render model:%s"%dest)
-            j.tools.jinja2.file_render(tpath, write=True, dest=dest, schema=schema, index=imodel)
+            if dest is None:
+                raise RuntimeError("cannot be None")
+            j.tools.jinja2.file_render(tpath, write=True, dest=dest, schema=schema,
+                                       schema_text=schema_text, bcdb=self, index=imodel)
 
         return self.model_add(dest)
 
