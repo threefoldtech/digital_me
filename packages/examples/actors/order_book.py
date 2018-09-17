@@ -15,7 +15,7 @@ class order_book(JSBASE):
         return msg
 
 
-    def wallet_set(self,wallet):
+    def wallet_set(self,wallet, schema_out):
         """
         ```in
         !jumpscale.example.wallet
@@ -38,5 +38,4 @@ class order_book(JSBASE):
         w.ipaddr = wallet.ipaddr
         w.addr = wallet.addr
         w.jwt = wallet.jwt
-        j.shell()
-        return self.orderbook.wallet.register(w)
+        return w

@@ -44,8 +44,7 @@ class CMDS():
         for item in {{prop.name}}:
             args.{{prop.name}}.append(item)
         {% endfor %}
-
-        res = self._redis.execute_command("{{obj.cmds_name_lower}}.{{name}}",j.data.serializers.msgpack.dumps([id if not callable(id) else None, args.data]))
+        res = self._redis.execute_command("{{obj.cmds_name_lower}}.{{name}}",j.data.serializers.msgpack.dumps([id if not callable(id) else None, args._data]))
 
         {% else %}
         {% set args = cmd.cmdobj.args.split(',') if cmd.cmdobj.args else [] %}

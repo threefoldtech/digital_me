@@ -69,7 +69,7 @@ class Handler(JSBASE):
                 if 'schema_out' in args:
                     args.remove('schema_out')
                 params = {}
-                schema_dict = o.ddict
+                schema_dict = o._ddict
                 if len(args) == 1:
                     if args[0] in schema_dict:
                         params.update(schema_dict)
@@ -208,7 +208,7 @@ class RedisRequestHandler(Handler):
             self.logger.info('close connection from {}'.format(address))
 
     def encode_result(self, result):
-        return result.data
+        return result._data
 
     def encode_error(self, error):
         return error
