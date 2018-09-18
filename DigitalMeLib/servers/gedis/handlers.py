@@ -208,7 +208,10 @@ class RedisRequestHandler(Handler):
             self.logger.info('close connection from {}'.format(address))
 
     def encode_result(self, result):
-        return result._data
+        if hasattr(result, "_data"):
+            return result._data
+        else:
+            return str(result).encode()
 
     def encode_error(self, error):
         return error
