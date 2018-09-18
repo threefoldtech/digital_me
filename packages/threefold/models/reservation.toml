@@ -32,5 +32,7 @@ transactionid = ""        #transaction id in the blockchain
 datetime = 0 (D)          #time when payment was done
 tft_nr = 0 (F)            #amounts of tokens paid
 
+zrobot_service_secret = ""       #secret as returned by the zero node robot
+
 
 #TODO:*1 for the specs of VM/ZDB/...

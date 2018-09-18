@@ -135,6 +135,9 @@ class GedisFactory(JSConfigBase):
 
         assert wallet.addr == "testaddr"
         assert wallet.jwt == "testjwt"
+
+        j.shell()
+
         print("- done")
 
         print("**DONE**")
