@@ -4,7 +4,7 @@ import cryptocompare
 from orderbook.transaction import Transaction
 import gevent
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 Numeric = j.data.types.numeric
 Date = j.data.types.date
 

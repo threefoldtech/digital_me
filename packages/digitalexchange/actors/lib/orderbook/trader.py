@@ -3,7 +3,7 @@ from gevent.event import Event
 from queue import Queue
 import gevent
 
-JSBASE = j.application.jsbase_get_class()
+JSBASE = j.application.JSBaseClass
 
 
 class Trader(JSBASE):
