@@ -91,8 +91,8 @@ class GedisFactory(JSConfigBase):
 
         path = j.clients.git.getContentPathFromURLorPath(
             "https://github.com/threefoldtech/digital_me/tree/development_simple/packages/examples/actors")
-        gedis.actors_add(namespace="orderbook", path=path)
-        gedis.models_add(namespace="orderbook", models=bcdb)
+        gedis.actors_add(namespace="gedis_examples", path=path)
+        gedis.models_add(namespace="gedis_examples", models=bcdb)
 
         gedis.start()
 
@@ -127,6 +127,7 @@ class GedisFactory(JSConfigBase):
             raise RuntimeError("Could not start gedis server on port:%s" % int(gedis.config.data["port"]))
         self.logger.info("gedis server '%s' started" % gedis.instance)
         print("[*] testing echo")
+<<<<<<< HEAD
         cl = gedis.client_get(namespace="orderbook")
         assert cl.order_book.echo("s") == b"s"
         print("- done")
@@ -138,7 +139,40 @@ class GedisFactory(JSConfigBase):
 
         j.shell()
 
+=======
+        cl = gedis.client_get(namespace="gedis_examples")
+        assert cl.gedis_examples.echo("s") == b"s"
+>>>>>>> 3c62ad25c10ba47ba177cf64f08dbc9354b3f911
         print("- done")
+        print("[*] testing set with schemas")
+        print("[1] schema_in as schema url")
+
+        wallet_out1 = cl.gedis_examples.example1(addr="testaddr")
+        assert wallet_out1.addr == "testaddr"
+        print("[1] Done")
+        print("[2] schema_in as inline schema with url")
+        wallet_schema = j.data.schema.schema_get("jumpscale.example.wallet")
+        wallet_in = wallet_schema.new()
+        wallet_in.addr = "testaddr"
+        wallet_in.jwt = "testjwt"
+        wallet_out = cl.gedis_examples.example2(wallet_in)
+
+        assert wallet_in.addr == wallet_out.addr
+        assert wallet_in.jwt == wallet_out.jwt
+        print("[2] Done")
+
+        print("[3] inline schema in and inline schema out")
+        res = cl.gedis_examples.example3(a='a', b=True, c='2')
+        assert res.a == 'a'
+        assert res.b is True
+        assert res.c == 2
+
+        print("[3] Done")
+        print("[4] inline schema for schema out with url")
+        res = cl.gedis_examples.example4(wallet_in)
+        assert res.result.addr == wallet_in.addr
+        assert res.custom == "custom"
+        print("[4] Done")
 
         print("**DONE**")
 
