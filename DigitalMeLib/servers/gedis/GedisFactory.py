@@ -127,22 +127,9 @@ class GedisFactory(JSConfigBase):
             raise RuntimeError("Could not start gedis server on port:%s" % int(gedis.config.data["port"]))
         self.logger.info("gedis server '%s' started" % gedis.instance)
         print("[*] testing echo")
-<<<<<<< HEAD
-        cl = gedis.client_get(namespace="orderbook")
-        assert cl.order_book.echo("s") == b"s"
-        print("- done")
-        print("[*] testing wallet set with schemas")
-        wallet = cl.order_book.wallet_set(addr="testaddr", jwt="testjwt")
 
-        assert wallet.addr == "testaddr"
-        assert wallet.jwt == "testjwt"
-
-        j.shell()
-
-=======
         cl = gedis.client_get(namespace="gedis_examples")
         assert cl.gedis_examples.echo("s") == b"s"
->>>>>>> 3c62ad25c10ba47ba177cf64f08dbc9354b3f911
         print("- done")
         print("[*] testing set with schemas")
         print("[1] schema_in as schema url")
