@@ -5,7 +5,7 @@ from Jumpscale import j
 SCHEMA="""
 
 # Wallet
-@url = jumpscale.example.wallet
+@url = threefoldtoken.wallet
 jwt = "" (S)                # JWT Token
 addr* = ""                   # Address
 ipaddr = (ipaddr)           # IP Address
@@ -20,7 +20,7 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_jumpscale_example_wallet(BaseModel):
+class Index_threefoldtoken_wallet(BaseModel):
     id = IntegerField(unique=True)
     addr = TextField(index=True)
 
@@ -28,9 +28,9 @@ MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
     def __init__(self, bcdb):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="jumpscale.example.wallet")
-        self.url = "jumpscale.example.wallet"
-        self.index = Index_jumpscale_example_wallet
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefoldtoken.wallet")
+        self.url = "threefoldtoken.wallet"
+        self.index = Index_threefoldtoken_wallet
         self.index.create_table()
     
     def index_set(self,obj):

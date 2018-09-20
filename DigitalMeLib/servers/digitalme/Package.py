@@ -17,6 +17,7 @@ recipes = (LO) !jumpscale.digitalme.package.recipes
 docmacros = (LO) !jumpscale.digitalme.package.docmacros
 zrbotrepos = (LO) !jumpscale.digitalme.package.zrbotrepos
 models = (LO) !jumpscale.digitalme.package.models
+doc_macros = (LO) !jumpscale.digitalme.package.docmacros
 
 @url = jumpscale.digitalme.package.docsite
 name = "" (S)
@@ -92,7 +93,9 @@ class Package(JSBASE):
         self.data = self._model.new()
         data = j.data.serializers.toml.load(path)  #path is the toml file
 
-        self.namespace = data.get("namespace","default")  #fall back on default value "default" for the namespace
+        self.namespace = "system"  #fall back on default value "default" for the namespace
+        # if not self.namespace in j.data.bcdb.bcdb_instances:
+        #     j.data.bcdb.get(j.core.db, namespace=self.namespace)
         #each package is part of a namespace
 
         #be flexible
@@ -243,13 +246,21 @@ class Package(JSBASE):
         self.blueprints_load()
         self.docsites_load()
         self.models_load()
-        self.docmacros_load()
-        self.actors_load()
+        print('*' * 50)
+        bcdb = j.data.bcdb.bcdb_instances[self.namespace]
+        print(bcdb.models)
+        print('_' * 50)
+        # j.shell()
+        # self.docmacros_load()
+        # self.actors_load()
 
     def models_load(self):
         for item in self.data.models:
             bcdb = j.data.bcdb.bcdb_instances[self.namespace]
             bcdb.models_add(item.path)
+            print('>' * 50)
+            print(bcdb.models)
+            print('<' * 50)
         return
 
     def chatflows_load(self):

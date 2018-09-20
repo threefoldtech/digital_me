@@ -3,16 +3,17 @@ from Jumpscale import j
 
 
 SCHEMA="""
-# Sell Order
-@url = jumpscale.example.order.sell
+
+# Buy Order
+@url = threefoldtoken.order.buy
 comment = ""
-currency_to_sell* = "" (S)   # currency types BTC/ETH/XRP/TFT
-currency_accept = (LS)      # can accept more than one currency
-price_min* = 0 (N)           # can be defined in any currency
+currency_to_buy* = "" (S)    # currency types BTC/ETH/XRP/TFT
+currency_mine = (LS)        # which of my currencies I am selling (can be more than 1)
+price_max* =  (N)           # can be defined in any currency
 amount* = (F)                # amount
 expiration* =  (D)           # can be defined as e.g. +1h
-sell_to = (LS)              # list of wallet addresses which are allowed to buy from me
-secret = (LS)               # if used the buyers need to have one of the secrets
+buy_from = (LS)             # list of wallet addresses which I want to buy from
+secret = "" (S)             # the optional secret to use when doing a buy order, only relevant when buy_from used
 approved* = (B)              # if True, object will be scheduled for matching, further updates/deletes are no more possible
 owner_email_addr = (S)      # email addr used through IYO when order was created
 wallet_addr* = (S)           # Wallet address
@@ -25,10 +26,10 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_jumpscale_example_order_sell(BaseModel):
+class Index_threefoldtoken_order_buy(BaseModel):
     id = IntegerField(unique=True)
-    currency_to_sell = TextField(index=True)
-    price_min = FloatField(index=True)
+    currency_to_buy = TextField(index=True)
+    price_max = FloatField(index=True)
     amount = FloatField(index=True)
     expiration = IntegerField(index=True)
     approved = BooleanField(index=True)
@@ -38,15 +39,15 @@ MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
     def __init__(self, bcdb):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="jumpscale.example.order.sell")
-        self.url = "jumpscale.example.order.sell"
-        self.index = Index_jumpscale_example_order_sell
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefoldtoken.order.buy")
+        self.url = "threefoldtoken.order.buy"
+        self.index = Index_threefoldtoken_order_buy
         self.index.create_table()
     
     def index_set(self,obj):
         idict={}
-        idict["currency_to_sell"] = obj.currency_to_sell
-        idict["price_min"] = obj.price_min_usd
+        idict["currency_to_buy"] = obj.currency_to_buy
+        idict["price_max"] = obj.price_max_usd
         idict["amount"] = obj.amount
         idict["expiration"] = obj.expiration
         idict["approved"] = obj.approved

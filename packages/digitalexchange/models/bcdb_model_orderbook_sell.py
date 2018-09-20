@@ -4,7 +4,7 @@ from Jumpscale import j
 
 SCHEMA="""
 # Sell Order
-@url = jumpscale.example.order.sell
+@url = threefoldtoken.order.sell
 comment = ""
 currency_to_sell* = "" (S)   # currency types BTC/ETH/XRP/TFT
 currency_accept = (LS)      # can accept more than one currency
@@ -25,7 +25,7 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_jumpscale_example_order_sell(BaseModel):
+class Index_threefoldtoken_order_sell(BaseModel):
     id = IntegerField(unique=True)
     currency_to_sell = TextField(index=True)
     price_min = FloatField(index=True)
@@ -38,9 +38,9 @@ MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
     def __init__(self, bcdb):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="jumpscale.example.order.sell")
-        self.url = "jumpscale.example.order.sell"
-        self.index = Index_jumpscale_example_order_sell
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefoldtoken.order.sell")
+        self.url = "threefoldtoken.order.sell"
+        self.index = Index_threefoldtoken_order_sell
         self.index.create_table()
     
     def index_set(self,obj):

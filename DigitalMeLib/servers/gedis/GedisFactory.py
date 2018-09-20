@@ -29,7 +29,7 @@ class GedisFactory(JSConfigBase):
         return super(GedisFactory, self).get(instance=instance, data=data, interactive=interactive)        
 
 
-    def geventserver_get(self, instance=""):
+    def geventservers_get(self, instance=""):
         """
         return redis_server
         """

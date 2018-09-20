@@ -158,3 +158,30 @@ class DigitalMe(JSBASE):
         sleep(1000000000)
 
         rack.stop()
+
+
+    def test_client(self, zdb_start=False):
+
+        # if zdb_start:
+        #     # remove configuration of the gedis factory
+        #     self.delete("test")
+        #     j.clients.zdb.testdb_server_start_client_get(reset=True)
+        #
+        # print("START DIGITALME IN TMUX")
+        # cmd = "js_shell 'j.servers.digitalme.start()'"
+        # j.tools.tmux.execute(
+        #     cmd,
+        #     session='main',
+        #     window='digitalme_test',
+        #     pane='main',
+        #     session_reset=False,
+        #     window_reset=True
+        # )
+        #
+        # res = j.sal.nettools.waitConnectionTest("127.0.0.1", '8001', timeoutTotal=1000)
+        # if res == False:
+        #     raise RuntimeError("Could not start digitalme server on port:%s" % 8001)
+        cl = j.clients.gedis.configure(instance="digitalme_test", port='8001', namespace="system", host="127.0.0.1")
+        cl.system.ping()
+        print("DONE PING")
+        #TODO: do more tests here

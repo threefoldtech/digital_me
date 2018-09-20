@@ -4,13 +4,20 @@ from Jumpscale import j
 
 SCHEMA="""
 
-# Wallet
-@url = jumpscale.example.wallet
-jwt = "" (S)                # JWT Token
-addr* = ""                   # Address
-ipaddr = (ipaddr)           # IP Address
-email = "" (S)              # Email address
-username = "" (S)           # User name
+
+#who am I, this is my own information
+@url = digitalme.circle.me
+name = "" (S) 
+alias = [""] (LS)
+privkey = "" (S)
+email = [""] (LS)
+#list of admin circles who have unlimited access to this circle
+admins = [] (LI)
+#who are the members of this circle, this does not give them unlimited rights but can use some services of this circle
+members = [] (LI) 
+secret = "" (S)
+otp = "" (S)
+iyouser = "" (S)
 
 """
 from peewee import *
@@ -20,22 +27,20 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_jumpscale_example_wallet(BaseModel):
+class Index_digitalme_circle_me(BaseModel):
     id = IntegerField(unique=True)
-    addr = TextField(index=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
     def __init__(self, bcdb):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="jumpscale.example.wallet")
-        self.url = "jumpscale.example.wallet"
-        self.index = Index_jumpscale_example_wallet
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="digitalme.circle.me")
+        self.url = "digitalme.circle.me"
+        self.index = Index_digitalme_circle_me
         self.index.create_table()
     
     def index_set(self,obj):
         idict={}
-        idict["addr"] = obj.addr
         idict["id"] = obj.id
         if not self.index.select().where(self.index.id == obj.id).count()==0:
             #need to delete previous record from index
