@@ -29,6 +29,8 @@ class DigitalMe(JSBASE):
                                 followSymlinks=False, listSymlinks=False):
             pdir = j.sal.fs.getDirName(item)
             self.package_add(pdir,zdbclients=zdbclients)
+        # Generate js client code
+        j.servers.gedis.latest.code_generate_last_step()
 
     def package_add(self,path,zdbclients={}):
         """

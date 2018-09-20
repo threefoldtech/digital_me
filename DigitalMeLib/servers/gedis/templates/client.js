@@ -31,9 +31,9 @@ const client = (function(){
     var client = {}
     
     {% for command in commands %}
-    client.{{command.data.namespace.split('.')[1]}} = {
+    client.{{command.data.namespace}} = {
     {% for  name, cmd in command.cmds.items() %}
-        "{{name}}": async ({{cmd.args_client.strip(",").replace("False", "false").replace("True", "true") if cmd.args_client.strip() != ",schema_out" else ""}}) => {
+        "{{name}}": async ({{cmd.args_client.strip(",").replace("False", "false").replace("True", "true").replace("*", "...") if cmd.args_client.strip() != ",schema_out" else ""}}) => {
         {% if cmd.schema_in %}
             var args = {}
             {% for prop in cmd.schema_in.properties + cmd.schema_in.lists %}
@@ -44,9 +44,9 @@ const client = (function(){
             {{prop.name}}.forEach(function(item){args["{{prop.name}}"].push(item)})
             {% endif %}
             {% endfor %}
-            return await execute("{{command.data.namespace.split('.')[1]}}.{{name}}", JSON.stringify(args))
+            return await execute("{{command.data.namespace}}.{{name}}", JSON.stringify(args))
         {% else %}
-            return await execute("{{command.data.namespace.split('.')[1]}}.{{name}}", "")
+            return await execute("{{command.data.namespace}}.{{name}}", "")
         {% endif %}
         },
     {% endfor %}

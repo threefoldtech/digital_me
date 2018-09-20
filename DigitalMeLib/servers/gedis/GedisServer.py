@@ -99,7 +99,7 @@ class GedisServer(StreamServer, JSConfigBase):
         # from gevent import monkey
         # monkey.patch_thread() #TODO:*1 dirty hack, need to use gevent primitives, suggest to add flask server
         # import threading
-
+        self.handler = RedisRequestHandler(self)
         if self.ssl:
             self.ssl_priv_key_path, self.ssl_cert_path = self.sslkeys_generate()
             # Server always supports SSL
@@ -107,7 +107,7 @@ class GedisServer(StreamServer, JSConfigBase):
             self.redis_server = StreamServer(
                 (self.host, self.port),
                 spawn=Pool(),
-                handle=RedisRequestHandler(self).handle,
+                handle=self.handler.handle,
                 keyfile=self.ssl_priv_key_path,
                 certfile=self.ssl_cert_path
             )
@@ -115,14 +115,13 @@ class GedisServer(StreamServer, JSConfigBase):
             self.redis_server = StreamServer(
                 (self.host, self.port),
                 spawn=Pool(),
-                handle=RedisRequestHandler(self).handle
+                handle=self.handler.handle
             )
 
 
     #######################################CODE GENERATION
 
-
-    def _code_generate_last_step(self):
+    def code_generate_last_step(self):
         # generate web client
         commands = []
         for key,cmds_ in self.cmds_meta.items():
@@ -252,7 +251,7 @@ class GedisServer(StreamServer, JSConfigBase):
         """
         this method is only used when not used in digitalme
         """
-        self._code_generate_last_step()
+        self.code_generate_last_step()
 
         #WHEN USED OVER WEB, USE THE DIGITALME FRAMEWORK
         # t = threading.Thread(target=self.websocket_server.serve_forever)

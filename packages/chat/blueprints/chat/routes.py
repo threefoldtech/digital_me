@@ -100,11 +100,11 @@ def chat_interact(socket):
         if not message:
             continue
         message = json.loads(message)
-        cmd, err = chat_server.get_command(message["command"])
+        cmd, err = chat_server.handler.get_command(message["command"])
         if err:
             socket.send(err)
             continue
-        res, err = chat_server.process_command(cmd, message)
+        res, err = chat_server.handler.process_command(cmd, message)
         if err:
             socket.send(err)
             continue
