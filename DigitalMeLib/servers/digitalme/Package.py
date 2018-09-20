@@ -17,6 +17,7 @@ recipes = (LO) !jumpscale.digitalme.package.recipes
 docmacros = (LO) !jumpscale.digitalme.package.docmacros
 zrbotrepos = (LO) !jumpscale.digitalme.package.zrbotrepos
 models = (LO) !jumpscale.digitalme.package.models
+doc_macros = (LO) !jumpscale.digitalme.package.docmacros
 
 @url = jumpscale.digitalme.package.docsite
 name = "" (S)
@@ -105,8 +106,6 @@ class Package(JSBASE):
 
         #be flexible
         #std value is False
-
-
         if "enable" in data:
             self.data.enabled =data["enable"]
         elif "enabled" in data:
@@ -137,13 +136,6 @@ class Package(JSBASE):
                         res.append(j.sal.fs.joinPaths(self.path, item))
             return res
 
-        def get_data_obj(cat,name):
-            itemslist = self.data.__dict__[cat]
-            for item in itemslist:
-                if item.name == name:
-                    return item
-            return itemslist.new()
-
         def get_toml_section(tomldata,cat):
             tocheck = [cat,  cat.lower(),  cat.rstrip("s"), cat.lower().rstrip("s")]
             for itemtocheck in tocheck:
@@ -157,10 +149,14 @@ class Package(JSBASE):
             for subdirpath in  find_sub_dir(cat):
                 #we found a subdir which is related to the category
                 subdirname = j.sal.fs.getBaseName(subdirpath.rstrip("/"))
-                obj = get_data_obj(cat, subdirname)
+                if "_" in subdirname:
+                    name=subdirname.split("_",1)[1]
+                else:
+                    name="main"
+                obj = self.obj_get(cat=cat, name=name)
                 #now we have the relevant data obj
                 obj.path = subdirpath
-                obj.name = subdirname
+                obj.name = name
                 obj.enabled = True
 
             tomlsub = get_toml_section(data, cat)
@@ -169,12 +165,13 @@ class Package(JSBASE):
 
                 for item in tomlsub:
                     if "name" not in item:
-                        raise RuntimeError("did not find name in %s,%s" % (item, self))
-                    name = item["name"]
-                    if cat == 'blueprint_links':
-                        j.shell()
+                        name = "main"
                     else:
-                        obj = get_data_obj(cat, name)
+                        name = item["name"]
+                    if cat == 'blueprint_links':
+                        self._process_link("main",item)
+                    else:
+                        obj = self.obj_get(cat, name)
                         obj.name = name
                         if "path" in item:
                             obj.path = item["path"]
@@ -214,6 +211,22 @@ class Package(JSBASE):
         if key in TOML_KEYS_ALIASES:
             return TOML_KEYS_ALIASES[key]
         return key
+
+    def _process_link(self,name,toml):
+        if "path" in toml:
+            path = toml["path"]
+        elif "url" in toml:
+            path = j.clients.git.getContentPathFromURLorPath(toml["url"])
+        obj = self.obj_get("blueprints",name=name)
+        if obj.path=="":
+            raise RuntimeError("did not find blueprint with name:%s in %s"(name,self))
+        sobj = obj.links.new()
+        target = j.sal.fs.joinPaths(obj.path,toml["name"],toml["dest"])
+        sobj.dest = target
+        sobj.url = toml["url"]
+        sobj.enabled = True
+        j.sal.fs.symlink(path, target, overwriteTarget=True)
+
 
     @property
     def name(self):
@@ -260,8 +273,8 @@ class Package(JSBASE):
         """
         load package into memory
         """
-        rack = j.servers.digitalme.rack
-        gedis = j.servers.gedis.latest
+        # rack = j.servers.digitalme.rack
+        # gedis = j.servers.gedis.latest
 
         #need to load the blueprints, docsites, actors, ...
         self.chatflows_load()
@@ -270,6 +283,14 @@ class Package(JSBASE):
         self.models_load()
         self.docmacros_load()
         self.actors_load()
+
+    def obj_get(self,cat="blueprints",name="main"):
+        itemslist = self.data.__dict__[cat]
+        for item in itemslist:
+            if item.name == name:
+                return item
+        return itemslist.new()
+
 
     def models_load(self):
         #fetch the right client for the right BCDB
@@ -282,8 +303,9 @@ class Package(JSBASE):
                         raise RuntimeError("default zdb client not specified")
                     dbcl = self.zdbclients["default"]
                 bcdb = j.data.bcdb.get(dbcl, namespace=self.namespace, reset=False)
+            bcdb = j.data.bcdb.bcdb_instances[self.namespace]
             bcdb.models_add(item.path)
-        return j.data.bcdb.bcdb_instances[self.namespace]
+
 
     def chatflows_load(self):
         for item in self.data.chatflows:

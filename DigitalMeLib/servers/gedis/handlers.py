@@ -111,12 +111,15 @@ class Handler(JSBASE):
             self.response.encode(result)
 
     def get_command(self, cmd):
-
         self.logger.debug('(%s) command cache miss')
 
         if cmd=="auth":
             namespace = "system"
             actor = "system"
+        elif cmd=="system.ping":
+            namespace = "system"
+            actor = "system"
+            cmd = "ping"
         elif '.' in cmd:
             splitted = cmd.split(".", 1)
             if len(splitted)==2:

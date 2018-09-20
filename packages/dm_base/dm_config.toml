@@ -5,6 +5,6 @@ namespace = "system"
 
 
 [[blueprint_links]]
-name = "base" 
+name = "base"
 url = "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static"
 dest = "static/"
