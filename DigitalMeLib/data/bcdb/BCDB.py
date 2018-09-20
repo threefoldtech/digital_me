@@ -89,7 +89,7 @@ class BCDB(JSBASE):
             raise RuntimeError("model needs to be of type: j.data.bcdb.MODEL_CLASS or path to model.")
         return model_or_path
 
-    def models_add(self,path,overwrite=False):
+    def models_add(self,path,overwrite=True):
         """
         will walk over directory and each class needs to be a model
 
@@ -128,8 +128,8 @@ class BCDB(JSBASE):
             model_module = import_module(modulename)
             self.logger.debug("ok")
         except Exception as e:
-            j.shell()
-            raise RuntimeError("could not import module:%s" % modulename, e)
+            # j.shell()
+            raise RuntimeError("could not import module:%s in classpath:%s" % (modulename,classpath), e)
         model = model_module.Model(bcdb=self)
         self.models[model.schema.url] = model
         return model

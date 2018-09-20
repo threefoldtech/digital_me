@@ -77,26 +77,36 @@ enabled = false (B)
 
 """
 
+TOML_KEYS_ALIASES = {}
+TOML_KEYS_ALIASES["enable"] = "enabled"
+TOML_KEYS_ALIASES["active"] = "enabled"
 
 
 class Package(JSBASE):
-    def __init__(self,path):
+    def __init__(self,path,zdbclients={}):
         JSBASE.__init__(self)
-        self.path = j.sal.fs.getDirName(path)
+
+        self.zdbclients = zdbclients
 
         #use redis to make the packages persistent, so we can autoreload them later, #TODO: not done now
+        #IS STILL WORK AROUND THE CORE DB IS USED TO STORE THE PACKAGES (will be changed)
         self._bcdb_core = j.data.bcdb.get(j.core.db,namespace="system") #get system namespace for own metadata
         self._bcdb_core.model_create(schema=SCHEMA_PACKAGE)
         self._model = self._bcdb_core.model_get(url="jumpscale.digitalme.package")
 
         self.data = self._model.new()
+        self.data.path = j.sal.fs.getDirName(path)
+
         data = j.data.serializers.toml.load(path)  #path is the toml file
 
-        self.namespace = data.get("namespace","default")  #fall back on default value "default" for the namespace
+        self.data.namespace = data.get("namespace","default")  #fall back on default value "default" for the namespace
+
         #each package is part of a namespace
 
         #be flexible
         #std value is False
+
+
         if "enable" in data:
             self.data.enabled =data["enable"]
         elif "enabled" in data:
@@ -106,102 +116,117 @@ class Package(JSBASE):
 
         self.data.name = j.sal.fs.getBaseName(self.path)
 
-        dir_items = j.sal.fs.listDirsInDir(self.path,False,True)
+        def find_sub_dir(cat):
+            cat = cat.rstrip("s")
+            dir_items = j.sal.fs.listDirsInDir(self.path, False, True)
+            cat=cat.lower()
+            # if self.data.name == "examples" and cat=="docsites":
+            #     from pudb import set_trace; set_trace()
+            res = []
+            for item in dir_items:
 
-        if "actors" in dir_items:
-            name = "%s_internal"%(self.name)
-            if name not in self.actors:
-                obj = self.data.actors.new({"name":name, "enabled":True,
-                                            "path":"%s/actors"%(self.path)})
+                #all elements to check against, category without s, with s, before_
+                tocheck = [item.lower(), item.lower().rstrip("s")]
+                if "_" in item:
+                    item1 = item.split("_",1)[0]
+                    tocheck.append(item1.lower())
+                    tocheck.append(item1.lower().rstrip("s"))
 
-        if "blueprints" in dir_items:
-            name = "%s_internal"%(self.name)
-            if name not in self.blueprints:
-                obj = self.data.blueprints.new({"name":name, "enabled":True,
-                                            "path":"%s/blueprints"%(self.path)})
+                for checkitem in tocheck:
+                    if checkitem==cat:
+                        res.append(j.sal.fs.joinPaths(self.path, item))
+            return res
 
-        if "models" in dir_items:
-            name = "%s_internal"%(self.name)
-            if name not in self.models:
-                obj = self.data.models.new({"name":name, "enabled":True,
-                                            "path":"%s/models"%(self.path)})
+        def get_data_obj(cat,name):
+            itemslist = self.data.__dict__[cat]
+            for item in itemslist:
+                if item.name == name:
+                    return item
+            return itemslist.new()
 
-        if "chatflows" in dir_items:
-            name = "%s_internal"%(self.name)
-            if name not in self.chatflows:
-                obj = self.data.chatflows.new({"name":name, "enabled":True,
-                                            "path":"%s/chatflows"%(self.path)})
+        def get_toml_section(tomldata,cat):
+            tocheck = [cat,  cat.lower(),  cat.rstrip("s"), cat.lower().rstrip("s")]
+            for itemtocheck in tocheck:
+                if itemtocheck in data:
+                    return data[itemtocheck]
 
-        if "recipes" in dir_items:
-            name = "%s_internal"%(self.name)
-            if name not in self.recipes:
-                obj = self.data.recipes.new({"name":name, "enabled":True,
-                                            "path":"%s/recipes"%(self.path)})
 
-        if "doc_macros" in dir_items:
-            name = "%s_internal"%(self.name)
-            if name not in self.doc_macros:
-                obj = self.data.doc_macros.new({"name":name, "enabled":True,
-                                            "path":"%s/doc_macros"%(self.path)})
+        #walk over all sections in the toml file
+        for cat in ["docsites","blueprints","chatflows","actors","models","recipes","docmacros","blueprint_links"]:
 
-        if "docs" in dir_items:
-            docs_dir = j.sal.fs.joinPaths(self.path, "docs")
-            dir_items = j.sal.fs.listDirsInDir(docs_dir,
-                                               recursive=False, dirNameOnly=True)
-            for dir_name in dir_items:
-                self.data.docsites.new({"name": dir_name, "enabled": True,
-                                        "path": j.sal.fs.joinPaths(docs_dir, dir_name)})
+            for subdirpath in  find_sub_dir(cat):
+                #we found a subdir which is related to the category
+                subdirname = j.sal.fs.getBaseName(subdirpath.rstrip("/"))
+                obj = get_data_obj(cat, subdirname)
+                #now we have the relevant data obj
+                obj.path = subdirpath
+                obj.name = subdirname
+                obj.enabled = True
 
-        if "docsite" in data:
-            for item in data["docsite"]:
-                if item["name"] not in self.docsites:
-                    obj=self.data.docsites.new(item)
-                    obj.path = j.clients.git.getContentPathFromURLorPath(obj.url)
+            tomlsub = get_toml_section(data, cat)
+            if tomlsub is not None:
+                #we found the subsection in toml
 
-        if "blueprint" in data:
-            for item in data["blueprint"]:
-                if item["name"] not in self.blueprints:
-                    obj = self.data.blueprints.new(item)
-                    obj.path = j.clients.git.getContentPathFromURLorPath(obj.url)
+                for item in tomlsub:
+                    if "name" not in item:
+                        raise RuntimeError("did not find name in %s,%s" % (item, self))
+                    name = item["name"]
+                    if cat == 'blueprint_links':
+                        j.shell()
+                    else:
+                        obj = get_data_obj(cat, name)
+                        obj.name = name
+                        if "path" in item:
+                            obj.path = item["path"]
+                        elif "url" in item:
+                            obj.path = j.clients.git.getContentPathFromURLorPath(item["url"])
+                            obj.url = item["url"]
+                        else:
+                            raise RuntimeError("did not find path or url in %s,%s" % (item, self))
+                        #now look for keys in the toml item out of default, need to add those too
+                        for key in item.keys():
+                            if key not in ["path","name","url"]:
+                                key2 = self._key_toml(key)
+                                obj._changed_items[key2] = item[key]
+                                obj._data
 
-        if "chatflows" in data:
-            for item in data["chatflows"]:
-                if item["name"] not in self.chatflows:
-                    obj = self.data.chatflows.new(item)
-                    obj.path = j.clients.git.getContentPathFromURLorPath(obj.url)
 
-        if "actors" in data:
-            for item in data["actors"]:
-                if item["name"] not in self.actors:
-                    obj = self.data.actors.new(item)
-                    obj.path = j.clients.git.getContentPathFromURLorPath(obj.url)
+        # if "blueprint_links" in data:
+        #     for item in data["blueprint_links"]:
+        #         j.shell()
+        #         w
+        #         staticpath = j.clients.git.getContentPathFromURLorPath(
+        #             "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static")
+        #
+        #         # create link to static dir on jumpscale web libs
+        #         localstat_path = "%s/static" % j.sal.fs.getDirName(__file__)
+        #         # j.sal.fs.remove(localstat_path)
+        #         j.sal.process.execute("rm -f %s" % localstat_path)  # above does not work if link is broken in advance
+        #         j.sal.fs.symlink(staticpath, localstat_path, overwriteTarget=True)
 
-        if "models" in data:
-            for item in data["models"]:
-                if item["name"] not in self.models:
-                    obj = self.data.models.new(item)
-                    obj.path = j.clients.git.getContentPathFromURLorPath(obj.url)
 
-        if "recipes" in data:
-            for item in data["recipes"]:
-                if item["name"] not in self.recipes:
-                    obj = self.data.recipes.new(item)
-                    obj.path = j.clients.git.getContentPathFromURLorPath(obj.url)
+        if self.data.enabled:
+            #only when enabled load the stuff in mem
+            self.load()
 
-        if "doc_macros" in data:
-            for item in data["doc_macros"]:
-                if item["name"] not in self.doc_macros:
-                    obj = self.data.doc_macros.new(item)
-                    obj.path = j.clients.git.getContentPathFromURLorPath(obj.url)
 
-        #TODO:need to check and make sure we have all see ...threefoldtech/digital_me/packages/readme.md
-
-        self.load()
-
+    def _key_toml(self,key):
+        if key in TOML_KEYS_ALIASES:
+            return TOML_KEYS_ALIASES[key]
+        return key
 
     @property
     def name(self):
         return self.data.name
+
+    @property
+    def namespace(self):
+        return self.data.namespace
+
+    @property
+    def path(self):
+        return self.data.path
+
 
     @property
     def docsites(self):
@@ -216,8 +241,8 @@ class Package(JSBASE):
         return [item.name for item in self.data.chatflows]
 
     @property
-    def doc_macros(self):
-        return [item.name for item in self.data.doc_macros]
+    def docmacros(self):
+        return [item.name for item in self.data.docmacros]
 
     @property
     def zrobot_repos(self):
@@ -247,10 +272,18 @@ class Package(JSBASE):
         self.actors_load()
 
     def models_load(self):
+        #fetch the right client for the right BCDB
         for item in self.data.models:
-            bcdb = j.data.bcdb.bcdb_instances[self.namespace]
+            if not self.namespace in j.data.bcdb.bcdb_instances:
+                if self.namespace in self.zdbclients:
+                    dbcl = self.zdbclients[self.namespace]
+                else:
+                    if "default" not in self.zdbclients:
+                        raise RuntimeError("default zdb client not specified")
+                    dbcl = self.zdbclients["default"]
+                bcdb = j.data.bcdb.get(dbcl, namespace=self.namespace, reset=False)
             bcdb.models_add(item.path)
-        return
+        return j.data.bcdb.bcdb_instances[self.namespace]
 
     def chatflows_load(self):
         for item in self.data.chatflows:
@@ -267,11 +300,9 @@ class Package(JSBASE):
             j.tools.docsites.load(doc_site.path, doc_site.name)
 
     def docmacros_load(self):
-        for item in self.data.doc_macros:
+        for item in self.data.docmacros:
             j.tools.docsites.macros_load(item.path)
 
     def actors_load(self):
         for item in self.data.actors:
-            j.shell()
-            w
-            j.tools.docsites.macros_load(item.path)
+            j.servers.gedis.latest.actors_add(item.path, namespace=self.namespace)

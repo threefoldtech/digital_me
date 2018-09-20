@@ -14,12 +14,12 @@ class farmer(JSBASE):
         # zt.config.data={"token_":"..."}
         # zt.config.save()
 
-        self.sysadmin_net = zt.network_get("1d71939404587f3c")
-        self.iyo = j.clients.itsyouonline.get()
-        self.jwt = iyo.jwt_get(refreshable=True, scope='user:memberof:threefold.sysadmin')
-        j.shell()
-        url="threefold.grid.node"
-        self.model
+        # self.sysadmin_net = zt.network_get("1d71939404587f3c")
+        # self.iyo = j.clients.itsyouonline.get()
+        # self.jwt = iyo.jwt_get(refreshable=True, scope='user:memberof:threefold.sysadmin')
+        # j.shell()
+        # url="threefold.grid.node"
+        # self.model
 
 
 

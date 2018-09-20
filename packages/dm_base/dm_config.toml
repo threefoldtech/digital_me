@@ -1,5 +1,8 @@
 
-prefix = "/base"
+
+enable = true
+namespace = "system"
+
 
 [[blueprint_links]]
 name = "base" 

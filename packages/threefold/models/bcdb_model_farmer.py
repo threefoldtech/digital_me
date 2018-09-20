@@ -4,38 +4,34 @@ from Jumpscale import j
 
 SCHEMA="""
 
-# Wallet
-@url = jumpscale.example.wallet
-jwt = "" (S)                # JWT Token
-addr* = ""                   # Address
-ipaddr = (ipaddr)           # IP Address
-email = "" (S)              # Email address
-username = "" (S)           # User name
+@url = threefold.grid.farmer
+description = ""
+error* = ""
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["examples"].sqlitedb
+db = j.data.bcdb.bcdb_instances["threefold.grid"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_jumpscale_example_wallet(BaseModel):
+class Index_threefold_grid_farmer(BaseModel):
     id = IntegerField(unique=True)
-    addr = TextField(index=True)
+    error = TextField(index=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
     def __init__(self, bcdb):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="jumpscale.example.wallet")
-        self.url = "jumpscale.example.wallet"
-        self.index = Index_jumpscale_example_wallet
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.farmer")
+        self.url = "threefold.grid.farmer"
+        self.index = Index_threefold_grid_farmer
         self.index.create_table()
     
     def index_set(self,obj):
         idict={}
-        idict["addr"] = obj.addr
+        idict["error"] = obj.error
         idict["id"] = obj.id
         if not self.index.select().where(self.index.id == obj.id).count()==0:
             #need to delete previous record from index
