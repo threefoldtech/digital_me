@@ -143,6 +143,9 @@ class Handler(JSBASE):
         if namespace=="system" and key not in self.classes:
             #we will now check if the info is in default namespace
             key = "default__%s" % actor
+        if namespace=="default" and key not in self.classes:
+            #we will now check if the info is in default namespace
+            key = "system__%s" % actor
 
         if key not in self.classes:
             j.shell()

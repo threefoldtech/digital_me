@@ -44,7 +44,7 @@ class DigitalMe(JSBASE):
         if p.name not in self.packages:
             self.packages[p.name]=p
 
-    def start(self,path="",nrworkers=0,name="test",zdbclients={}):
+    def start(self,path="",nrworkers=0,name="test",zdbclients={},adminsecret="1234"):
         """
         examples:
 
@@ -77,9 +77,9 @@ class DigitalMe(JSBASE):
                 "https://github.com/threefoldtech/digital_me/tree/development/packages")
 
         j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
-                                  adminsecret="1234", instance=name)
+                                  adminsecret=adminsecret, instance=name)
         # configure a local webserver server (the master one)
-        j.servers.web.configure(instance=name, port=8000, port_ssl=0, host="0.0.0.0", secret="", ws_dir="")
+        j.servers.web.configure(instance=name, port=8000, port_ssl=0, host="0.0.0.0", secret=adminsecret)
 
         monkey.patch_all(subprocess=False)
 
@@ -104,13 +104,29 @@ class DigitalMe(JSBASE):
         return ServerRack()
 
 
-    def test_servers(self, zdb_start=False):
+    def test(self, zdb_start=False):
         """
-        js_shell 'j.servers.digitalme.test_servers(zdb_start=False)'
+        js_shell 'j.servers.digitalme.test(zdb_start=False)'
         """
-        rack = j.servers.digitalme.server_rack_get()
 
         if zdb_start:
             cl = j.clients.zdb.testdb_server_start_client_get(start=True)  # starts & resets a zdb in seq mode with name test
 
+        cmd = "js_shell 'j.servers.digitalme.start(nrworkers=4)'"
+        j.tools.tmux.execute(
+            cmd,
+            session='main',
+            window='digitalme_test',
+            pane='main',
+            session_reset=False,
+            window_reset=True
+        )
+        print ("wait till server started, will timeout in 25 sec max")
+        assert j.sal.nettools.waitConnectionTest("localhost", 8000, timeoutTotal=20)
+        assert j.sal.nettools.waitConnectionTest("localhost", 8001, timeoutTotal=5)
+
+        #now means the server is up and running
+
+        # gedisclient = j.clients.gedis.get("test",namespace="system")
+        j.shell()
 
