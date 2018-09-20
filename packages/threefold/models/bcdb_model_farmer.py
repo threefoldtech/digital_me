@@ -10,7 +10,7 @@ error* = ""
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["threefold.grid"].sqlitedb
+db = j.data.bcdb.bcdb_instances["threefold"].sqlitedb
 
 class BaseModel(Model):
     class Meta:

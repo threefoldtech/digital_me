@@ -1,7 +1,7 @@
 
 
 enable = true
-namespace = "system"
+namespace = "base"
 
 
 [[blueprint_links]]

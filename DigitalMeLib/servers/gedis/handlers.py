@@ -1,5 +1,5 @@
 from Jumpscale import j
-
+import json
 from redis.exceptions import ConnectionError
 from geventwebsocket.exceptions import WebSocketError
 from .protocol import RedisResponseWriter, RedisCommandParser, WebsocketResponseWriter, WebsocketsCommandParser
@@ -14,45 +14,54 @@ class Handler(JSBASE):
         self.cmds = {}            #caching of commands
         self.classes = self.gedis_server.classes
         self.cmds_meta = self.gedis_server.cmds_meta
-        self.namespace = "system"
 
-    def _handle_request(self, socket, address):
+    def handle_redis(self, socket, address):
+
+        parser = RedisCommandParser(socket)
+        response = RedisResponseWriter(socket)
+
+        try:
+            self._handle_redis(socket, address, parser, response)
+        except ConnectionError as err:
+            self.logger.info('connection error: {}'.format(str(err)))
+        finally:
+            parser.on_disconnect()
+            self.logger.info('close connection from {}'.format(address))
+
+    def _handle_redis(self, socket, address, parser, response):
+
         self.logger.info('connection from {}'.format(address))
-        self.parser = self.get_parser(socket)
-        self.response = self.get_response(socket)
 
         while True:
-            request = self.parser.read_request()
+            request = parser.read_request()
 
-            if request is None:
-                break
-
-            if not request:  # empty list request
-                # self.response.error('Empty request body .. probably this is a (TCP port) checking query')
-                continue
+            if not request:
+                return
 
             cmd = request[0]
             redis_cmd = cmd.decode("utf-8").lower()
 
-            #special command to put the client on right namespace
-            if redis_cmd == "select":
-                self.namespace = params[0].decode()
-                return self.response.encode("OK")
 
             params = {}
 
-            cmd, err = self.get_command(redis_cmd)
+            #special command to put the client on right namespace
+            if redis_cmd == "select":
+                j.shell()
+                socket.namespace = params[0].decode()
+                return response.encode("OK")
+
+            cmd, err = self.get_command(namespace=socket.namespace, cmd=redis_cmd)
             if err is not "":
-                self.response.error(err)
+                response.error(err)
                 continue
             if cmd.schema_in:
                 if len(request) < 2:
-                    self.response.error("can not handle with request, not enough arguments")
+                    response.error("can not handle with request, not enough arguments")
                     continue
                 if len(request) > 2:
                     cmd.schema_in.properties
                     print("more than 1 input")
-                    self.response.error("more than 1 argument given, needs to be binary capnp message or json")
+                    response.error("more than 1 argument given, needs to be binary capnp message or json")
                     continue
 
                 try:
@@ -101,16 +110,16 @@ class Handler(JSBASE):
                 j.errorhandler.try_except_error_process(e, die=False)
                 msg = str(e)
                 msg += "\nCODE:%s:%s\n" % (cmd.namespace, cmd.name)
-                self.response.error(msg)
+                response.error(msg)
                 continue
             self.logger.debug(
                 "response:{}:{}:{}".format(address, cmd, result))
 
             if cmd.schema_out:
                 result = self.encode_result(result)
-            self.response.encode(result)
+            response.encode(result)
 
-    def get_command(self, cmd):
+    def get_command(self, namespace, cmd):
         self.logger.debug('(%s) command cache miss')
 
         if cmd=="auth":
@@ -123,7 +132,6 @@ class Handler(JSBASE):
         elif '.' in cmd:
             splitted = cmd.split(".", 1)
             if len(splitted)==2:
-                namespace = self.namespace
                 actor = splitted[0]
                 if "__" in actor:
                     actor = actor.split("__",1)[1]
@@ -160,7 +168,7 @@ class Handler(JSBASE):
         #check cmd exists in the metadata
         if not cmd in meta.cmds:
             j.shell()
-            return None, "Cannot find method with name:%s in namespace:%s" % (post, namespace)
+            return None, "Cannot find method with name:%s in namespace:%s" % (cmd, namespace)
 
         cmd_obj = meta.cmds[cmd]
 
@@ -168,7 +176,7 @@ class Handler(JSBASE):
             cl = self.classes[key]
             m = eval("cl.%s" % (cmd))
         except Exception as e:
-            return None, "Could not execute code of method '%s' in namespace '%s'\n%s" % (pre, namespace, e)
+            return None, "Could not execute code of method '%s' in namespace '%s'\n%s" % (key, namespace, e)
 
         cmd_obj.method = m
 
@@ -176,76 +184,70 @@ class Handler(JSBASE):
 
         return self.cmds[key_cmd], ""
 
-    def handle(self, socket, address):
-        """
-        handle request
-        :return:
-        """
-        raise NotImplementedError()
 
-    def encode_result(self, result):
-        """
-        Get data format to be sent to client
-        ie capnp or json according to Handler type used
-        """
-        raise NotImplementedError()
+    def handle_websocket(self,socket, namespace):
 
-    def encode_error(self, err):
-        """
-        Get error format to be sent to client
-        """
-        raise NotImplementedError()
+        message = socket.receive()
+        if not message:
+            return
+        message = json.loads(message)
+        cmd, err = self.get_command(namespace=namespace,cmd=message["command"])
+        if err:
+            socket.send(err)
+            return
 
-    def get_parser(self, socket):
-        raise NotImplementedError()
+        res, err = self.handle_websocket_(cmd, message,namespace=namespace)
+        if err:
+            socket.send(err)
+            return
 
-    def get_response(self, socket):
-        raise NotImplementedError()
+        socket.send(json.dumps(res))
 
 
-class RedisRequestHandler(Handler):
-    def handle(self, socket, address):
-        try:
-            self._handle_request(socket, address)
-        except ConnectionError as err:
-            self.logger.info('connection error: {}'.format(str(err)))
-        finally:
-            self.parser.on_disconnect()
-            self.logger.info('close connection from {}'.format(address))
+    def handle_websocket_(self, cmd, message,namespace):
 
-    def encode_result(self, result):
-        if hasattr(result, "_data"):
-            return result._data
+        if cmd.schema_in:
+            if not message.get("args"):
+                return None, "need to have arguments, none given"
+
+            o = cmd.schema_in.get(data=j.data.serializers.json.loads(message["args"]))
+            args = [a.strip() for a in cmd.cmdobj.args.split(',')]
+            if 'schema_out' in args:
+                args.remove('schema_out')
+            params = {}
+            schema_dict = o._ddict
+            if len(args) == 1:
+                if args[0] in schema_dict:
+                    params.update(schema_dict)
+                else:
+                    params[args[0]] = o
+            else:
+                params.update(schema_dict)
+
+            if cmd.schema_out:
+                params["schema_out"] = cmd.schema_out
         else:
-            return str(result).encode()
+            if message.get("args"):
+                params = message["args"]
+                if cmd.schema_out:
+                    params.append(cmd.schema_out)
+            else:
+                params = None
 
-    def encode_error(self, error):
-        return error
-
-    def get_parser(self, socket):
-        return RedisCommandParser(socket)
-
-    def get_response(self, socket):
-        return RedisResponseWriter(socket)
-
-
-class WebsocketRequestHandler(Handler):
-    def handle(self, socket, address):
         try:
-            self._handle_request(socket, address)
-        except WebSocketError as err:
-            self.logger.info('connection error: {}'.format(str(err)))
-        finally:
-            self.logger.info('close connection from {}'.format(address))
+            if params is None:
+                result = cmd.method()
+            elif j.data.types.list.check(params):
+                result = cmd.method(*params)
+            else:
+                result = cmd.method(**params)
+            return result, None
 
-    def encode_result(self, result):
-        return result
+        except Exception as e:
+            print("exception in redis server")
+            eco = j.errorhandler.parsePythonExceptionObject(e)
+            msg = str(eco)
+            msg += "\nCODE:%s:%s\n" % (cmd.namespace, cmd.name)
+            print(msg)
+            return None, e.args[0]
 
-    def encode_error(self, error):
-        return error.encode('utf-8')
-
-    def get_parser(self, socket):
-        return WebsocketsCommandParser(socket)
-
-    def get_response(self, socket):
-        return WebsocketResponseWriter(socket)

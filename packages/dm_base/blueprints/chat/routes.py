@@ -1,10 +1,10 @@
 from flask import render_template, redirect, make_response, request
 from blueprints.chat import *
 from Jumpscale import j
-import json
+
 
 login_manager = j.servers.web.latest.loader.login_manager
-chat_server = j.servers.gedis.latest
+
 users = [
     {"id": 1, "name": "ahmed", "email": "ahmed@dmdm.com"},
 ]
@@ -96,16 +96,4 @@ def load_js_client():
 @ws_blueprint.route('/ws/gedis')
 def chat_interact(socket):
     while not socket.closed:
-        message = socket.receive()
-        if not message:
-            continue
-        message = json.loads(message)
-        cmd, err = chat_server.handler.get_command(message["command"])
-        if err:
-            socket.send(err)
-            continue
-        res, err = chat_server.handler.process_command(cmd, message)
-        if err:
-            socket.send(err)
-            continue
-        socket.send(json.dumps(res))
+        j.servers.gedis.latest.handler.handle_websocket(socket=socket,namespace="base")

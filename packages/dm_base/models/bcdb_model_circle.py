@@ -28,7 +28,7 @@ otp = "" (S)
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["system"].sqlitedb
+db = j.data.bcdb.bcdb_instances["base"].sqlitedb
 
 class BaseModel(Model):
     class Meta:

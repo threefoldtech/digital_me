@@ -43,7 +43,7 @@ zrobot_service_secret = ""       #secret as returned by the zero node robot
 #TODO:*1 for the specs of VM/ZDB/...
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["threefold.grid"].sqlitedb
+db = j.data.bcdb.bcdb_instances["threefold"].sqlitedb
 
 class BaseModel(Model):
     class Meta:

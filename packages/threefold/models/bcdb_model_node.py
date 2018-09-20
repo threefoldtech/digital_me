@@ -58,7 +58,7 @@ hru = 0 (F)
 sru = 0 (F)
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["threefold.grid"].sqlitedb
+db = j.data.bcdb.bcdb_instances["threefold"].sqlitedb
 
 class BaseModel(Model):
     class Meta:

@@ -136,9 +136,9 @@ var generateSlide = function(res) {
         }
         $("#spinner").toggle();
         $(".form-box").toggle({"duration": 400});
-		client.chat.work_report(SESSIONID, value).then(function(res){
+		client.base_chat.work_report(SESSIONID, value).then(function(res){
 		    // Ignore work_report response and wait for getting next question
-		    client.chat.work_get(SESSIONID).then(function(res){
+		    client.base_chat.work_get(SESSIONID).then(function(res){
                 res = JSON.parse(res);
                 generateSlide(res);
             });
@@ -146,7 +146,7 @@ var generateSlide = function(res) {
 	});
 }
 
-client.chat.work_get(SESSIONID).then(function(res){
+client.base_chat.work_get(SESSIONID).then(function(res){
     res = JSON.parse(res);
     console.log(res);
 	generateSlide(res);
