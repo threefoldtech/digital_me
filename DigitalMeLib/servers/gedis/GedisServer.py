@@ -37,7 +37,6 @@ class GedisServer(StreamServer, JSConfigBase):
             data = {}
         JSConfigBase.__init__(self, instance=instance, data=data, parent=parent, template=template or TEMPLATE, interactive=interactive)
 
-
         self._sig_handler = []
 
         self.cmds_meta = {}  #is the metadata of the actor
@@ -61,7 +60,9 @@ class GedisServer(StreamServer, JSConfigBase):
         self.web_client_code = None
         self.code_generated_dir = j.sal.fs.joinPaths(j.dirs.VARDIR, "codegen", "gedis", self.instance, "server")
 
-        self.chatbot = GedisChatBotFactory(ws=self)  #IS THIS STILL USED? TODO:
+        self.chatbot = GedisChatBotFactory(ws=self)
+
+        self.namespaces = ["system","default"]
 
         #for the workers RQ
         redis_conn = Redis()
@@ -88,10 +89,6 @@ class GedisServer(StreamServer, JSConfigBase):
 
         self.actors_add(namespace="system",path = "%s/systemactors" % j.servers.gedis.path)  # add the system actors
 
-        self._servers_init()
-
-
-    def _servers_init(self):
 
         self._sig_handler.append(gevent.signal(signal.SIGINT, self.stop))
 
@@ -138,6 +135,8 @@ class GedisServer(StreamServer, JSConfigBase):
         :param namespace:
         :return:
         """
+        if namespace not in self.namespaces:
+            self.namespaces.append(namespace)
         reset=True
         if not j.data.types.list.check(models):
             if hasattr(models,"models"):
@@ -183,6 +182,8 @@ class GedisServer(StreamServer, JSConfigBase):
         :param path: of the actor file
         :return:
         """
+        if namespace not in self.namespaces:
+            self.namespaces.append(namespace)
         if not j.sal.fs.exists(path):
             raise RuntimeError("cannot find actor:%s"%path)
         self.logger.debug("actor_add:%s:%s"%(namespace,path))
@@ -191,6 +192,27 @@ class GedisServer(StreamServer, JSConfigBase):
             name="model_%s"%name.split(namespace, 1)[1].strip("_")
         key="%s__%s"%(namespace,name)
         self.cmds_meta[key]=GedisCmds(server=self, path=path, name=name, namespace=namespace)
+
+
+    ####################################################################
+
+    def actors_get(self,namespace="default"):
+        res=[]
+        for key,cmds in self.cmds_meta.items():
+            if key.startswith("%s__"%namespace):
+                res.append(cmds)
+        return res
+
+    def actors_methods_get(self, namespace="default"):
+        actors = self.actors_get(namespace)
+        res={}
+        for actor in actors:
+            res[actor.name]={}
+            res[actor.name]["schema"]=str(actor.schema)
+            res[actor.name]["cmds"] = {}
+            for cmdkey,cmd in actor.cmds.items():
+                res[actor.name]["cmds"][cmd.name]=str(cmd.args)
+        return res
 
 
     ##########################CLIENT FROM SERVER #######################

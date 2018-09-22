@@ -6,21 +6,6 @@ from redis.exceptions import ConnectionError
 logger = getLogger(__name__)
 
 
-class WebsocketsCommandParser(object):
-    def __init__(self, socket):
-        self.socket = socket
-
-    def read_request(self):
-        try:
-            command = self.socket.read_message()
-            if command:
-                return [c.encode('utf-8') for c in command.split(' ') if c]
-        except:
-            pass
-
-    def on_disconnect(self):
-        pass
-
 
 class RedisCommandParser(PythonParser):
     """
@@ -73,12 +58,18 @@ class RedisResponseWriter(object):
         elif isinstance(value, bool):
             self._write(':%d\r\n' % (1 if value else 0))
         elif isinstance(value, str):
-            self._bulk(value)
+            if "\n" in value:
+                self._bulk(value)
+            else:
+                self._write('+%s\r\n' % value)
         elif isinstance(value, bytes):
             self._bulkbytes(value)
+        elif isinstance(value, list) and value[0]=="*REDIS*":
+            self._array(value[1:])
         else:
             value = j.data.serializers.json.dumps(value, encoding='utf-8')
-            self._bulk(value)
+            # self._bulk(value)
+            self._write('+%s\r\n' % value)
 
     def status(self, msg="OK"):
         """Send a status."""
@@ -94,6 +85,23 @@ class RedisResponseWriter(object):
         data = ["$", str(len(value)), "\r\n", value, "\r\n"]
         self._write("".join(data))
 
+    def _array(self, value):
+        """send an array."""
+        data2=self.__array(value)
+        self._write(data2)
+
+    def __array(self, value):
+        data = ["*", str(len(value)), "\r\n"]
+        for item in value:
+            if j.data.types.list.check(item):
+                data.append(self.__array(item))
+            else:
+                data.append("+%s"%item)
+            data.append("\r\n")
+        data2="".join(data)
+        return data2
+
+
     def _bulkbytes(self, value):
         data = [b"$", str(len(value)).encode(), b"\r\n", value, b"\r\n"]
         self._write(b"".join(data))
@@ -104,7 +112,7 @@ class RedisResponseWriter(object):
 
         if isinstance(data, str):
             data = data.encode()
-        # print("SENDING {} {} on wire".format(data, type(data)))
+        print("SENDING {} {} on wire".format(data, type(data)))
 
         self.socket.sendall(data)
 

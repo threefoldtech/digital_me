@@ -1,8 +1,8 @@
 from Jumpscale import j
 import json
 from redis.exceptions import ConnectionError
-from geventwebsocket.exceptions import WebSocketError
-from .protocol import RedisResponseWriter, RedisCommandParser, WebsocketResponseWriter, WebsocketsCommandParser
+# from geventwebsocket.exceptions import WebSocketError
+from .protocol import RedisResponseWriter, RedisCommandParser#, WebsocketsCommandParser
 
 JSBASE = j.application.JSBaseClass
 
@@ -14,6 +14,7 @@ class Handler(JSBASE):
         self.cmds = {}            #caching of commands
         self.classes = self.gedis_server.classes
         self.cmds_meta = self.gedis_server.cmds_meta
+        self.logger_enable()
 
     def handle_redis(self, socket, address):
 
@@ -31,36 +32,73 @@ class Handler(JSBASE):
     def _handle_redis(self, socket, address, parser, response):
 
         self.logger.info('connection from {}'.format(address))
+        socket.namespace = "system"
 
         while True:
             request = parser.read_request()
 
-            if not request:
-                return
+            self.logger.debug("%s:%s"%(socket.namespace,request))
+
+            if request is None:
+                self.logger.debug("connectionlost or tcp test")
+                break
+
+            if not request:  # empty list request
+                # self.response.error('Empty request body .. probably this is a (TCP port) checking query')
+                self.logger.debug("EMPTYLIST")
+                continue
 
             cmd = request[0]
             redis_cmd = cmd.decode("utf-8").lower()
 
 
-            params = {}
-
             #special command to put the client on right namespace
             if redis_cmd == "select":
-                j.shell()
-                socket.namespace = params[0].decode()
-                return response.encode("OK")
+                nsname=request[1].decode()
+                i=None
+                try:
+                    i=int(nsname)
+                except:
+                    if i is not None:
+                        #means is selection of DB in redis directly because is int
+                        response.encode("OK")
+                        continue
 
-            cmd, err = self.get_command(namespace=socket.namespace, cmd=redis_cmd)
+                socket.namespace = nsname
+                if socket.namespace  not in j.servers.gedis.latest.namespaces:
+                    response.error("could not find namespace:%s"%socket.namespace)
+                    continue
+
+                self.logger.debug("NAMESPACE_%s_%s" % (address, socket.namespace))
+                response.encode("OK")
+                continue
+
+            if redis_cmd == "command":
+                response.encode("OK")
+                continue
+
+            if redis_cmd == "ping":
+                response.encode("PONG")
+                continue
+
+            namespace, actor, command = self.command_split(redis_cmd,namespace=socket.namespace)
+            self.logger.debug("cmd:%s:%s:%s"%(namespace, actor, command))
+
+            cmd, err = self.command_obj_get(cmd=command,namespace=namespace,actor=actor)
             if err is not "":
                 response.error(err)
+                self.logger.debug("error:%s"%err)
                 continue
+
+            params = {}
+
             if cmd.schema_in:
                 if len(request) < 2:
                     response.error("can not handle with request, not enough arguments")
                     continue
                 if len(request) > 2:
                     cmd.schema_in.properties
-                    print("more than 1 input")
+                    self.logger.debug("more than 1 input")
                     response.error("more than 1 argument given, needs to be binary capnp message or json")
                     continue
 
@@ -77,7 +115,8 @@ class Handler(JSBASE):
                 args = [a.strip() for a in cmd.cmdobj.args.split(',')]
                 if 'schema_out' in args:
                     args.remove('schema_out')
-                params = {}
+
+
                 schema_dict = o._ddict
                 if len(args) == 1:
                     if args[0] in schema_dict:
@@ -101,45 +140,55 @@ class Handler(JSBASE):
                 if params == {}:
                     result = cmd.method()
                 elif j.data.types.list.check(params):
+                    self.logger.debug("PARAMS:%s"%params)
                     result = cmd.method(*params)
                 else:
                     result = cmd.method(**params)
-                self.logger.debug("Callback done and result {} , type {}".format(result, type(result)))
+                # self.logger.debug("Callback done and result {} , type {}".format(result, type(result)))
             except Exception as e:
-                print("exception in redis server")
+                self.logger.debug("exception in redis server")
                 j.errorhandler.try_except_error_process(e, die=False)
                 msg = str(e)
                 msg += "\nCODE:%s:%s\n" % (cmd.namespace, cmd.name)
                 response.error(msg)
                 continue
-            self.logger.debug(
-                "response:{}:{}:{}".format(address, cmd, result))
+            # self.logger.debug("response:{}:{}:{}".format(address, cmd, result))
 
             if cmd.schema_out:
-                result = self.encode_result(result)
+                result = result._data
+
             response.encode(result)
 
-    def get_command(self, namespace, cmd):
+    def command_split(self,cmd,actor="system",namespace="system"):
+        self.logger.debug("cmd_start:%s:%s:%s" % (namespace, actor, cmd))
+        # from pudb import set_trace; set_trace()
+        splitted = cmd.split(".")
+        if len(splitted)==3:
+            namespace = splitted[0]
+            actor = splitted[1]
+            if "__" in actor:
+                actor = actor.split("__",1)[1]
+            cmd = splitted[2]
+        elif len(splitted)==2:
+            actor = splitted[0]
+            if "__" in actor:
+                actor = actor.split("__",1)[1]
+            cmd = splitted[1]
+            if actor == "system":
+                namespace = "system"
+        elif len(splitted) == 1:
+            namespace = "system"
+            actor="system"
+            cmd = splitted[0]
+        else:
+            raise RuntimeError("cmd not properly formatted")
+
+        return namespace,actor,cmd
+
+
+    def command_obj_get(self, namespace,actor, cmd):
         self.logger.debug('(%s) command cache miss')
 
-        if cmd=="auth":
-            namespace = "system"
-            actor = "system"
-        elif cmd=="system.ping":
-            namespace = "system"
-            actor = "system"
-            cmd = "ping"
-        elif '.' in cmd:
-            splitted = cmd.split(".", 1)
-            if len(splitted)==2:
-                actor = splitted[0]
-                if "__" in actor:
-                    actor = actor.split("__",1)[1]
-                cmd = splitted[1]
-            else:
-                raise RuntimeError("cmd not properly formatted")
-        else:
-            j.shell()
 
         key="%s__%s"%(namespace,actor)
         key_cmd = "%s__%s"%(key,cmd)
@@ -191,7 +240,8 @@ class Handler(JSBASE):
         if not message:
             return
         message = json.loads(message)
-        cmd, err = self.get_command(namespace=namespace,cmd=message["command"])
+        namespace,actor,cmd = self.command_split(message["command"],namespace=namespace)
+        cmd, err = self.command_obj_get(namespace,actor,cmd)
         if err:
             socket.send(err)
             return
@@ -244,10 +294,10 @@ class Handler(JSBASE):
             return result, None
 
         except Exception as e:
-            print("exception in redis server")
+            self.logger.debug("exception in redis server")
             eco = j.errorhandler.parsePythonExceptionObject(e)
             msg = str(eco)
             msg += "\nCODE:%s:%s\n" % (cmd.namespace, cmd.name)
-            print(msg)
+            self.logger.debug(msg)
             return None, e.args[0]
 

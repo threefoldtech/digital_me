@@ -36,16 +36,8 @@ class GedisFactory(JSConfigBase):
         server = self.get(instance=instance)
         return server.redis_server
 
-    def configure(
-            self,
-            instance="test",
-            port=8889,
-            host="localhost",
-            ssl=False,
-            adminsecret="",
-            interactive=False,
-            configureclient=True
-    ):
+    def configure(self,instance="test",port=8889,
+                    host="localhost",ssl=False,adminsecret="",interactive=False,configureclient=True):
 
         data = {
             "port": str(port),
@@ -161,7 +153,13 @@ class GedisFactory(JSConfigBase):
         assert res.custom == "custom"
         print("[4] Done")
 
+        s = j.clients.gedis.configure("system", port=cl.config.data["port"], namespace="system", secret="1234")
+
+        assert s.system.ping().lower() == b"pong"
+
         print("**DONE**")
+
+        j.shell()
 
 
     # def chatbot_test(self):

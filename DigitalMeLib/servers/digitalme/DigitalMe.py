@@ -58,7 +58,6 @@ class DigitalMe(JSBASE):
         @PARAM if zdbclients is {} then will use j.clients.zdb.testdb_server_start_client_get()
                 is dict with key = namespace, default will be used for each one where namespace not defined
         """
-        self.rack = self.server_rack_get()
 
         def install_zrobot():
             path = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/0-robot")
@@ -78,23 +77,25 @@ class DigitalMe(JSBASE):
             path = j.clients.git.getContentPathFromURLorPath(
                 "https://github.com/threefoldtech/digital_me/tree/development/packages")
 
-        j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
+        monkey.patch_all(subprocess=False)
+        self.rack = self.server_rack_get()
+
+        geventserver = j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
                                   adminsecret=adminsecret, instance=name)
         # configure a local webserver server (the master one)
         j.servers.web.configure(instance=name, port=8000, port_ssl=0, host="0.0.0.0", secret=adminsecret)
 
-        monkey.patch_all(subprocess=False)
-
-        self.rack.add("gedis", j.servers.gedis.geventserver_get(name))
+        self.rack.add("gedis", geventserver.redis_server) #important to do like this, otherwise 2 servers started
         self.rack.add("web", j.servers.web.geventserver_get(name))
 
 
         if nrworkers>0:
             self.rack.workers_start(nrworkers)
 
-
         self.packages_add(path,zdbclients=zdbclients)
-        j.servers.web.latest.loader.load() #TODO:*1 need to check if this one ok
+
+        j.servers.web.latest.loader.load() #loads the rules in the webserver (routes)
+
         self.rack.start()
 
     def server_rack_get(self):
@@ -129,6 +130,6 @@ class DigitalMe(JSBASE):
 
         #now means the server is up and running
 
-        # gedisclient = j.clients.gedis.get("test",namespace="system")
-        j.shell()
-
+        # gedisclient = j.clients.gedis.configure("test",namespace="system",port=8001,secret="1234",host="localhost")
+        # j.shell()
+        #

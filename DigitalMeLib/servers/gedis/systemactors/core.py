@@ -10,8 +10,5 @@ class core(JSBASE):
         JSBASE.__init__(self)
         self.server = j.servers.gedis.latest
 
-    def ping(self):
-        pass
-
     def auth(self,secret):
         return "OK"

@@ -54,22 +54,24 @@ class GedisClient(JSConfigBase):
         self.cmds_meta = {}
         self._connected = True
 
-        test = self.redis.execute_command("system.ping")
-
+        test = self.redis.execute_command("ping")
         if test != b'PONG':
             raise RuntimeError('Can not ping server')
+
+        self.redis.execute_command("select",self.namespace)
+
         # this will make sure we have all the local schemas
-        schemas_meta = self.redis.execute_command("system.core_schemas_get",self.namespace)
+        schemas_meta = self.redis.execute_command("core_schemas_get",self.namespace)
         schemas_meta = j.data.serializers.msgpack.loads(schemas_meta)
         for key,txt in schemas_meta.items():
             if key not in j.data.schema.schemas:
                 j.data.schema.schema_add(txt)
 
-        schema_urls = self.redis.execute_command("system.schema_urls")
+        schema_urls = self.redis.execute_command("schema_urls")
         self.schema_urls = j.data.serializers.msgpack.loads(schema_urls)
 
         try:
-            cmds_meta =self.redis.execute_command("system.api_meta",self.namespace)
+            cmds_meta =self.redis.execute_command("api_meta",self.namespace)
             cmds_meta = j.data.serializers.msgpack.loads(cmds_meta)
             for key, capnpbin in cmds_meta["cmds"].items():
                 if not "__model_" in key:
@@ -81,7 +83,7 @@ class GedisClient(JSConfigBase):
 
         self.generate(reset=reset)
 
-        self.redis.execute_command("select",self.namespace)
+
 
     def generate(self, reset=False):
         for schema_url in self.schema_urls:
