@@ -189,6 +189,13 @@ class FarmerFactory(JSBASE):
                 o.farmer_id = farmer.id
                 o.farmer = True
 
+            if "location" in dir_item:
+                o.location.city = dir_item["location"]["city"]
+                o.location.continent = dir_item["location"]["continent"]
+                o.location.country = dir_item["location"]["country"]
+                o.location.latitude = dir_item["location"]["latitude"]
+                o.location.longitude = dir_item["location"]["longitude"]
+
         robot = self.robot_get(node)
         if robot != None:
             if len(robot.templates.uids.keys()) >0 :

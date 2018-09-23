@@ -35,6 +35,7 @@ update* = (D)
 capacity_reserved = (O) !threefold.grid.capacity.reserved
 capacity_used = (O) !threefold.grid.capacity.used
 capacity_total = (O) !threefold.grid.capacity.total
+location = (O) !threefold.grid.capacity.location
 
 
 @url = threefold.grid.capacity.reserved
@@ -54,4 +55,12 @@ mru = 0 (F)            #nr of units total in the box
 cru = 0 (F)
 hru = 0 (F)
 sru = 0 (F)
+
+
+@url = threefold.grid.capacity.location
+country = ""
+city = ""
+continent = ""
+latitude = (F)
+longitude = (F)
 
