@@ -189,10 +189,12 @@ class ModelOBJ():
         {% endfor %}
 
     def _defaults_set(self):
+        pass
         {% for prop in obj.properties %}
-            if {{prop.default_as_python_code}} is not None:
-                self._cobj.{{prop.name_camel}} = {{prop.default_as_python_code}}
+        if {{prop.default_as_python_code}} is not None:
+            self._cobj.{{prop.name_camel}} = {{prop.default_as_python_code}}
         {% endfor %}
+
 
 
     @property

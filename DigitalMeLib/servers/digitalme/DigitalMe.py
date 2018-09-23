@@ -115,7 +115,7 @@ class DigitalMe(JSBASE):
         if zdb_start:
             cl = j.clients.zdb.testdb_server_start_client_get(start=True)  # starts & resets a zdb in seq mode with name test
 
-        cmd = "js_shell 'j.servers.digitalme.start(nrworkers=4)'"
+        cmd = "js_shell 'j.servers.digitalme.start(nrworkers=10)'"
         j.tools.tmux.execute(
             cmd,
             session='main',

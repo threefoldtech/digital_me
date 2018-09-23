@@ -13,7 +13,7 @@ wallets = (LS)
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["default"].sqlitedb
+db = j.data.bcdb.bcdb_instances["threefold"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
