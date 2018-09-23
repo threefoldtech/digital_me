@@ -33,6 +33,9 @@ state* = ""                     #OK, ERROR, INIT
 
 error = ""                      #there is an error on this node
 
+farmer_id* = (I)
+farmer* = false (B)
+update* = (D)
 
 capacity_reserved = (O) !threefold.grid.capacity.reserved
 capacity_used = (O) !threefold.grid.capacity.used
@@ -56,9 +59,11 @@ mru = 0 (F)            #nr of units total in the box
 cru = 0 (F)
 hru = 0 (F)
 sru = 0 (F)
+
+
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["threefold"].sqlitedb
+db = j.data.bcdb.bcdb_instances["default"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
@@ -81,6 +86,9 @@ class Index_threefold_grid_node(BaseModel):
     tfgrid_up_ping = BooleanField(index=True)
     tfgrid_up_last = IntegerField(index=True)
     state = TextField(index=True)
+    farmer_id = IntegerField(index=True)
+    farmer = BooleanField(index=True)
+    update = IntegerField(index=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
@@ -108,6 +116,9 @@ class Model(MODEL_CLASS):
         idict["tfgrid_up_ping"] = obj.tfgrid_up_ping
         idict["tfgrid_up_last"] = obj.tfgrid_up_last
         idict["state"] = obj.state
+        idict["farmer_id"] = obj.farmer_id
+        idict["farmer"] = obj.farmer
+        idict["update"] = obj.update
         idict["id"] = obj.id
         if not self.index.select().where(self.index.id == obj.id).count()==0:
             #need to delete previous record from index

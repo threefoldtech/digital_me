@@ -1,4 +1,7 @@
 
 @url = threefold.grid.farmer
+name* = ""
 description = ""
-error* = ""
+error = ""
+iyo_org* = ""
+wallets = (LS)

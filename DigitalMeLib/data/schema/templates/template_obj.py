@@ -187,8 +187,14 @@ class ModelOBJ():
         {% for ll in obj.lists %}    
         self.{{ll.alias}} = List0(self,self._cobj.{{ll.name_camel}}, self._schema.property_{{ll.name}})
         {% endfor %}
-        
-        
+
+    def _defaults_set(self):
+        {% for prop in obj.properties %}
+            if {{prop.default_as_python_code}} is not None:
+                self._cobj.{{prop.name_camel}} = {{prop.default_as_python_code}}
+        {% endfor %}
+
+
     @property
     def _ddict(self):
         d={}

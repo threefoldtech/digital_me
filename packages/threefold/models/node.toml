@@ -28,6 +28,9 @@ state* = ""                     #OK, ERROR, INIT
 
 error = ""                      #there is an error on this node
 
+farmer_id* = (I)
+farmer* = false (B)
+update* = (D)
 
 capacity_reserved = (O) !threefold.grid.capacity.reserved
 capacity_used = (O) !threefold.grid.capacity.used
@@ -51,3 +54,4 @@ mru = 0 (F)            #nr of units total in the box
 cru = 0 (F)
 hru = 0 (F)
 sru = 0 (F)
+

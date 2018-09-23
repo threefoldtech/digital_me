@@ -48,6 +48,11 @@ class Schema(JSBASE):
         raise RuntimeError(out)
 
     def _proptype_get(self, txt):
+        """
+        if default value specified in the schema, will check how to convert it to a type
+        :param txt:
+        :return:
+        """
 
         if "\\n" in txt:
             jumpscaletype = j.data.types.multiline
@@ -70,7 +75,7 @@ class Schema(JSBASE):
             jumpscaletype.SUBTYPE = j.data.types.string
             defvalue = []
 
-        elif j.data.types.int.checkString(txt):
+        elif j.data.types.int.checkString(txt): #means is digit
             jumpscaletype = j.data.types.int
             defvalue = jumpscaletype.fromString(txt)
 
@@ -112,6 +117,8 @@ class Schema(JSBASE):
                 comment = ""
 
             if "(" in line:
+                # if propname.find("farmer")!=-1:
+                #     from pudb import set_trace; set_trace()
                 line_proptype = line.split("(")[1].split(")")[0].strip().lower()
                 line_wo_proptype = line.split("(")[0].strip()
                 if line_proptype=="o": #special case where we have subject directly attached
@@ -121,7 +128,10 @@ class Schema(JSBASE):
                 else:
                     jumpscaletype = j.data.types.get(line_proptype)
                     try:
-                        defvalue = jumpscaletype.fromString(line_wo_proptype)
+                        if line_wo_proptype=="" or line_wo_proptype==None:
+                            defvalue = jumpscaletype.get_default()
+                        else:
+                            defvalue = jumpscaletype.fromString(line_wo_proptype)
                     except Exception as e:
                         self.error_raise("error on line:%s"%line_original,e=e)                        
             else:
@@ -242,6 +252,8 @@ class Schema(JSBASE):
         if data is None:
             data = {}
         obj =  self.objclass(schema=self,data=data,capnpbin=capnpbin)
+        if (data is None or data=={}) and capnpbin is None:
+            obj._defaults_set()
         return obj
 
     def new(self):

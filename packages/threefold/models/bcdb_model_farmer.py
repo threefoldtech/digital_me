@@ -5,12 +5,15 @@ from Jumpscale import j
 SCHEMA="""
 
 @url = threefold.grid.farmer
+name* = ""
 description = ""
-error* = ""
+error = ""
+iyo_org* = ""
+wallets = (LS)
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["threefold"].sqlitedb
+db = j.data.bcdb.bcdb_instances["default"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
@@ -18,7 +21,8 @@ class BaseModel(Model):
 
 class Index_threefold_grid_farmer(BaseModel):
     id = IntegerField(unique=True)
-    error = TextField(index=True)
+    name = TextField(index=True)
+    iyo_org = TextField(index=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
@@ -31,7 +35,8 @@ class Model(MODEL_CLASS):
     
     def index_set(self,obj):
         idict={}
-        idict["error"] = obj.error
+        idict["name"] = obj.name
+        idict["iyo_org"] = obj.iyo_org
         idict["id"] = obj.id
         if not self.index.select().where(self.index.id == obj.id).count()==0:
             #need to delete previous record from index
