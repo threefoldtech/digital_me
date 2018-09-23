@@ -1,5 +1,5 @@
 from blueprints.wiki import blueprint
-from flask import render_template, send_file
+from flask import render_template, send_file, request
 from flask import abort, redirect, url_for
 
 import io
@@ -22,7 +22,7 @@ def index_sub(sub):
 
 
 @blueprint.route('/<path:subpath>')
-def wiki_route(subpath):
+def wiki_route(subpath, methods=['GET', 'POST']):
     
     subpath=subpath.strip("/")
 
@@ -42,35 +42,26 @@ def wiki_route(subpath):
 
     url = "/".join(parts)
 
-   
+    ds = j.tools.docsites.docsite_get(wikicat, die=False)
+    if ds == None:
+        return "Cannot find docsite with name:%s" % wikicat
 
-    try:
-        #at this point we know the docsite
+    if len(parts)>0 and parts[0].startswith("verify"):
+        return ds.verify()
 
-        ds = j.tools.docsites.docsite_get(wikicat,die=False)
+    if len(parts)>0 and parts[0].startswith("errors"):
+        return ds.errors
 
-        if ds==None:
-            return "Cannot find docsite with name:%s"%wikicat
 
-        if len(parts)>0 and parts[0].startswith("verify"):
-            return ds.verify()
-
-        if len(parts)>0 and parts[0].startswith("errors"):
-            return ds.errors          
-
-        #if binary file, return
-        name = parts[-1]
-        if not name.endswith(".md"):
-            file_path = ds.file_get(name)
-            with open(file_path, 'rb') as bites:
-                return send_file(
-                            io.BytesIO(bites.read()),
-                            attachment_filename=name
-                    )                
-
-    except Exception as e:
-        raise e
-        return ("# **ERROR**\n%s\n"%e)
+    #if binary file, return
+    name = parts[-1]
+    if not name.endswith(".md"):
+        file_path = ds.file_get(name)
+        with open(file_path, 'rb') as bites:
+            return send_file(
+                        io.BytesIO(bites.read()),
+                        attachment_filename=name
+                )
 
     if "sidebar.md" in url:
         res =  ds.sidebar_get(url)
@@ -80,7 +71,8 @@ def wiki_route(subpath):
     else:            
         doc = ds.doc_get(parts,die=False)
         if doc:
-            return doc.markdown
+            return doc.dynamic_process(url=request.url)
+
     return render_template('error_notfound.html',url=url)
 
 

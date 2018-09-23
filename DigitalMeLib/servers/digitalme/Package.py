@@ -207,6 +207,7 @@ class Package(JSBASE):
             self.load()
 
 
+
     def _key_toml(self,key):
         if key in TOML_KEYS_ALIASES:
             return TOML_KEYS_ALIASES[key]
@@ -323,6 +324,8 @@ class Package(JSBASE):
             j.tools.docsites.load(doc_site.path, doc_site.name)
 
     def docmacros_load(self):
+        # if self.namespace=="threefold":
+        #     from pudb import set_trace; set_trace()
         for item in self.data.docmacros:
             j.tools.docsites.macros_load(item.path)
 
