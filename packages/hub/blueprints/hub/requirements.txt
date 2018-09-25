@@ -4,7 +4,7 @@ click==6.7
 decorator==4.0.6
 docker-py==1.10.6
 docker-pycreds==0.2.1
-Flask==0.12.2
+Flask==0.12.3
 g8storclient==0.1.5
 idna==2.5
 itsdangerous==0.24
