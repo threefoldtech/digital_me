@@ -37,19 +37,38 @@ class BCDBModel(JSBASE):
             self.db = self.bcdb.dbclient.namespace_new(name=self.key, maxsize=0, die=False)
             self.db.type = "ZDB"
         self.index_enable = index_enable
+        self.json_serialize = self.bcdb.json_serialize
 
     def index_delete(self):
-        pass
+        self.index.delete().execute()
 
     def index_load(self):
+        self.index_delete()
+        j.shell() #TODO:*1
         pass
         # self.logger.info("build index done")
 
     def destroy(self):
-        if bcdb.dbclient.type == "RDB":
-            j.shell()
+        self.index_delete()
+        if self.bcdb.dbclient.type == "RDB":
+            for key in self.db.hkeys("bcdb:%s:data" % self.key):
+                self.db.hdel("bcdb:%s:data" % self.key,key)
+            self.db.delete("bcdb:%s:lastid"%self.key)
         else:
             raise RuntimeError("not implemented yet, need to go to db and remove namespace")
+
+    def delete(self, obj_id):
+        """
+        """
+
+        if self.db.type == "ZDB":
+            self.db.delete(obj_id)
+        else:
+            self.db.hdel("bcdb:%s:data"%self.key, obj_id)
+
+        #TODO:*1 need to delete the part of index !!!
+
+
 
     def set(self, data, obj_id=None):
         """
@@ -75,18 +94,22 @@ class BCDBModel(JSBASE):
         else:
             raise RuntimeError("Cannot find data type, str,bin,obj or ddict is only supported")
 
-        bdata = obj._data
-
         # prepare
         obj = self.set_pre(obj)
 
-        # later:
-        acl = b""
-        crc = b""
-        signature = b""
+        if self.json_serialize:
+            data = obj._json
+        else:
 
-        l = [acl, crc, signature, bdata]
-        data = msgpack.packb(l)
+            bdata = obj._data
+
+            # later:
+            acl = b""
+            crc = b""
+            signature = b""
+
+            l = [acl, crc, signature, bdata]
+            data = msgpack.packb(l)
 
         if self.db.type == "ZDB":
             if obj_id is None:
@@ -98,7 +121,7 @@ class BCDBModel(JSBASE):
             if obj_id is None:
                 # means a new one
                 obj_id = self.db.incr("bcdb:%s:lastid" % self.key)-1
-            self.db.hset("bcdb:%s"%self.key, obj_id, data)
+            self.db.hset("bcdb:%s:data"%self.key, obj_id, data)
 
         obj.id = obj_id
 
@@ -129,7 +152,7 @@ class BCDBModel(JSBASE):
         if self.db.type == "ZDB":
             data = self.db.get(id)
         else:
-            data = self.db.hget("bcdb:%s" % self.key, id)
+            data = self.db.hget("bcdb:%s:data" % self.key, id)
 
         if not data:
             return None
@@ -138,21 +161,28 @@ class BCDBModel(JSBASE):
 
     def _get(self, id, data,capnp=False):
 
-        res = msgpack.unpackb(data)
-
-        if len(res) == 4:
-            acr, crc, signature, bdata = res
-        else:
-            raise RuntimeError("not supported format in table yet")
-
-        if capnp:
-            # obj = self.schema.get(capnpbin=bdata)
-            # return obj.data
-            return bdata
-        else:
-            obj = self.schema.get(capnpbin=bdata)
+        if self.json_serialize:
+            res = j.data.serializers.json.loads(data)
+            obj = self.schema.get(data=res)
             obj.id = id
             return obj
+
+        else:
+            res = msgpack.unpackb(data)
+
+            if len(res) == 4:
+                acr, crc, signature, bdata = res
+            else:
+                raise RuntimeError("not supported format in table yet")
+
+            if capnp:
+                # obj = self.schema.get(capnpbin=bdata)
+                # return obj.data
+                return bdata
+            else:
+                obj = self.schema.get(capnpbin=bdata)
+                obj.id = id
+                return obj
 
     def iterate(self, method, key_start=None, direction="forward",
                 nrrecords=100000, _keyonly=False,
@@ -194,7 +224,7 @@ class BCDBModel(JSBASE):
             #WE IGNORE Nrrecords
             if not direction=="forward":
                 raise RuntimeError("not implemented, only forward iteration supported")
-            keys = [int(item.decode()) for item in self.db.hkeys("bcdb:%s" % self.key)]
+            keys = [int(item.decode()) for item in self.db.hkeys("bcdb:%s:data" % self.key)]
             keys.sort()
             if len(keys)==0:
                 return result

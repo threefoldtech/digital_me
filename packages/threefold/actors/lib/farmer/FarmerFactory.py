@@ -91,9 +91,13 @@ class FarmerFactory(JSBASE):
         """
         will do ping test, zero-os test, ...
 
+        j.tools.threefold_farmer.node_check(10)
+
         :param node: node from model threefold.grid.node
         :return: the populated node obj
         """
+
+        self._fail_save()
 
         if j.data.types.int.check(node):
             o = self.models.nodes.get(node)
@@ -196,7 +200,7 @@ class FarmerFactory(JSBASE):
                 o.location.latitude = dir_item["location"]["latitude"]
                 o.location.longitude = dir_item["location"]["longitude"]
 
-        robot = self.robot_get(node)
+        robot = self.robot_get(o)
         if robot != None:
             if len(robot.templates.uids.keys()) >0 :
                 o.noderobot = True
@@ -318,6 +322,10 @@ class FarmerFactory(JSBASE):
 
             self.node_check(node, reset=reset)
 
+    def _fail_save(self):
+        if self._bcdb == None:
+            self.zdb = j.clients.zdb.testdb_server_start_client_get(reset=False)
+            self._bcdb = j.data.bcdb.get(self.zdb, reset=False)
 
     def load(self, reset=False):
         """

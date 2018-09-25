@@ -10,16 +10,12 @@ schedule = j.servers.gedis.latest.job_schedule
 def route_default():
     return redirect('%s/index.html' % name)
 
+
+
 @blueprint.route('/test/')
 def route_page():
 
-    def test(x):
-        import time
-        print("!!!!")
-        time.sleep(10)
-        return(x)
-
-    res = schedule(test, timeout=600, wait=True, depends_on=None, x=1)
+    res = schedule(j.servers.myjobs.execute, cmd="j.tools.threefold_farmer.node_check(1)", timeout=600, wait=True, depends_on=None)
 
     return res
 

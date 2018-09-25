@@ -14,8 +14,9 @@ JSConfigBase = j.tools.configmanager.JSBaseClassConfig
 
 from rq import Queue
 from redis import Redis
+
 from rq.decorators import job
-from importlib.machinery import SourceFileLoader
+# from importlib.machinery import SourceFileLoader
 
 
 TEMPLATE = """
@@ -241,11 +242,11 @@ class GedisServer(StreamServer, JSConfigBase):
 
     #######################PROCESSING OF CMDS ##############
 
-    def job_schedule(self,method, timeout=60,wait=False,depends_on=None, **kwargs):
+    def job_schedule(self,method,  timeout=60,wait=False,depends_on=None, **kwargs):
         """
         @return job, waiter_greenlet
         """
-        job = self.workers_queue.enqueue_call(func=method,kwargs=kwargs, timeout=timeout,depends_on=depends_on)
+        job = self.workers_queue.enqueue_call(func=method, kwargs=kwargs, timeout=timeout,depends_on=depends_on)
         greenlet = gevent.spawn(waiter, job)
         job.greenlet=greenlet
         self.workers_jobs[job.id]=job

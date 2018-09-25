@@ -32,6 +32,10 @@ class GedisFactory(JSConfigBase):
     def geventserver_get(self, instance=""):
         """
         return redis_server
+
+        j.servers.gedis.geventserver_get("test")
+
+
         """
         server = self.get(instance=instance)
         return server.redis_server

@@ -10,7 +10,7 @@ from .BCDBIndexModel import BCDBIndexModel
 
 class BCDB(JSBASE):
     
-    def __init__(self,dbclient,namespace="default",reset=False):
+    def __init__(self,dbclient,namespace="default",reset=False,json_serialize=False):
         JSBASE.__init__(self)
         if isinstance(dbclient,j.clients.redis.REDIS_CLIENT_CLASS) or isinstance(dbclient,StrictRedis):
             dbclient.type = "RDB" #means is redis db
@@ -29,15 +29,21 @@ class BCDB(JSBASE):
                 for item in self.dbclient.keys("bcdb:*"):
                     self.dbclient.delete(item)
 
+        self.json_serialize = json_serialize
+        self.index_readonly = False
+
     def index_create(self,reset=False):
         j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb"))
         dest = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb",self.namespace+".db")
         self.logger.debug("bcdb:indexdb:%s"%dest)
         if reset:
             j.sal.fs.remove(dest)
-        self.sqlitedb = SqliteDatabase(dest)
+        try:
+            self.sqlitedb = SqliteDatabase(dest)
+        except Exception as e:
+            j.shell()
 
-    def model_create(self, schema,dest=None, include_schema=True,overwrite=True):
+    def model_create(self, schema,dest=None, include_schema=True, overwrite=True):
         """
         :param include_schema, if True schema is added to generated code
         :param schema: j.data.schema ...

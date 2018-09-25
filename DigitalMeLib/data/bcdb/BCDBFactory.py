@@ -18,10 +18,11 @@ class BCDBFactory(JSBASE):
         self._code_generation_dir = None
         self.bcdb_instances = {}  #key is the namespace
 
-    def get(self, dbclient,namespace="default", reset=False):
-        if j.data.types.string.check(dbclient):
-            raise RuntimeError("zdbclient cannot be str")
-        self.bcdb_instances[namespace] = BCDB(dbclient,namespace=namespace,reset=reset)
+    def get(self, dbclient,namespace="default", reset=False, json_serialize=False,cache=True):
+        if not namespace in self.bcdb_instances or cache==False:
+            if j.data.types.string.check(dbclient):
+                raise RuntimeError("zdbclient cannot be str")
+            self.bcdb_instances[namespace] = BCDB(dbclient,namespace=namespace,reset=reset,json_serialize=json_serialize)
         return self.bcdb_instances[namespace]
 
     @property
