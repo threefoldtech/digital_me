@@ -7,6 +7,14 @@ var stringContentGenerate = function (message){
     </div>`
 }
 
+var textContentGenerate = function (message){
+    return `
+    <h4>${message}</h4>
+    <div class="form-group">
+		<textarea rows="4" cols="50" class="form-control" id="value"></textarea>
+    </div>`
+}
+
 var intContentGenerate = function (message){
     return `
     <h4>${message}</h4>
@@ -95,6 +103,9 @@ var generateSlide = function(res) {
         case "string_ask":
             contents = stringContentGenerate(res['msg']);
             break;
+        case "text_ask":
+            contents = textContentGenerate(res['msg']);
+            break;
         case "int_ask":
             contents = intContentGenerate(res['msg']);
             break;
@@ -123,7 +134,7 @@ var generateSlide = function(res) {
         ev.preventDefault();
         $(this).attr("disabled", "disabled");
 		let value="";
-		if (["string_ask", "int_ask"].includes(res['cat'])) {
+		if (["string_ask", "int_ask", "text_ask"].includes(res['cat'])) {
 			value = $("#value").val();
         } else if (res['cat'] === "single_choice"){
             value = $("input[name='value']:checked").val();
@@ -148,6 +159,5 @@ var generateSlide = function(res) {
 
 client.base_chat.work_get(SESSIONID).then(function(res){
     res = JSON.parse(res);
-    console.log(res);
 	generateSlide(res);
 });

@@ -68,6 +68,13 @@ class GedisChatBotSession(JSBASE):
         })
         return self.q_in.get()
 
+    def text_ask(self, msg):
+        self.q_out.put({
+            "cat": "text_ask",
+            "msg": msg
+        })
+        return self.q_in.get()
+
     def int_ask(self, msg):
         self.q_out.put({
             "cat": "int_ask",
@@ -80,6 +87,7 @@ class GedisChatBotSession(JSBASE):
             "cat": "md_show",
             "msg": msg
         })
+        return self.q_in.get()
 
     def redirect(self, msg):
         self.q_out.put({
