@@ -89,4 +89,60 @@ class farmer(JSBASE):
         """
         #TODO: *1
 
+    def zdb_reserve(self, node_id, name_space, size=100, secret=""):
+        """
+        :param node_id: is the id of the node on which you want to deploy
+        :param size:  in MB
+        :param secret: secret to be given to the namespace
+        :param name_space: cannot exist yet
+        :return: (node_robot_url, servicesecret, ipaddr, port)
 
+        user can now connect to this ZDB using redis client
+
+        each of these VM's is automatically connected to the TF Public Zerotier network (TODO: which one is it)
+
+        VM is only connected to the 1 or 2 zerotier networks ! and NAT connection to internet.
+        """
+
+        pass
+
+        # TODO:*1
+        # are there other params?
+
+    def webgateways_get(self):
+        """
+
+        ```out
+        id = 0
+        farmer_id = (S)
+        farmer_name = (S)
+        name =
+        location = ""
+        ipaddr_public_4 = ""
+        ipaddr_public_6 = ""
+        ```
+
+        :return:
+        """
+
+    def webgateway_http_proxy_set(self,webgateway_id, virtualhost,backend_ipaddr, backend_port, suffix=""):
+        """
+
+        will answer on http & https
+        will configure the forward in the selected webgateway
+
+        :param webgateway_id: id of the obj you get through self.webgateways_get()
+        :param virtualhost: e.g. docsify.js.org
+        :param backend_ipaddr: e.g. 10.10.100.10
+        :param backend_port: e.g. 8080
+        :param suffix: e.f. /mysub/name/
+        :return: ???
+        """
+
+    def webgateway_http_proxy_set(self,webgateway_id,virtualhost):
+        """
+        delete all info for the specified virtualhost
+        :param webgateway_id:
+        :param virtualhost:
+        :return:
+        """
