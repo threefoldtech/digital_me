@@ -43,7 +43,7 @@ class farmer(JSBASE):
         pass
 
 
-    def zos_reserve(self,node_id, vm_name, memory=1024, cores=1, zerotier_net="", adminsecret=""):
+    def zos_reserve(self, jwttoken, node_id, vm_name, memory=1024, cores=1, zerotier_net="", adminsecret=""):
         """
 
         deploys a zero-os for a customer
@@ -66,7 +66,7 @@ class farmer(JSBASE):
         """
         #TODO: *1
 
-    def ubuntu_reserve(self,node_id, vm_name, memory=2048, cores=2, zerotier_net="", pubsshkey=""):
+    def ubuntu_reserve(self,jwttoken, node_id, vm_name, memory=2048, cores=2, zerotier_net="", pubsshkey=""):
         """
 
         deploys a ubuntu 18.04 for a customer on a chosen node
@@ -89,7 +89,7 @@ class farmer(JSBASE):
         """
         #TODO: *1
 
-    def zdb_reserve(self, node_id, name_space, size=100, secret=""):
+    def zdb_reserve(self, jwttoken, node_id, name_space, size=100, secret=""):
         """
         :param node_id: is the id of the node on which you want to deploy
         :param size:  in MB
@@ -109,7 +109,7 @@ class farmer(JSBASE):
         # TODO:*1
         # are there other params?
 
-    def webgateways_get(self):
+    def webgateways_get(self, jwttoken, country="", farmer_name=""):
         """
 
         ```out
@@ -125,7 +125,7 @@ class farmer(JSBASE):
         :return:
         """
 
-    def webgateway_http_proxy_set(self,webgateway_id, virtualhost,backend_ipaddr, backend_port, suffix=""):
+    def webgateway_http_proxy_set(self,jwttoken, webgateway_id, virtualhost,backend_ipaddr, backend_port, suffix=""):
         """
 
         will answer on http & https
@@ -139,10 +139,38 @@ class farmer(JSBASE):
         :return: ???
         """
 
-    def webgateway_http_proxy_set(self,webgateway_id,virtualhost):
+    def webgateway_http_proxy_delete(self,jwttoken ,webgateway_id,virtualhost):
         """
         delete all info for the specified virtualhost
         :param webgateway_id:
         :param virtualhost:
+        :return:
+        """
+
+    def farmer_register(self, jwttoken, farmername, emailaddr="",mobile="",pubkey=""):
+        """
+
+        :param farmername: official farmer name as in tf-dir
+        :param emailaddr: comma separated list of email addr
+        :param mobile: comma separated list of mobile tel nr's (can be used for sms, ...)
+        :param pubkey: pubkey of farmer
+        :param description
+        :return:
+        """
+
+    def webgateway_register(self, jwttoken, etcd_url, etcd_secret, farmername,
+                                    pubip4="", pubip6="", country="", name="", location=""):
+        """
+        allows a farmer to register
+        :param jwttoken is token as used in IYO
+        :param etcd_url its the url which allows this bot to configure the required forwards
+        :param etcd_secret is the secret for the etcd connection
+        :param farmername:
+        :param pubip4: comma separated list of public ip addr, ip v4
+        :param pubip6: comma separated list of public ip addr, ip v6
+        :param name: chosen name for the webgateway
+        :param country: country as used in self.countries_get...
+        :param location: chosen location name
+        :param description
         :return:
         """

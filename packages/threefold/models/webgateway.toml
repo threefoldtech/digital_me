@@ -1,0 +1,13 @@
+
+@url = threefold.grid.webgateway
+name* = ""
+description = ""
+country = ""
+location = ""
+etcd_url = ""
+etcd_secret = ""
+farmer_id = (I)
+pubip4 = [] (LS)
+pubip6 = [] (LS)
+
+
