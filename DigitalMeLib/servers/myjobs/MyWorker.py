@@ -1,30 +1,33 @@
 
-from Jumpscale import j
-
-j.clients.redis.cache_clear()  # make sure we have redis connections empty, because comes from parent
-
-redisdb = j.clients.redis.core_get()
-
-queue = j.clients.redis.getQueue(redisclient=redisdb, name="myjobs", fromcache=False)
-queue_data = j.clients.redis.getQueue(redisclient=redisdb, name="myjobs_datachanges", fromcache=False)
 
 
-def return_data(cat,obj):
-    data = j.data.serializers.msgpack.dumps([cat,obj.id,obj._data])
-    queue_data.put(data)
-
-def return_job_obj(obj):
-    return_data("J",obj)
-
-def return_worker_obj(obj):
-    return_data("W", obj)
 
 
-def myworker(id=999999,onetime=False):
+def myworker(id=999999,onetime=False,showout=False):
     """
     js_shell "j.servers.myjobs.worker()"
     :return:
     """
+
+    from Jumpscale import j
+
+    j.clients.redis.cache_clear()  # make sure we have redis connections empty, because comes from parent
+
+    redisdb = j.clients.redis.core_get()
+
+    queue = j.clients.redis.getQueue(redisclient=redisdb, name="myjobs", fromcache=False)
+    queue_data = j.clients.redis.getQueue(redisclient=redisdb, name="myjobs_datachanges", fromcache=False)
+
+    def return_data(cat, obj):
+        data = j.data.serializers.msgpack.dumps([cat, obj.id, obj._data])
+        queue_data.put(data)
+
+    def return_job_obj(obj):
+        return_data("J", obj)
+
+    def return_worker_obj(obj):
+        return_data("W", obj)
+
 
     bcdb = j.data.bcdb.bcdb_instances["myjobs"]
     model_job = bcdb.models["jumpscale.myjobs.job"]
@@ -32,6 +35,11 @@ def myworker(id=999999,onetime=False):
     model_worker = bcdb.models["jumpscale.myjobs.worker"]
 
     w = model_worker.get(id)
+    while w==None:
+        time.sleep(0.1)
+        print(3)
+        w = model_worker.get(id)
+
     w.current_job = 4294967295  # means nil
     w.halt = False
     w.running = True
@@ -40,11 +48,13 @@ def myworker(id=999999,onetime=False):
     while True:
         res = queue.get(timeout=10)
         if res == None:
-            # print("queue request timeout, continue")
+            if showout:
+                print("queue request timeout, continue")
             w = model_worker.get(id)
             #have to fetch this again because was waiting on queue
             if w == None:
-                raise RuntimeError("worker should always be there")
+                # raise RuntimeError("worker should always be there")
+                return
             w.current_job = 4294967295  # means nil
             return_worker_obj(w)
             if w.halt:
@@ -80,13 +90,22 @@ def myworker(id=999999,onetime=False):
                 w.current_job = jobid #set current jobid
                 return_worker_obj(w)
 
+                if showout:
+                    print("EXECUTE")
+                    print(job)
+
                 try:
                     exec(action.code)
                     method = eval(action.methodname)
                 except Exception as e:
                     job.error = str(e)+"\nCOULD NOT GET TO METHOD, IMPORT ERROR."
                     job.state = "ERROR"
+                    job.time_stop = j.data.time.epoch
                     return_job_obj(job)
+                    if showout:
+                        print("ERROR:%s"%e)
+                    if onetime:
+                        return
                     continue
 
                 try:
@@ -94,7 +113,12 @@ def myworker(id=999999,onetime=False):
                 except Exception as e:
                     job.error = str(e)
                     job.state = "ERROR"
+                    job.time_stop = j.data.time.epoch
                     return_job_obj(job)
+                    if showout:
+                        print("ERROR:%s"%e)
+                    if onetime:
+                        return
                     continue
 
                 try:
@@ -102,11 +126,20 @@ def myworker(id=999999,onetime=False):
                 except Exception as e:
                     job.error = str(e)+"\nCOULD NOT SERIALIZE RESULT OF THE METHOD, make sure json can be used on result"
                     job.state = "ERROR"
+                    job.time_stop = j.data.time.epoch
                     return_job_obj(job)
+                    if showout:
+                        print("ERROR:%s"%e)
+                    if onetime:
+                        return
                     continue
 
                 job.time_stop = j.data.time.epoch
                 job.state = "OK"
+
+                if showout:
+                    print("OK")
+                    print(job)
 
                 return_job_obj(job)
 
