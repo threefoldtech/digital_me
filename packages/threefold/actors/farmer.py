@@ -113,10 +113,9 @@ class farmer(JSBASE):
         """
 
         ```out
-        id = 0
         farmer_id = (S)
         farmer_name = (S)
-        name =
+        name = (s)
         location = ""
         ipaddr_public_4 = ""
         ipaddr_public_6 = ""

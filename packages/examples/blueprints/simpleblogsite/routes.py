@@ -41,7 +41,7 @@ def route_blog(blogname):
 @blueprint.route('/<template>.html')
 def route_template(template):
     if template == "index":
-        headers = [post.header_get().title for _, post in ds.docs.items()]
+        headers = [post.title for _, post in ds.docs.items()]
         return render_template('%s_%s.html' % (name, template), ds=ds, headers=headers)
     try:
         doc = ds.doc_get(template)

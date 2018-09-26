@@ -126,12 +126,12 @@ class GedisCmds(JSBASE):
                 if "self" in lstrip:
                     if "," in lstrip:
                         arg0,arg1=lstrip.split(",",1)
-                        args,_ = arg1.split(")",1)
+                        args = arg1.split(")",1)
                     else:
                         args = ""
                 else:
                     arg0,arg1=lstrip.split("(",1)
-                    args,_ = arg1.split(")",1)
+                    args = arg1.split(")",1)
                 continue
             if lstrip.startswith("\"\"\""):
                 if state=="DEF":
@@ -166,7 +166,7 @@ class GedisCmds(JSBASE):
                 continue
             raise RuntimeError()
         return j.core.text.strip(code),j.core.text.strip(comment),j.core.text.strip(schema_in),\
-            j.core.text.strip(schema_out),j.core.text.strip(args)
+            j.core.text.strip(schema_out),args
             
 
     def cmd_exists(self,name):
