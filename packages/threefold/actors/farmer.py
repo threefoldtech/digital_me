@@ -1,5 +1,6 @@
 from Jumpscale import j
 JSBASE = j.application.JSBaseClass
+# from .CapacityPlanner import CapacityPlanner 
 
 
 class farmer(JSBASE):
@@ -9,11 +10,31 @@ class farmer(JSBASE):
     """
     def __init__(self):
         JSBASE.__init__(self)
-        self.bcdb = j.tools.threefold_farmer.bcdb
-        self.farmer_model = self.bcdb.model_get('threefold.grid.farmer')
-        self.node_model = self.bcdb.model_get('threefold.grid.node')
-        self.wgw_model = self.bcdb.model_get('threefold.grid.webgateway')
-        # self.farmer_model = self.bcdb.model_get('threefold.grid.farmer')
+        j.tools.threefold_farmer.zdb = j.clients.zdb.testdb_server_start_client_get(reset=False)
+        self._bcdb = j.tools.threefold_farmer.bcdb
+        self._farmer_model = None
+        self._node_model = None
+        self._wgw_model = None
+        self.capacity_planner = j.tools.threefold_capacity_planner
+
+    @property
+    def farmer_model(self):
+        if not self._farmer_model:
+            self._farmer_model = self._bcdb.model_get('threefold.grid.farmer')
+        return self._farmer_model
+
+    
+    @property
+    def node_model(self):
+        if not self._node_model:
+            self._node_model = self._bcdb.model_get('threefold.grid.node')
+        return self._node_model
+
+    @property
+    def wgw_model(self):
+        if not self._wgw_model:
+            self._wgw_model = self._bcdb.model_get('threefold.grid.webgateway')
+        return self._wgw_model
 
     def farmers_get(self):
         """
@@ -29,7 +50,7 @@ class farmer(JSBASE):
         result = {n.location.country for n in nodes}
         if '' in result:
             result.remove('')
-        return result
+        return list(result)
 
     def node_find(self, country="", farmer_name="", cores_min_nr=0, mem_min_mb=0, ssd_min_gb=0, hd_min_gb=0, nr_max=10):
         """
@@ -67,7 +88,7 @@ class farmer(JSBASE):
         return nodes
 
 
-    def zos_reserve(self, jwttoken, node_id, vm_name, memory=1024, cores=1, zerotier_net="", adminsecret=""):
+    def zos_reserve(self, jwttoken, node_id, vm_name, memory=1024, cores=1, zerotier_network="", adminsecret=""):
         """
 
         deploys a zero-os for a customer
@@ -76,7 +97,7 @@ class farmer(JSBASE):
         :param vm_name: name freely chosen by customer
         :param memory: Amount of memory in MiB (defaults to 1024)
         :param cores: Number of virtual CPUs (defaults to 1)
-        :param zerotier_net: is optional additional network to connect to
+        :param zerotier_network: is optional additional network to connect to
         :param adminsecret: is the secret which is set on the redis for the ZOS of the customer
 
         :return: (node_robot_url, servicesecret, ipaddr_zos,redisport)
@@ -88,10 +109,11 @@ class farmer(JSBASE):
         ZOS is only connected to the 1 or 2 zerotier networks ! and NAT connection to internet.
 
         """
-        #TODO: *1
-        pass
+        node_robot_url, service_secret, ipaddr_zos, redis_port = self.capacity_planner.zos_reserve(node_id,
+                            vm_name, memory=memory, cores=cores, zerotier_network=zerotier_network, organization="")
+        return (node_robot_url, service_secret, ipaddr_zos, redis_port)
 
-    def ubuntu_reserve(self,jwttoken, node_id, vm_name, memory=2048, cores=2, zerotier_net="", pubsshkey=""):
+    def ubuntu_reserve(self, jwttoken, node_id, vm_name, memory=2048, cores=2, zerotier_network="", zerotier_token="", pub_ssh_key=""):
         """
 
         deploys a ubuntu 18.04 for a customer on a chosen node
@@ -100,8 +122,8 @@ class farmer(JSBASE):
         :param vm_name: name freely chosen by customer
         :param memory: Amount of memory in MiB (defaults to 1024)
         :param cores: Number of virtual CPUs (defaults to 1)
-        :param zerotier_net: is optional additional network to connect to
-        :param pubsshkey: is the pub key for SSH authorization of the VM
+        :param zerotier_network: is optional additional network to connect to
+        :param pub_ssh_key: is the pub key for SSH authorization of the VM
 
         :return: (node_robot_url, servicesecret,ipaddr_vm)
 
@@ -112,8 +134,9 @@ class farmer(JSBASE):
         VM is only connected to the 1 or 2 zerotier networks ! and NAT connection to internet.
 
         """
-        #TODO: *1
-        pass
+        node_robot_url, service_secret, ipaddr_vm = self.capacity_planner.ubuntu_reserve(node_id,
+                    vm_name, memory=memory, cores=cores, zerotier_network=zerotier_network, zerotier_token=zerotier_token, pub_ssh_key=pub_ssh_key)
+        return (node_robot_url, service_secret, ipaddr_vm)
 
     def zdb_reserve(self, jwttoken, node_id, name_space, size=100, secret=""):
         """
@@ -129,8 +152,6 @@ class farmer(JSBASE):
 
         VM is only connected to the 1 or 2 zerotier networks ! and NAT connection to internet.
         """
-
-        pass
 
         # TODO:*1
         # are there other params?

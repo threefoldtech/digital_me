@@ -66,6 +66,8 @@ class RedisResponseWriter(object):
             self._bulkbytes(value)
         elif isinstance(value, list) and value[0]=="*REDIS*":
             self._array(value[1:])
+        elif hasattr(value, '__repr__'):
+            self._write('+%s\r\n' % value.__repr__())
         else:
             value = j.data.serializers.json.dumps(value, encoding='utf-8')
             # self._bulk(value)
