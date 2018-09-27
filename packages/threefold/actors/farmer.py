@@ -9,24 +9,30 @@ class farmer(JSBASE):
     """
     def __init__(self):
         JSBASE.__init__(self)
+        self.bcdb = j.tools.threefold_farmer.bcdb
+        self.farmer_model = self.bcdb.model_get('threefold.grid.farmer')
+        self.node_model = self.bcdb.model_get('threefold.grid.node')
+        self.wgw_model = self.bcdb.model_get('threefold.grid.webgateway')
+        # self.farmer_model = self.bcdb.model_get('threefold.grid.farmer')
 
     def farmers_get(self):
         """
-
         :return: [farmer_obj]
         """
-        pass
+        return self.farmer_model.get_all()
 
     def country_list(self):
         """
-
         :return: list of countries
         """
-        pass
+        nodes = self.node_model.get_all()
+        result = {n.location.country for n in nodes}
+        if '' in result:
+            result.remove('')
+        return result
 
-    def node_find(self,country="", farmer_name="",cores_min_nr=0, mem_min_mb=0, ssd_min_gb=0, hd_min_gb=0, nr_max=10):
+    def node_find(self, country="", farmer_name="", cores_min_nr=0, mem_min_mb=0, ssd_min_gb=0, hd_min_gb=0, nr_max=10):
         """
-
         the capacity checked against is for free (available) capacity (total-used)
 
         :param country:
@@ -40,8 +46,25 @@ class farmer(JSBASE):
         :return: [node_objects]
 
         """
-        j.shell()
-        pass
+        nodes = self.node_model.get_all()
+        if country:
+            nodes = list(filter(lambda x: x.location.country == country, nodes))
+        if farmer_name:
+            farmers = self.farmers_get()
+            farmer_id = [farmer.id for farmer in farmers if farmer.name == farmer_name]
+            nodes = list(filter(lambda x: x.farmer_id == farmer_id, nodes))
+        if cores_min_nr:
+            nodes = list(filter(lambda x: x.capacity_total.cru > cores_min_nr, nodes))
+        if mem_min_mb:
+            nodes = list(filter(lambda x: x.capacity_total.mru > mem_min_mb, nodes))
+        if ssd_min_gb:
+            nodes = list(filter(lambda x: x.capacity_total.sru > ssd_min_gb, nodes))
+        if hd_min_gb:
+            nodes = list(filter(lambda x: x.capacity_total.hru > hd_min_gb, nodes))
+
+        if nr_max:
+            nodes = nodes[:nr_max]
+        return nodes
 
 
     def zos_reserve(self, jwttoken, node_id, vm_name, memory=1024, cores=1, zerotier_net="", adminsecret=""):
@@ -66,6 +89,7 @@ class farmer(JSBASE):
 
         """
         #TODO: *1
+        pass
 
     def ubuntu_reserve(self,jwttoken, node_id, vm_name, memory=2048, cores=2, zerotier_net="", pubsshkey=""):
         """
@@ -89,6 +113,7 @@ class farmer(JSBASE):
 
         """
         #TODO: *1
+        pass
 
     def zdb_reserve(self, jwttoken, node_id, name_space, size=100, secret=""):
         """
@@ -109,6 +134,7 @@ class farmer(JSBASE):
 
         # TODO:*1
         # are there other params?
+        pass
 
     def webgateways_get(self, jwttoken, country="", farmer_name=""):
         """
@@ -124,6 +150,14 @@ class farmer(JSBASE):
 
         :return:
         """
+        gws = self.wgw_model.get_all()
+        if country:
+            gws = list(filter(lambda x: x.location.country == country, gws))
+        if farmer_name:
+            farmers = self.farmers_get()
+            farmer_id = [farmer.id for farmer in farmers if farmer.name == farmer_name]
+            gws = list(filter(lambda x: x.farmer_id == farmer_id, gws))    
+        return gws
 
     def webgateway_http_proxy_set(self,jwttoken, webgateway_id, virtualhost,backend_ipaddr, backend_port, suffix=""):
         """
@@ -138,6 +172,7 @@ class farmer(JSBASE):
         :param suffix: e.f. /mysub/name/
         :return: ???
         """
+        pass
 
     def webgateway_http_proxy_delete(self,jwttoken ,webgateway_id,virtualhost):
         """
@@ -146,6 +181,7 @@ class farmer(JSBASE):
         :param virtualhost:
         :return:
         """
+        pass
 
     def farmer_register(self, jwttoken, farmername, emailaddr="",mobile="",pubkey=""):
         """
@@ -157,6 +193,7 @@ class farmer(JSBASE):
         :param description
         :return:
         """
+        pass
 
     def webgateway_register(self, jwttoken, etcd_url, etcd_secret, farmername,
                                     pubip4="", pubip6="", country="", name="", location=""):
@@ -174,3 +211,4 @@ class farmer(JSBASE):
         :param description
         :return:
         """
+        pass
