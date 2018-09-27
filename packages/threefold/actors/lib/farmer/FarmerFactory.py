@@ -96,7 +96,6 @@ class FarmerFactory(JSBASE):
         :param node: node from model threefold.grid.node
         :return: the populated node obj
         """
-
         self._fail_save()
 
         if j.data.types.int.check(node):
@@ -223,6 +222,10 @@ class FarmerFactory(JSBASE):
         """
         if node.noderobot_ipaddr == "":
             return None
+        
+
+        if not node.node_zos_id:
+            return None
         j.clients.zrobot.get(instance=node.node_zos_id, data={"url": node.noderobot_ipaddr})
         robot = j.clients.zrobot.robots[node.node_zos_id]
         return robot
@@ -294,7 +297,6 @@ class FarmerFactory(JSBASE):
         js_shell 'j.tools.threefold_farmer.zerotier_scan()'
 
         """
-
         for node in self.zerotier_net_sysadmin.members_list():
             online = node.data["online"]  # online from zerotier
             online_past_sec = int(j.data.time.epoch - node.data["lastOnline"] / 1000)
