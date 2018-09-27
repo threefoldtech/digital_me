@@ -1,6 +1,6 @@
 
 enable = true
-namespace = "threefold"
+namespace = "default"
 
 [[docsite]]
 name = "foundation"

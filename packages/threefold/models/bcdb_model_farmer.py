@@ -17,7 +17,7 @@ pubkeys = "" (S)
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["threefold"].sqlitedb
+db = j.data.bcdb.bcdb_instances["default"].sqlitedb
 
 class BaseModel(Model):
     class Meta:

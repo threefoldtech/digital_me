@@ -24,7 +24,7 @@ class farmer(JSBASE):
         """
         pass
 
-    def node_find(self,country="", farmer_name="",cores_min_nr=0, mem_min_mb=0, ssd_min_gb=0, hd_min_gb=0, nr_max=10 ):
+    def node_find(self,country="", farmer_name="",cores_min_nr=0, mem_min_mb=0, ssd_min_gb=0, hd_min_gb=0, nr_max=10):
         """
 
         the capacity checked against is for free (available) capacity (total-used)
@@ -40,6 +40,7 @@ class farmer(JSBASE):
         :return: [node_objects]
 
         """
+        j.shell()
         pass
 
 
