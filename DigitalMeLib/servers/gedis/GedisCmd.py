@@ -73,7 +73,10 @@ class GedisCmd(JSBASE):
         if self.schema_in is None:
             if self.cmdobj.args.strip() == "":
                 return ""
-            return ","+ ','.join(arguments)
+            args = eval(self.cmdobj.args)
+            if ':' in args:
+                args.remove(':')
+            return ","+ ','.join(args)
         else:
             if len(self.schema_in.properties + self.schema_in.lists)==0:
                 return ""

@@ -128,11 +128,11 @@ class GedisFactory(JSConfigBase):
         assert cl.gedis_examples.echo("s") == b"s"
         print("- done")
         print("[*] testing set with schemas")
-        print("[1] schema_in as schema url")
-
-        wallet_out1 = cl.gedis_examples.example1(addr="testaddr")
-        assert wallet_out1.addr == "testaddr"
-        print("[1] Done")
+        # print("[1] schema_in as schema url")
+        #
+        # wallet_out1 = cl.gedis_examples.example1(addr="testaddr")
+        # assert wallet_out1.addr == "testaddr"
+        # print("[1] Done")
         print("[2] schema_in as inline schema with url")
         wallet_schema = j.data.schema.schema_get("jumpscale.example.wallet")
         wallet_in = wallet_schema.new()

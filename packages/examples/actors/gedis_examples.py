@@ -14,22 +14,22 @@ class gedis_examples(JSBASE):
     def echo(self, msg):
         return msg
 
-
-    def example1(self,wallet, schema_out):
-        """
-        ```in
-        !jumpscale.example.wallet
-        ```
-
-        ```out
-        !jumpscale.example.wallet
-        ```
-        """
-        w = schema_out.new()
-        w.ipaddr = wallet.ipaddr
-        w.addr = wallet.addr
-        w.jwt = wallet.jwt
-        return w
+    # this way is not supported anymore, I will leave it here just as a reference
+    # def example1(self,wallet, schema_out):
+    #     """
+    #     ```in
+    #     !jumpscale.example.wallet
+    #     ```
+    #
+    #     ```out
+    #     !jumpscale.example.wallet
+    #     ```
+    #     """
+    #     w = schema_out.new()
+    #     w.ipaddr = wallet.ipaddr
+    #     w.addr = wallet.addr
+    #     w.jwt = wallet.jwt
+    #     return w
 
     def example2(self,wallet, schema_out):
         """
