@@ -46,7 +46,7 @@ class DigitalMe(JSBASE):
         if p.name not in self.packages:
             self.packages[p.name]=p
 
-    def start(self,path="",nrworkers=0,name="test",zdbclients={},adminsecret="1234"):
+    def start(self,path="",name="test",zdbclients={},adminsecret="1234"):
         """
         examples:
 
@@ -88,10 +88,6 @@ class DigitalMe(JSBASE):
         self.rack.add("gedis", geventserver.redis_server) #important to do like this, otherwise 2 servers started
         self.rack.add("web", j.servers.web.geventserver_get(name))
 
-
-        if nrworkers>0:
-            self.rack.workers_start(nrworkers)
-
         self.packages_add(path,zdbclients=zdbclients)
 
         j.servers.web.latest.loader.load() #loads the rules in the webserver (routes)
@@ -115,7 +111,7 @@ class DigitalMe(JSBASE):
         if zdb_start:
             cl = j.clients.zdb.testdb_server_start_client_get(start=True)  # starts & resets a zdb in seq mode with name test
 
-        cmd = "js_shell 'j.servers.digitalme.start(nrworkers=10)'"
+        cmd = "js_shell 'j.servers.digitalme.start()'"
         j.tools.tmux.execute(
             cmd,
             session='main',

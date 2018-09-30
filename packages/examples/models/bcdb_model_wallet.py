@@ -14,7 +14,7 @@ username = "" (S)           # User name
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["examples"].sqlitedb
+db = j.data.bcdb.bcdb_instances["test"].sqlitedb
 
 class BaseModel(Model):
     class Meta:

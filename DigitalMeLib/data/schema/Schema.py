@@ -252,8 +252,8 @@ class Schema(JSBASE):
         if data is None:
             data = {}
         obj =  self.objclass(schema=self,data=data,capnpbin=capnpbin)
-        if (data is None or data=={}) and capnpbin is None:
-            obj._defaults_set()
+        # if (data is None or data=={}) and capnpbin is None:
+        #     obj._defaults_set()
         return obj
 
     def new(self):

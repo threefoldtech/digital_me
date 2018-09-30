@@ -2,92 +2,72 @@ import collections
 from Jumpscale import j
 class List0(collections.MutableSequence):
 
-    def __init__(self, parentobj, parent,schema_property):
+    def __init__(self,schema_property):
         self._inner_list = []
-        self._parent = parent
-        self._parentobj = parentobj
         self.schema_property = schema_property
-        self._pointer_schema = None
-        self._copied = False
-
-    def _copyFromParent(self):
-        if not self._copied:
-            self._inner_list = []
-            for item in self._parent:
-                if self.schema_property.pointer_type is None:
-                    self._inner_list.append(item)
-                else:
-                    #create the subobject in the list
-                    item = self.pointer_schema.get(capnpbin=item)
-                    self._inner_list.append(item)
-            self._copied = True
+        self.changed = False
 
     def __len__(self):
-        if self._copied:
-            return len(self._inner_list)
-        else:
-            return len(self._parent)
+        return len(self._inner_list)
+
+    def __eq__ (self,val):
+        return val == self._inner_list
 
     def __delitem__(self, index):
-        self._copyFromParent()
         self._inner_list.__delitem__(index )
-        self._parentobj._changed_list = True
+        self.changed = True
 
     def insert(self, index, value):
-        self._copyFromParent()
         if self.schema_property.pointer_type is None:
             value = self.schema_property.jumpscaletype.SUBTYPE.clean(value)
         else:
             if not "_JSOBJ" in value.__dict__:
                 raise RuntimeError("need to insert JSOBJ, use .new() on list before inserting.")
         self._inner_list.insert(index, value)
-        self._parentobj._changed_list = True
+        self.changed = True
 
     def __setitem__(self, index, value):
-        self._copyFromParent()
         if self.schema_property.pointer_type is None:
             value = self.schema_property.jumpscaletype.SUBTYPE.clean(value)
         else:
             if not "_JSOBJ" in value.__dict__:
                 raise RuntimeError("need to insert JSOBJ, use .new() on list before inserting.")
         self._inner_list.__setitem__(index, value)
-        self._parentobj._changed_list = True
+        self.changed = True
 
     def __getitem__(self, index):
-        if self.schema_property.pointer_type is not None:
-            #means embedded objects, will expand
-            self._copyFromParent()
-        if self._copied:
-            return self._inner_list.__getitem__(index)
-        else:            
-            return self._parent[index]
+        # if self.schema_property.pointer_type is not None:
+        #     j.shell()
+        #     w
+            #means embedded objects, will expand the object
+        return self._inner_list.__getitem__(index)
 
     def pylist(self, ddict=True):
         """
         python clean list
         """
-        if self.schema_property.pointer_type is not None:
-            #means embedded objects, will expand
-            self._copyFromParent()        
-        if self._copied:
-            if self.schema_property.pointer_type is None:
-                return self._inner_list
-            else:
-                return [item._ddict if ddict else item._ddict_hr for item in self._inner_list]
+        if self.schema_property.pointer_type is None:
+            return self._inner_list
         else:
-            res= [item for item in self._parent]
-            return res
-        
+            return [item._ddict if ddict else item._ddict_hr for item in self._inner_list]
+
     def new(self,data=None):
         """
         return new subitem, only relevant when there are pointer_types used
         """
-        if data is None:
-            s=self.pointer_schema.new()
+        if self.schema_property.pointer_type is None:
+            if data is not None:
+                data = self.schema_property.jumpscaletype.SUBTYPE.clean(data)
+            else:
+                data = self.schema_property.jumpscaletype.SUBTYPE.get_default()
         else:
-            s = self.pointer_schema.get(data=data)
-        self.append(s)
-        return s
+            if data is None:
+                data=self.pointer_schema.new()
+            else:
+                data = self.pointer_schema.get(capnpbin=data)
+        self.append(data)
+        self.changed = True
+        return data
 
     @property
     def pointer_schema(self):
@@ -104,15 +84,8 @@ class List0(collections.MutableSequence):
         return self._pointer_schema
 
     def __repr__(self):
-        if self.schema_property.pointer_type is not None:
-            #means embedded objects, will expand
-            self._copyFromParent()                
         out=""
-        if self._copied:
-            tointerate = self._inner_list
-        else:
-            tointerate = self._parent
-        for item in tointerate:
+        for item in self.pylist(ddict=False):
             out+="- %s\n"%item
         if out.strip()=="":
             return "[]"

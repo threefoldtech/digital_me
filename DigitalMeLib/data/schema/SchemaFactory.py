@@ -131,6 +131,7 @@ class SchemaFactory(JSBASE):
         self.test1()
         self.test2()
         self.test3()
+        self.test4()
 
     def test1(self):
         """
@@ -304,3 +305,86 @@ class SchemaFactory(JSBASE):
         assert o3._data == o4._data
 
         print("TEST 3 OK")
+
+    def test4(self):
+        """
+        js_shell 'j.data.schema.test4()'
+
+        tests an issue with lists, they were gone at one point after setting a value
+
+        """
+
+        S0 = """
+        @url = jumpscale.schema.test3.cmd
+        name = ""
+        comment = ""        
+        nr = 0
+        """
+        self.schema_add(S0)
+
+        SCHEMA = """
+        @url = jumpscale.myjobs.job
+        category*= ""
+        time_start* = 0 (D)
+        time_stop = 0 (D)
+        state* = ""
+        timeout = 0
+        action_id* = 0
+        args = ""   #json
+        kwargs = "" #json
+        result = "" #json
+        error = ""
+        return_queues = (LS)
+        cmds = (LO) !jumpscale.schema.test3.cmd
+        cmd = (O) !jumpscale.schema.test3.cmd
+        
+        """
+        s = self.schema_add(SCHEMA)
+        o = s.new()
+        o.return_queues = ["a", "b"]
+        assert o._return_queues.pylist() == ["a", "b"]
+        assert o._return_queues._inner_list == ["a", "b"]
+        assert o.return_queues == ["a", "b"]
+
+        o.return_queues[1] = "c"
+        assert o._return_queues.pylist() == ["a", "c"]
+        assert o._return_queues._inner_list == ["a", "c"]
+        assert o.return_queues == ["a", "c"]
+
+        o.return_queues.pop(0)
+        assert o._return_queues.pylist() == ["c"]
+        assert o._return_queues._inner_list == ["c"]
+        assert o.return_queues == ["c"]
+
+        cmd = o.cmds.new()
+        cmd.name = "aname"
+        cmd.nr = 10
+
+        o.category = "acategory"
+
+        o1 = {'category': 'acategory',
+                 'time_start': 0,
+                 'time_stop': 0,
+                 'state': '',
+                 'timeout': 0,
+                 'action_id': 0,
+                 'args': '',
+                 'kwargs': '',
+                 'result': '',
+                 'error': '',
+                 'cmd': {'name': '', 'comment': '', 'nr': 0},
+                 'return_queues': ['c'],
+                 'cmds': [{'name': 'aname', 'comment': '', 'nr': 10}]}
+
+
+        assert o._ddict == o1
+
+
+        o2 = s.get(capnpbin= o._data)
+
+        assert o._ddict == o2._ddict
+        assert o._data == o2._data
+
+        print ("TEST4 ok")
+
+

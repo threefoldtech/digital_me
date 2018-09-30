@@ -23,6 +23,15 @@ def myworker(id=999999,onetime=False,showout=False):
         queue_data.put(data)
 
     def return_job_obj(obj):
+        print(obj)
+        if obj.id>10:
+            j.shell()
+        if len(obj.return_queues)>0:
+            j.shell()
+        for queue_name in obj.return_queues:
+            j.shell()
+            queue = j.clients.redis.getQueue(redisclient=redisdb, name="myjobs:%s"%queue_name)
+            queue.put(obj.id)
         return_data("J", obj)
 
     def return_worker_obj(obj):
@@ -76,6 +85,11 @@ def myworker(id=999999,onetime=False,showout=False):
             w.current_job = jobid
             return_worker_obj(w)
             job = model_job.get(id=jobid)
+
+            if job.id == 11:
+                j.shell()
+                w
+
             if job == None:
                 print("ERROR: job:%s not found"%jobid)
             else:

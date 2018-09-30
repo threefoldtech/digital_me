@@ -20,6 +20,7 @@ args = ""   #json
 kwargs = "" #json
 result = "" #json
 error = ""
+return_queues = (LS)
 
 
 """
@@ -290,7 +291,18 @@ class MyJobs(JSBASE):
 
 
 
-    def schedule(self,method,*args,category="", timeout=120, inprocess=False, **kwargs):
+    def schedule(self,method,*args,category="", timeout=120, inprocess=False, return_queues=[], **kwargs):
+        """
+
+        :param method:
+        :param args:
+        :param category:
+        :param timeout:
+        :param inprocess:
+        :param return_queues: the result job id will be posted on the specified return_queue names (error or ok)
+        :param kwargs:
+        :return:
+        """
         if inprocess:
             return method(*args,**kwargs)
         self.init()
@@ -322,11 +334,17 @@ class MyJobs(JSBASE):
         job.category = category
         job.args = j.data.serializers.json.dumps(args)
         job.kwargs = j.data.serializers.json.dumps(kwargs)
+        for qname in return_queues:
+            job.return_queues.append(qname)
         job = self.model_job.set(job)
 
         self.queue.put(job.id)
 
         return job.id
+
+    def wait(self,queue_name,timeout=0):
+        j.shell()
+        w
 
     def halt(self,graceful=True,reset=True):
 
@@ -411,6 +429,10 @@ class MyJobs(JSBASE):
             import time
             time.sleep(2)
 
+        def use_jumpscale():
+            return j.data.serializers.json.dumps([1,2])
+
+
         #test the behaviour for 1 job in process, only gevent for data handling
         j.servers.myjobs.schedule(add_error, 1, 2)
         self._start(onetime=True)
@@ -444,7 +466,7 @@ class MyJobs(JSBASE):
 
         #lets start from scratch, now we know the super basic stuff is working
 
-        self.workers_subprocess = False #will test with independent worker
+        self.workers_subprocess = False #will test with independent worker in tmux
 
         self.init(reset=True)
 
@@ -485,6 +507,14 @@ class MyJobs(JSBASE):
         errors = [job for job in jobs if job.state == "ERROR"]
         assert len(errors) == 1
 
+        #test with publish_subscribe channels
+        j.servers.myjobs.schedule(add,1,2,return_queues=["myself"])
+        # j.servers.myjobs.schedule(use_jumpscale, publish_channel="mychannel")
+        j.shell()
+        o = j.servers.myjobs.wait("myself")
+        j.shell()
+        '[\n1,\n2\n]'
+
         kill()
 
         #TMUX and in process tests are done, lets now see if as subprocess it works
@@ -493,6 +523,10 @@ class MyJobs(JSBASE):
 
         print("wait to schedule jobs")
         gevent.sleep(2)
+
+
+
+
 
         for x in range(20):
             self.schedule(wait_2sec)
