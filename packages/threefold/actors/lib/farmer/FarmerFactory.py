@@ -12,16 +12,42 @@ class FarmerFactory(JSBASE):
     def __init__(self):
         self.__jslocation__ = "j.tools.threefold_farmer"
         JSBASE.__init__(self)
-        self.zerotier_client = j.clients.zerotier.get("sysadmin")
-        self.zerotier_net_sysadmin = self.zerotier_client.network_get(
-                        "1d71939404587f3c")  # don't change the nr is fixed
+        self._zerotier_client = None
+        self._zerotier_net_sysadmin = None
         # self.zerotier_net_tfgrid = self.zerotier_client.network_get("") #TODO:*1
-        self.iyo = j.clients.itsyouonline.get()
-        self.jwt = self.iyo.jwt_get(refreshable=True, scope='user:memberof:threefold.sysadmin')
+        self._iyo = None
+        self._jwt = None
+
         self.capacity_planner = CapacityPlanner()
+
         self.zdb = None
         self._models = None
         self._bcdb = None
+
+    @property
+    def zerotier_client(self):
+        if not self._zerotier_client:
+            self._zerotier_client = j.clients.zerotier.get("sysadmin")
+        return self._zerotier_client
+
+    @property
+    def zerotier_net_sysadmin(self):
+        if not self._zerotier_net_sysadmin:
+            self._zerotier_net_sysadmin = self.zerotier_client.network_get(
+                        "1d71939404587f3c")  # don't change the nr is fixed
+        return self._zerotier_net_sysadmin
+
+    @property
+    def iyo(self):
+        if not self._iyo:
+            self._iyo = j.clients.itsyouonline.get()
+        return self._iyo
+
+    @property
+    def jwt(self):
+        if not self._jwt:
+            self._jwt = self.iyo.jwt_get(refreshable=True, scope='user:memberof:threefold.sysadmin')
+        return self._jwt
 
     @property
     def bcdb(self):

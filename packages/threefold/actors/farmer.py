@@ -1,6 +1,5 @@
 from Jumpscale import j
 JSBASE = j.application.JSBaseClass
-# from .CapacityPlanner import CapacityPlanner 
 
 
 class farmer(JSBASE):
@@ -15,7 +14,7 @@ class farmer(JSBASE):
         self._farmer_model = None
         self._node_model = None
         self._wgw_model = None
-        self.capacity_planner = j.tools.threefold_capacity_planner
+        self.capacity_planner = j.tools.threefold_farmer.capacity_planner
 
     @property
     def farmer_model(self):
