@@ -2,6 +2,7 @@ from Jumpscale import j
 
 JSBASE = j.application.JSBaseClass
 VM_TEMPLATE = 'github.com/threefoldtech/0-templates/vm/0.0.1'
+ZDB_TEMPLATE = 'github.com/threefoldtech/0-templates/zerodb/0.0.1'
 ZEROTIER_TEMPLATE = 'github.com/threefoldtech/0-templates/zerotier_client/0.0.1'
 # TODO: Need to set The public ZT_NETWORK with the correct one
 PUBLIC_ZT_NETWORK = "35c192ce9bb83c9e"
@@ -145,29 +146,39 @@ class CapacityPlanner(JSBASE):
         vm_service.delete()
         return
 
-    def zdb_reserve(self, node, name_space, size=100, secret=""):
+    def zdb_reserve(self, node, zdb_name, name_space, disk_type="ssd", disk_size=10, namespace_size=2, secret=""):
         """
         :param node: is the node obj from model
-        :param size:  in MB
+        :param name_space: the first namespace name in 0-db
+        :param disk_type: disk type of 0-db (ssd or hdd)
+        :param disk_size: disk size of the 0-db in GB
+        :param namespace_size: the maximum size in GB for the namespace
         :param secret: secret to be given to the namespace
-        :param name_space: cannot exist yet
-        :return: (node_robot_url, servicesecret, ipaddr, port)
-
-        user can now connect to this ZDB using redis client
-
-        each of these VM's is automatically connected to the TF Public Zerotier network (TODO: which one is it)
-
-        VM is only connected to the 1 or 2 zerotier networks ! and NAT connection to internet.
+        :return: (node_robot_url, servicesecret, ip_info)
         """
+        data = {
+            "diskType": disk_type,
+            "size": disk_size,
+            "namespaces": [{
+                "name": name_space,
+                "size": namespace_size,
+                "password": secret
+            }]
+        }
+        j.clients.zrobot.get(instance=node.node_zos_id, data={"url": node.noderobot_ipaddr})
+        robot = j.clients.zrobot.robots[node.node_zos_id]
+        zdb_service = robot.services.create(ZDB_TEMPLATE, zdb_name, data)
+        zdb_service.schedule_action('install').wait(die=True)
+        print("Getting IP info...")
+        ip_info = zdb_service.schedule_action('connection_info').wait(die=True).result
+        reservation = self.models.reservations.new()
+        reservation.secret = zdb_service.data['secret']
+        reservation.node_service_id = zdb_service.data['guid']
+        return node.noderobot_ipaddr, zdb_service.data['secret'], ip_info
 
-        pass
-
-        # TODO:*1
-        # are there other params?
-
-    def zdb_delete(self, node, name_space):
-        pass
-        # TODO:*1
-
-        # DO SAME FOR GATEWAY
-        pass
+    def zdb_delete(self, node, zdb_name):
+        j.clients.zrobot.get(instance=node.node_zos_id, data={"url": node.noderobot_ipaddr})
+        robot = j.clients.zrobot.robots[node.node_zos_id]
+        zdb_service = robot.services.get(name=zdb_name)
+        zdb_service.delete()
+        return

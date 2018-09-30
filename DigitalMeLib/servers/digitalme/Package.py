@@ -185,7 +185,7 @@ class Package(JSBASE):
                             if key not in ["path","name","url"]:
                                 key2 = self._key_toml(key)
                                 obj._changed_items[key2] = item[key]
-                                obj._data
+                                # obj._data
 
 
         # if "blueprint_links" in data:
@@ -287,7 +287,7 @@ class Package(JSBASE):
 
 
     def obj_get(self,cat="blueprints",name="main"):
-        itemslist = self.data.__dict__[cat]
+        itemslist = getattr(self.data, cat)
         for item in itemslist:
             if item.name == name:
                 return item
