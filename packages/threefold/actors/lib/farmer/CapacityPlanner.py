@@ -9,8 +9,7 @@ PUBLIC_ZT_NETWORK = "35c192ce9bb83c9e"
 
 class CapacityPlanner(JSBASE):
     def __init__(self):
-        JSBASE.__init__(self)
-        self.__jslocation__ = "j.tools.threefold_capacity_planner"        
+        JSBASE.__init__(self)   
         self.models = None
 
     def zos_reserve(self, node, vm_name, zerotier_token, memory=1024, cores=1, zerotier_network="", organization=""):
