@@ -10,8 +10,13 @@ PUBLIC_ZT_NETWORK = "35c192ce9bb83c9e"
 
 class CapacityPlanner(JSBASE):
     def __init__(self):
-        JSBASE.__init__(self)   
+        JSBASE.__init__(self)
         self.models = None
+
+    @staticmethod
+    def get_robot(node):
+        j.clients.zrobot.get(instance=node.node_zos_id, data={"url": node.noderobot_ipaddr})
+        return j.clients.zrobot.robots[node.node_zos_id]
 
     def zos_reserve(self, node, vm_name, zerotier_token, memory=1024, cores=1, zerotier_network="", organization=""):
         """
@@ -95,8 +100,7 @@ class CapacityPlanner(JSBASE):
         # in future this will not be the case !
 
         # TODO Enable attaching disks
-        j.clients.zrobot.get(instance=node.node_zos_id, data={"url": node.noderobot_ipaddr})
-        robot = j.clients.zrobot.robots[node.node_zos_id]
+        robot = self.get_robot(node)
 
         # configure default nic and zerotier nics and clients data
         nics = [{'type': 'default', 'name': 'defaultnic'}]
@@ -140,8 +144,7 @@ class CapacityPlanner(JSBASE):
         return vm_service, ip_addresses
 
     def vm_delete(self, node, vm_name):
-        j.clients.zrobot.get(instance=node.node_zos_id, data={"url": node.noderobot_ipaddr})
-        robot = j.clients.zrobot.robots[node.node_zos_id]
+        robot = self.get_robot(node)
         vm_service = robot.services.get(name=vm_name)
         vm_service.delete()
         return
@@ -165,8 +168,7 @@ class CapacityPlanner(JSBASE):
                 "password": secret
             }]
         }
-        j.clients.zrobot.get(instance=node.node_zos_id, data={"url": node.noderobot_ipaddr})
-        robot = j.clients.zrobot.robots[node.node_zos_id]
+        robot = self.get_robot(node)
         zdb_service = robot.services.create(ZDB_TEMPLATE, zdb_name, data)
         zdb_service.schedule_action('install').wait(die=True)
         print("Getting IP info...")
@@ -177,8 +179,46 @@ class CapacityPlanner(JSBASE):
         return node.noderobot_ipaddr, zdb_service.data['secret'], ip_info
 
     def zdb_delete(self, node, zdb_name):
-        j.clients.zrobot.get(instance=node.node_zos_id, data={"url": node.noderobot_ipaddr})
-        robot = j.clients.zrobot.robots[node.node_zos_id]
+        robot = self.get_robot(node)
         zdb_service = robot.services.get(name=zdb_name)
         zdb_service.delete()
+        return
+
+    def web_gateway_add_host(self, node, web_gateway, domain, backend_ip, backend_port, suffix=""):
+        """
+        Register new domain into web gateway
+        :param node: node object from node model
+        :param web_gateway: web gateway object from web gateway model to be used to get services
+        :param domain: the domain we need to register
+        :param backend_ip: the vm/container ip that we need to forward to
+        :param backend_port: the vm/container port that we need to forward to
+        :param suffix:
+        :return: True if successfully added
+        """
+        robot = self.get_robot(node)
+        coredns_service = robot.services.guids.get(web_gateway.coredns_service_id)
+        traefik_service = robot.services.guids.get(web_gateway.traefik_service_id)
+        if not coredns_service or not traefik_service:
+            return False
+        coredns_args = {"domain": domain, "ip": node.node_public_ip}
+        coredns_service.schecule_action("register_domain", args=coredns_args).wait(die=True)
+        traefik_args = {"domain": domain, "ip": backend_ip, "port": backend_port}
+        traefik_service.schecule_action("add_virtual_host", args=traefik_args).wait(die=True)
+        return True
+
+    def web_gateway_delete_host(self, node, web_gateway, domain):
+        """
+        delete a domain from web gateway
+        :param node: node object from node model
+        :param web_gateway: web gateway object from web gateway model to be used to get services
+        :param domain: the domain we need to delete
+        """
+        robot = self.get_robot(node)
+        coredns_service = robot.services.guids.get(web_gateway.coredns_service_id)
+        traefik_service = robot.services.guids.get(web_gateway.traefik_service_id)
+        if not coredns_service or not traefik_service:
+            return False
+        args = {"domain": domain}
+        coredns_service.schecule_action("unregister_domain", args=args).wait(die=True)
+        traefik_service.schecule_action("delete_virtual_host", args=args).wait(die=True)
         return

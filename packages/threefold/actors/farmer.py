@@ -137,24 +137,21 @@ class farmer(JSBASE):
                     vm_name, memory=memory, cores=cores, zerotier_network=zerotier_network, zerotier_token=zerotier_token, pub_ssh_key=pub_ssh_key)
         return (node_robot_url, service_secret, ipaddr_vm)
 
-    def zdb_reserve(self, jwttoken, node_id, name_space, size=100, secret=""):
+    def zdb_reserve(self, jwt, node, zdb_name, name_space, disk_type="ssd", disk_size=10, namespace_size=2, secret=""):
         """
-        :param node_id: is the id of the node on which you want to deploy
-        :param size:  in MB
+        :param jwt: jwt for authentication
+        :param node: is the node obj from model
+        :param name_space: the first namespace name in 0-db
+        :param disk_type: disk type of 0-db (ssd or hdd)
+        :param disk_size: disk size of the 0-db in GB
+        :param namespace_size: the maximum size in GB for the namespace
         :param secret: secret to be given to the namespace
-        :param name_space: cannot exist yet
-        :return: (node_robot_url, servicesecret, ipaddr, port)
+        :return: (node_robot_url, servicesecret, ip_info)
 
         user can now connect to this ZDB using redis client
-
-        each of these VM's is automatically connected to the TF Public Zerotier network (TODO: which one is it)
-
-        VM is only connected to the 1 or 2 zerotier networks ! and NAT connection to internet.
         """
-
-        # TODO:*1
-        # are there other params?
-        pass
+        return self.capacity_planner.zdb_reserve(node, zdb_name, name_space, disk_type,
+                                                 disk_size, namespace_size, secret)
 
     def webgateways_get(self, jwttoken, country="", farmer_name=""):
         """
@@ -179,29 +176,31 @@ class farmer(JSBASE):
             gws = list(filter(lambda x: x.farmer_id == farmer_id, gws))    
         return gws
 
-    def webgateway_http_proxy_set(self,jwttoken, webgateway_id, virtualhost,backend_ipaddr, backend_port, suffix=""):
+    def web_gateway_add_host(self, jwttoken, web_gateway_id, domain, backend_ip, backend_port, suffix=""):
         """
-
-        will answer on http & https
-        will configure the forward in the selected webgateway
-
-        :param webgateway_id: id of the obj you get through self.webgateways_get()
-        :param virtualhost: e.g. docsify.js.org
-        :param backend_ipaddr: e.g. 10.10.100.10
+        will configure the a virtual_host in the selected web gateway
+        :param web_gateway_id: id of the obj you get through self.webgateways_get()
+        :param domain: e.g. docsify.js.org
+        :param backend_ip: e.g. 10.10.100.10
         :param backend_port: e.g. 8080
         :param suffix: e.f. /mysub/name/
-        :return: ???
+        :return: True if successfully added
         """
-        pass
+        web_gateway = self.wgw_model.get(web_gateway_id)
+        node = self.node_model.get(web_gateway.node_id)
+        return self.capacity_planner.web_gateway_add_host(node, web_gateway_id, domain,
+                                                          backend_ip, backend_port, suffix)
 
-    def webgateway_http_proxy_delete(self,jwttoken ,webgateway_id,virtualhost):
+    def web_gateway_remove_host(self, jwttoken, web_gateway_id, domain):
         """
-        delete all info for the specified virtualhost
-        :param webgateway_id:
-        :param virtualhost:
+        delete all info for the specified domain from web_gateway
+        :param web_gateway_id: the web gateway that have the domain to be deleted
+        :param domain: the domain to be deleted
         :return:
         """
-        pass
+        web_gateway = self.wgw_model.get(web_gateway_id)
+        node = self.node_model.get(web_gateway.node_id)
+        return self.capacity_planner.web_gateway_delete_host(node, web_gateway)
 
     def farmer_register(self, jwttoken, farmername, emailaddr="",mobile="",pubkey=""):
         """
