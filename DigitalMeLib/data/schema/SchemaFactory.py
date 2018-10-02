@@ -358,7 +358,11 @@ class SchemaFactory(JSBASE):
 
         cmd = o.cmds.new()
         cmd.name = "aname"
+        cmd.comment = "test"
         cmd.nr = 10
+
+        o.cmd.name = "aname2"
+        o.cmd.nr = 11
 
         o.category = "acategory"
 
@@ -372,18 +376,23 @@ class SchemaFactory(JSBASE):
                  'kwargs': '',
                  'result': '',
                  'error': '',
-                 'cmd': {'name': '', 'comment': '', 'nr': 0},
+                 'cmd': {'name': 'aname2', 'comment': '', 'nr': 11},
                  'return_queues': ['c'],
-                 'cmds': [{'name': 'aname', 'comment': '', 'nr': 10}]}
+                 'cmds': [{'name': 'aname', 'comment': 'test', 'nr': 10}]}
 
 
         assert o._ddict == o1
 
+        o._data
+        o._json
+
+        assert o._ddict == o1
 
         o2 = s.get(capnpbin= o._data)
 
         assert o._ddict == o2._ddict
         assert o._data == o2._data
+
 
         print ("TEST4 ok")
 

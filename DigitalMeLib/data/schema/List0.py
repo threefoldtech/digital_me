@@ -61,6 +61,7 @@ class List0(collections.MutableSequence):
             else:
                 data = self.schema_property.jumpscaletype.SUBTYPE.get_default()
         else:
+
             if data is None:
                 data=self.pointer_schema.new()
             else:

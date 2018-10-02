@@ -96,7 +96,7 @@ class GedisFactory(JSConfigBase):
 
     def test(self,zdb_start=True):
         """
-        js_shell 'j.servers.gedis.test(zdb_start=False)'
+        js_shell 'j.servers.gedis.test(zdb_start=True)'
         """
 
         if zdb_start:

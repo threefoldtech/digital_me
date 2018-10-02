@@ -13,10 +13,14 @@ class ModelOBJ():
 
         if capnpbin != None:
             self._cobj_ = self._capnp_schema.from_bytes_packed(capnpbin)
+            set_default = False
         else:
             self._cobj_ = self._capnp_schema.new_message()
+            set_default = True
 
         self._reset()
+        if set_default:
+            self._defaults_set()
 
         self._JSOBJ = True
 
@@ -26,6 +30,14 @@ class ModelOBJ():
             raise RuntimeError("data needs to be of type dict, now:%s"%data)
         for key,val in data.items():
             setattr(self, key, val)
+
+    def _defaults_set(self):
+        {% for prop in obj.properties %}
+        {% if not prop.jumpscaletype.NAME == "jsobject" %}
+        if {{prop.default_as_python_code}} is not None:
+            self.{{prop.name_camel}} = {{prop.default_as_python_code}}
+        {% endif %}
+        {% endfor %}
 
     def _reset(self):
         self._changed_items = {}
@@ -38,15 +50,13 @@ class ModelOBJ():
         #{{prop.name}}
         {% if prop.jumpscaletype.NAME == "jsobject" %}
         self._schema_{{prop.name}} = j.data.schema.schema_get(url="{{prop.jumpscaletype.SUBTYPE}}")
+
         if self._cobj_.{{prop.name_camel}}:
             self._changed_items["{{prop.name_camel}}"] = self._schema_{{prop.name}}.get(capnpbin=self._cobj_.{{prop.name_camel}})
         else:
             self._changed_items["{{prop.name_camel}}"] = self._schema_{{prop.name}}.new()
             # if {{prop.default_as_python_code}} is not None:
             #     self.{{prop.name_camel}} = {{prop.default_as_python_code}}
-        {% else %}
-        if {{prop.default_as_python_code}} is not None:
-            self.{{prop.name_camel}} = {{prop.default_as_python_code}}
         {% endif %}
         {% endfor %}
 
