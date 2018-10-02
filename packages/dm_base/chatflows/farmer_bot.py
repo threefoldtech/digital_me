@@ -14,15 +14,21 @@ def chat(bot):
     def country_list():
         countries = gedis_client.farmer.country_list()
         report = ""
+        countries = j.data.serializers.json.loads(countries)
         for country in countries:
             report += "- %s\n" % country
         bot.md_show(report)
 
     def farmer_register():
-        pass
+        bot.md_show("# NOT IMPLEMENTED YET")
 
     def farmers_get():
-        pass
+        farmers = gedis_client.farmer.farmers_get()
+        report = ""
+        farmers = j.data.serializers.json.loads(farmers)
+        for farmer in farmers:
+            report += "- %s\n" % farmer
+        bot.md_show(report)
 
     def node_find():
 
@@ -73,19 +79,16 @@ def chat(bot):
         bot.md_show(report)
 
     def webgateway_http_proxy_delete():
-        pass
+        bot.md_show("# NOT IMPLEMENTED YET")
 
     def webgateway_http_proxy_set():
-        pass
+        bot.md_show("# NOT IMPLEMENTED YET")
 
     def webgateway_register():
-        pass
-
-    def webgateways_get():
-        pass
+        bot.md_show("# NOT IMPLEMENTED YET")
 
     def zdb_reserve():
-        pass
+        bot.md_show("# NOT IMPLEMENTED YET")
 
     def zos_reserve():
         jwttoken = bot.string_ask("Please enter your JWT")
@@ -118,7 +121,6 @@ def chat(bot):
             "Delete web gateway": webgateway_http_proxy_delete,
             "Set web gateway": webgateway_http_proxy_set,
             "Register web gateway": webgateway_register,
-            "List gateways": webgateways_get,
             "Reserve ZDB vm": zdb_reserve,
             "Reserve ZOS vm": zos_reserve
         }

@@ -64,7 +64,7 @@ class RedisResponseWriter(object):
                 self._write('+%s\r\n' % value)
         elif isinstance(value, bytes):
             self._bulkbytes(value)
-        elif isinstance(value, list) and value[0]=="*REDIS*":
+        elif isinstance(value, list) and value and value[0]=="*REDIS*":
             self._array(value[1:])
         elif hasattr(value, '__repr__'):
             self._bulk(value.__repr__())
