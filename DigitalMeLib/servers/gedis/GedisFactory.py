@@ -96,7 +96,7 @@ class GedisFactory(JSConfigBase):
 
     def test(self,zdb_start=True):
         """
-        js_shell 'j.servers.gedis.test(zdb_start=True)'
+        js_shell 'j.servers.gedis.test(zdb_start=False)'
         """
 
         if zdb_start:
@@ -163,7 +163,7 @@ class GedisFactory(JSConfigBase):
 
         print("**DONE**")
 
-        j.shell()
+        # j.shell()
 
 
     # def chatbot_test(self):

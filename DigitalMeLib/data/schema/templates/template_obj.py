@@ -32,6 +32,7 @@ class ModelOBJ():
             setattr(self, key, val)
 
     def _defaults_set(self):
+        pass
         {% for prop in obj.properties %}
         {% if not prop.jumpscaletype.NAME == "jsobject" %}
         if {{prop.default_as_python_code}} is not None:

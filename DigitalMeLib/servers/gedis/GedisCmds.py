@@ -81,9 +81,6 @@ class GedisCmds(JSBASE):
                     code = inspect.getsource(item)
                     cmd.code,cmd.comment,cmd.schema_in, cmd.schema_out, cmd.args= self._method_source_process(code)
 
-        # self.cmds
-        j.shell()
-        w
 
     @property
     def name(self):
