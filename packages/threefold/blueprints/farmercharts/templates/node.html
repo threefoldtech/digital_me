@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Node details</title>
+    <script src="/farmercharts/static/chart.min.js"></script>
+</head>
+<body>
+<script>
+window.onload = function(){
+var ctx = document.getElementById('radar').getContext('2d')
+var data = {
+    labels: ['CRU', 'HRU', 'MRU', 'SRU'],
+    datasets: [{
+        lineTension: 15,
+        label: "reserved",
+        borderColor: "green",
+        data: [{{node["capacity_reserved"]["cru"]}}, {{node["capacity_reserved"]["hru"]}}, {{node["capacity_reserved"]["mru"]}}, {{node["capacity_reserved"]["sru"]}}]
+    },
+    {
+        label: "used",
+        borderColor: "blue",
+        data: [{{node["capacity_used"]["cru"]}}, {{node["capacity_used"]["hru"]}}, {{node["capacity_used"]["mru"]}}, {{node["capacity_used"]["sru"]}}]
+    },
+    {
+        label: "total",
+        borderColor: "black",
+        data: [{{node["capacity_total"]["cru"]}}, {{node["capacity_total"]["hru"]}}, {{node["capacity_total"]["mru"]}}, {{node["capacity_total"]["sru"]}}]
+    }]
+}
+
+var radar = new Chart(ctx,{
+    type: 'radar',
+    data: data
+});
+
+}
+</script>
+
+<canvas id="radar"></canvas>
+
+
+</body>
+</html>

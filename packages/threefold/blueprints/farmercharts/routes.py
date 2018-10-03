@@ -3,10 +3,13 @@ from blueprints.farmercharts import *
 from Jumpscale import j
 
 
-@blueprint.route('/')
-def route_default():
-    j.shell()
-    return "Hekkooo"
+
+
+@blueprint.route('/node/<node_id>')
+def route_default(node_id):
+    node = j.tools.threefold_farmer.bcdb.model_get('threefold.grid.node').get(int(node_id))
+    return render_template("node.html", node=node)
+
 
 
 @blueprint.route('/jsclient.js')
