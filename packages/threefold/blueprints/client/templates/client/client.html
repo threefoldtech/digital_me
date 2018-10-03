@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+     <link rel="stylesheet" type="text/css" href="/client/static/css/main.css">
+     <link rel="stylesheet" type="text/css" href="/static/fontawesome4/css/fontawesome.min.css">
+</head>
+<body>
+<div id="container">
+    <div class="image"
+         style="background-image: url({{ info['avatar'][0]['source'] if info['avatar'][0] else '/client/static/images/default-profile.png' }})"></div>
+    <div class="info">
+        <h1 class="name">{{info['firstname']}} {{info['lastname']}}</h1>
+        <h4 class="position">
+            <i class="fa fa-envelope-open"></i>
+            <a href="mailto:{{info['emailaddresses'][0]['emailaddress']}}">{{info['emailaddresses'][0]['emailaddress']}}</a>
+        </h4>
+        <p><i class="fa fa-money"></i> {{info['digitalwallet'][0]['address']}}</p>
+        <p><i class="fa fa-mobile"></i> {{info['phonenumbers'][0]['phonenumber']}}</p>
+    </div>
+    <div class="social">
+        <button id="jwt"><i class="fa fa-copy"></i> Click to copy your JWT</button>
+        <script>
+            let jwtBtn = document.getElementById("jwt");
+            let jwt = document.createElement("input");
+            jwt.setAttribute('value','{{jwt}}');
+            jwtBtn.addEventListener("click", function(ev){
+                 document.body.appendChild(jwt);
+                 jwt.select();
+                 document.execCommand("copy");
+                 document.body.removeChild(jwt);
+                 alert("JWT copied into your clipboard");
+            });
+        </script>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "organization": "abdoorg",
+  "client_secret": "SECRET",
+  "callback_uri": "http://localhost:8000/client/callback",
+  "callback_path": "/client/callback",
+  "scope": [
+    "user:name",
+    "user:email",
+    "user:phone",
+    "user:digitalwalletaddress::tft",
+    "user:avatar"
+  ]
+}
