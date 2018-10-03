@@ -1,6 +1,6 @@
 from Jumpscale import j
 from json import loads
-import sys
+from ast import literal_eval
 
 
 def chat(bot):
@@ -14,7 +14,7 @@ def chat(bot):
     def country_list():
         countries = gedis_client.farmer.country_list()
         report = ""
-        countries = j.data.serializers.json.loads(countries)
+        countries = literal_eval(countries.decode())
         for country in countries:
             report += "- %s\n" % country
         bot.md_show(report)
@@ -51,7 +51,13 @@ def chat(bot):
                 kwargs[fields[field]["name"]] = bot.int_ask("Enter {}".format(field))
             else:
                 kwargs[fields[field]["name"]] = bot.string_ask("Enter {}".format(field))
-        gedis_client.farmer.node_find(kwargs)
+        nodes = gedis_client.farmer.node_find(kwargs)
+        nodes = j.data.serializers.json.loads(nodes)
+        report = ""
+        for node in nodes:
+            report = report + "- ```{}```  \n".format(node)
+        bot.md_show(report)
+
 
     def ubuntu_reserve():
         jwttoken = bot.string_ask("Please enter your JWT")
@@ -114,14 +120,14 @@ def chat(bot):
     def main():
         methods = {
             "List countries": country_list,
-            "Register a farmer": farmer_register,
-            "Get a farmer": farmers_get,
+            # "Register a farmer": farmer_register,
+            "list farmers": farmers_get,
             "Find a node": node_find,
             "Reserve ubuntu vm": ubuntu_reserve,
-            "Delete web gateway": webgateway_http_proxy_delete,
-            "Set web gateway": webgateway_http_proxy_set,
-            "Register web gateway": webgateway_register,
-            "Reserve ZDB vm": zdb_reserve,
+            # "Delete web gateway": webgateway_http_proxy_delete,
+            # "Set web gateway": webgateway_http_proxy_set,
+            # "Register web gateway": webgateway_register,
+            # "Reserve ZDB vm": zdb_reserve,
             "Reserve ZOS vm": zos_reserve
         }
         choice = bot.single_choice("what do you want to do", [method for method in methods.keys()])
