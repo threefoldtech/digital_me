@@ -53,6 +53,16 @@ class farmer(JSBASE):
 
     def node_find(self, country="", farmer_name="", cores_min_nr=0, mem_min_mb=0, ssd_min_gb=0, hd_min_gb=0, nr_max=10):
         """
+        ```in
+        country = "" (S)
+        farmer_name = "" (S)
+        cores_min_nr = 0 (I)
+        mem_min_mb = 0 (I)
+        ssd_min_gb = 0 (I)
+        hd_min_gb = 0 (I)
+        nr_max = 10 (I)
+        ```
+
         the capacity checked against is for free (available) capacity (total-used)
 
         :param country:
@@ -89,6 +99,15 @@ class farmer(JSBASE):
 
     def zos_reserve(self, jwttoken, node_id, vm_name, memory=1024, cores=1, zerotier_network="", adminsecret=""):
         """
+        ```in
+        jwttoken = (S)
+        node_id = (I)
+        vm_name = (S)
+        memory = 1024 (I)
+        cores = 1 (I)
+        zerotier_network = "" (S)
+        adminsecret = "" (S)
+        ```
 
         deploys a zero-os for a customer
 
@@ -114,6 +133,16 @@ class farmer(JSBASE):
 
     def ubuntu_reserve(self, jwttoken, node_id, vm_name, memory=2048, cores=2, zerotier_network="", zerotier_token="", pub_ssh_key=""):
         """
+        ```in
+        jwttoken = (S)
+        node_id = (I)
+        vm_name = (S)
+        memory = 2028 (I)
+        cores = 2 (I)
+        zerotier_network = "" (S)
+        zerotier_token = "" (S)
+        pub_ssh_key = "" (S)
+        ```
 
         deploys a ubuntu 18.04 for a customer on a chosen node
 
@@ -137,8 +166,19 @@ class farmer(JSBASE):
                     vm_name, memory=memory, cores=cores, zerotier_network=zerotier_network, zerotier_token=zerotier_token, pub_ssh_key=pub_ssh_key)
         return (node_robot_url, service_secret, ipaddr_vm)
 
-    def zdb_reserve(self, jwt, node, zdb_name, name_space, disk_type="ssd", disk_size=10, namespace_size=2, secret=""):
+    def zdb_reserve(self, jwt, node_id, zdb_name, name_space, disk_type="ssd", disk_size=10, namespace_size=2, secret=""):
         """
+        ```in
+        jwttoken = (S)
+        node_id = (I)
+        zdb_name = (S)
+        name_space = (S)
+        disk_type = "ssd" (S)
+        disk_size = 10 (I)
+        namespace_size = 2 (I)
+        secret = "" (S)
+        ```
+        
         :param jwt: jwt for authentication
         :param node: is the node obj from model
         :param name_space: the first namespace name in 0-db
@@ -155,6 +195,11 @@ class farmer(JSBASE):
 
     def webgateways_get(self, jwttoken, country="", farmer_name=""):
         """
+        ```in
+        jwttoken = (S)
+        country = "" (S)
+        farmer_name = "" (S)
+        ```
 
         ```out
         farmer_id = (S)
@@ -178,6 +223,15 @@ class farmer(JSBASE):
 
     def web_gateway_add_host(self, jwttoken, web_gateway_id, domain, backend_ip, backend_port, suffix=""):
         """
+        ```in
+        jwttoken = (S)
+        web_gateway_id = (I)
+        domain = (S)
+        backend_ip = (S)
+        backend_port = (I)
+        suffix = "" (S)
+        ```
+        
         will configure the a virtual_host in the selected web gateway
         :param web_gateway_id: id of the obj you get through self.webgateways_get()
         :param domain: e.g. docsify.js.org
@@ -193,6 +247,11 @@ class farmer(JSBASE):
 
     def web_gateway_remove_host(self, jwttoken, web_gateway_id, domain):
         """
+        ```in
+        jwttoken = (S)
+        web_gateway_id = (I)
+        domain = (S)
+        ```
         delete all info for the specified domain from web_gateway
         :param web_gateway_id: the web gateway that have the domain to be deleted
         :param domain: the domain to be deleted
@@ -204,6 +263,11 @@ class farmer(JSBASE):
 
     def farmer_register(self, jwttoken, farmername, emailaddr="",mobile="",pubkey=""):
         """
+        ```in
+        jwttoken = (S)
+        farmername = (S)
+        emailaddr = "" (S)
+        ```
 
         :param farmername: official farmer name as in tf-dir
         :param emailaddr: comma separated list of email addr
