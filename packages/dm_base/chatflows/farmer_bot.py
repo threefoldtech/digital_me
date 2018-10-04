@@ -34,7 +34,7 @@ def chat(bot):
 
         fields = {
             "Country": {"type": "s", "name": "country"},
-            "Farmer name": {"type": "s", "name": "farmer_name"},
+            "Farmer name": {"type": "f", "name": "farmer_name"},
             "Number of cores": {"type": "i", "name": "cores"},
             "Minimum memory in MB": {"type": "i", "name": "mem_min_mb"},
             "SSD min in GB": {"type": "i", "name": "ssd_min_gb"},
@@ -51,22 +51,36 @@ def chat(bot):
                 kwargs[fields[field]["name"]] = bot.int_ask("Enter {}".format(field))
             else:
                 kwargs[fields[field]["name"]] = bot.string_ask("Enter {}".format(field))
-        nodes = gedis_client.farmer.node_find(kwargs)
-        nodes = j.data.serializers.json.loads(nodes)
+
+        nodes = gedis_client.farmer.node_find(**kwargs)
+        nodes = j.data.serializers.json.loads(nodes.decode())
         report = ""
         for node in nodes:
-            report = report + "- ```{}```  \n".format(node)
+            report = report + "# Node :{}\n".format(node["id"])
+            for key, value in node.items():
+                if isinstance(value, dict):
+                    report = report + "* {}:\n".format(key)
+                    for key1, value1 in value.items():
+                        report = report + "    - *{key}*: {value}  \n".format(key=key1, value=value1)
+                    report = report + ""
+                else:
+                    report = report + "- *{key}*: {value}  \n".format(key=key, value=value)
+        if not report:
+            report = "No matches found"
         bot.md_show(report)
 
 
     def ubuntu_reserve():
+        farmers = gedis_client.farmer.farmers_get()
+        farmers = [farmer["name"] for farmer in j.data.serializers.json.loads(farmers.decode())]
         jwttoken = bot.string_ask("Please enter your JWT")
-        node_id = bot.string_ask("Please enter a node id")
-        vm_name = bot.string_ask("Please enter your VM name")
+        node_id = bot.single_choice("select a farm where you will create your vm", farmers)
+        vm_name = bot.string_ask("What will you call it?")
         memory = bot.int_ask("choose the memory size")
         cores = bot.int_ask("choose number of cores")
-        zerotier_network = bot.string_ask("Enter your zerotier network")
-        zerotier_token = bot.string_ask("Enter your zerotier token")
+        zerotier_network = bot.string_ask("Enter your zerotier network id")
+        if zerotier_network:
+            zerotier_token = bot.string_ask("Enter your zerotier token")
         pub_ssh_key = bot.string_ask("Enter your public ssh key")
 
         robot_url, service_secret, ip_addresses, port = gedis_client.farmer.ubuntu_reserve(jwttoken=jwttoken,
