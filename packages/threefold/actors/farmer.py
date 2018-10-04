@@ -81,8 +81,8 @@ class farmer(JSBASE):
             nodes = list(filter(lambda x: x.location.country == country, nodes))
         if farmer_name:
             farmers = self.farmers_get()
-            farmer_id = [farmer.id for farmer in farmers if farmer.name == farmer_name]
-            nodes = list(filter(lambda x: x.farmer_id == farmer_id, nodes))
+            farmer_ids = [farmer.id for farmer in farmers if farmer_name.casefold() in farmer.name.casefold()]
+            nodes = list(filter(lambda x: x.farmer_id in farmer_ids, nodes))
         if cores_min_nr:
             nodes = list(filter(lambda x: x.capacity_total.cru > cores_min_nr, nodes))
         if mem_min_mb:
