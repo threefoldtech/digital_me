@@ -8,15 +8,13 @@
 </head>
 <body>
 <div id="container">
-    <div class="image"
-         style="background-image: url({{ info['avatar'][0]['source'] if info['avatar'][0] else '/client/static/images/default-profile.png' }})"></div>
     <div class="info">
         <h1 class="name">{{info['firstname']}} {{info['lastname']}}</h1>
         <h4 class="position">
             <i class="fa fa-envelope-open"></i>
             <a href="mailto:{{info['emailaddresses'][0]['emailaddress']}}">{{info['emailaddresses'][0]['emailaddress']}}</a>
         </h4>
-        <p><i class="fa fa-money"></i> {{info['digitalwallet'][0]['address']}}</p>
+        <p><i class="fa fa-money"></i> <abbr title="TFT wallet address">{{info['digitalwallet'][0]['address']}}</abbr></p>
         <p><i class="fa fa-mobile"></i> {{info['phonenumbers'][0]['phonenumber']}}</p>
     </div>
     <div class="social">

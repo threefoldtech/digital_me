@@ -7,7 +7,6 @@
     "user:name",
     "user:email",
     "user:phone",
-    "user:digitalwalletaddress::tft",
-    "user:avatar"
+    "user:digitalwalletaddress::tft"
   ]
 }

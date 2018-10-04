@@ -46,7 +46,6 @@ def callback():
     scope = ",".join(config['scope'])
     params = dict(scope=scope, store_info="true")
     jwt_url = "https://itsyou.online/v1/oauth/jwt?%s" % urlencode(params)
-    print(jwt_url)
     headers = {"Authorization": "token %s" % access_token}
     response = requests.get(jwt_url, headers=headers)
     response.raise_for_status()
