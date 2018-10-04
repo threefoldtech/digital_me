@@ -20,18 +20,20 @@
         <p><i class="fa fa-mobile"></i> {{info['phonenumbers'][0]['phonenumber']}}</p>
     </div>
     <div class="social">
-        <button id="jwt"><i class="fa fa-copy"></i> Click to copy your JWT</button>
+        <button id="jwtBtn"><i class="fa fa-copy"></i> Click to copy your JWT</button>
         <script>
-            let jwtBtn = document.getElementById("jwt");
-            let jwt = document.createElement("input");
-            jwt.setAttribute('value','{{jwt}}');
+            let jwtBtn = document.getElementById("jwtBtn");
+            let jwtInput = document.createElement("input");
+            let jwt = '{{jwt}}';
+            jwtInput.setAttribute('value', jwt);
             jwtBtn.addEventListener("click", function(ev){
-                 document.body.appendChild(jwt);
-                 jwt.select();
+                 document.body.appendChild(jwtInput);
+                 jwtInput.select();
                  document.execCommand("copy");
-                 document.body.removeChild(jwt);
+                 document.body.removeChild(jwtInput);
                  alert("JWT copied into your clipboard");
             });
+
         </script>
     </div>
 </div>
