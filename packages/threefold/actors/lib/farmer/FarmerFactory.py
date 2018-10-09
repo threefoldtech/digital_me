@@ -2,6 +2,7 @@ from Jumpscale import j
 from .CapacityPlanner import CapacityPlanner
 
 JSBASE = j.application.JSBaseClass
+DIR_ITEMS = j.clients.threefold_directory.capacity
 
 
 class Models:
@@ -34,7 +35,7 @@ class FarmerFactory(JSBASE):
     def zerotier_net_sysadmin(self):
         if not self._zerotier_net_sysadmin:
             self._zerotier_net_sysadmin = self.zerotier_client.network_get(
-                        "1d71939404587f3c")  # don't change the nr is fixed
+                "1d71939404587f3c")  # don't change the nr is fixed
         return self._zerotier_net_sysadmin
 
     @property
@@ -84,11 +85,11 @@ class FarmerFactory(JSBASE):
         return nr_zos_sysadmin
 
     @staticmethod
-    def _tf_dir_node_find(ipaddr=None,id=None):
-        for item in j.clients.threefold_directory.capacity:
-            if ipaddr !=None and "robot_address" in item and ipaddr in item["robot_address"]:
+    def _tf_dir_node_find(ipaddr=None, node_id=None):
+        for item in DIR_ITEMS:
+            if ipaddr and "robot_address" in item and ipaddr in item["robot_address"]:
                 return item
-            if id !=None and id.lower() == item['node_id'].lower():
+            if node_id and node_id.lower() == item['node_id'].lower():
                 return item
 
     @staticmethod
@@ -113,8 +114,6 @@ class FarmerFactory(JSBASE):
                     error = str(e)
         return error
 
-
-
     def node_check(self, node, reset=False):
         """
         will do ping test, zero-os test, ...
@@ -122,6 +121,7 @@ class FarmerFactory(JSBASE):
         j.tools.threefold_farmer.node_check(10)
 
         :param node: node from model threefold.grid.node
+        :param reset: reset saved node info
         :return: the populated node obj
         """
         self._fail_save()
@@ -131,11 +131,7 @@ class FarmerFactory(JSBASE):
         else:
             o = node
 
-        # def node_check(nodeid):
-
-
-
-        if  o.update>j.data.time.epoch-3600 and reset==False:
+        if o.update > j.data.time.epoch - 3600 and not reset:
             print("NOT NEEDED TO UPDATE:")
             print(o)
             return
@@ -156,18 +152,17 @@ class FarmerFactory(JSBASE):
 
         # ZOSCLIENT
         zos = None
-        if sysadmin_ping:
-            try:
-                zos = j.clients.zos.get(data={"password_": self.jwt, "host": ipaddr},
-                                        instance="sysadmin_%s" % ipaddr)
-            except Exception as e:
-                if "Connection refused" in str(e):
-                    error = "connection refused zosclient"
-                else:
-                    error = str(e)
+        try:
+            zos = j.clients.zos.get(data={"password_": self.jwt, "host": ipaddr},
+                                    instance="sysadmin_%s" % ipaddr)
+        except Exception as e:
+            if "Connection refused" in str(e):
+                error = "connection refused zosclient"
+            else:
+                error = str(e)
 
         zos_ping = False
-        if zos != None:
+        if zos:
             try:
                 zos_ping = "PONG" in zos.client.ping()
                 o.sysadmin_up_last = j.data.time.epoch
@@ -179,38 +174,35 @@ class FarmerFactory(JSBASE):
                 else:
                     error = str(e)
 
-
-        dir_item = self._tf_dir_node_find(ipaddr)
-        if dir_item != None and zos != None:
-            dir_item = self._tf_dir_node_find(id=zos.name)
-
         if sysadmin_ping and zos_ping:
             o.sysadmin = True
-            o.node_zos_id = zos.name#zos.client.info.os()['hostid']
+            o.node_zos_id = zos.name  # zos.client.info.os()['hostid']
 
-
-
+        dir_item = self._tf_dir_node_find(ipaddr, o.node_zos_id)
         o.sysadmin_up_ping = sysadmin_ping
         o.sysadmin_up_zos = zos_ping
         if o.error is not "zerotier lost the connection to the node":
             o.error = error
 
-
         if dir_item is not None:
-            o.capacity_reserved.cru = dir_item["reserved_resources"]["cru"]
-            o.capacity_reserved.hru = dir_item["reserved_resources"]["hru"]
-            o.capacity_reserved.mru = dir_item["reserved_resources"]["mru"]
-            o.capacity_reserved.sru = dir_item["reserved_resources"]["sru"]
 
-            o.capacity_total.cru = dir_item["total_resources"]["cru"]
-            o.capacity_total.hru = dir_item["total_resources"]["hru"]
-            o.capacity_total.mru = dir_item["total_resources"]["mru"]
-            o.capacity_total.sru = dir_item["total_resources"]["sru"]
+            if dir_item["reserved_resources"]:
+                o.capacity_reserved.cru = dir_item["reserved_resources"]["cru"]
+                o.capacity_reserved.hru = dir_item["reserved_resources"]["hru"]
+                o.capacity_reserved.mru = dir_item["reserved_resources"]["mru"]
+                o.capacity_reserved.sru = dir_item["reserved_resources"]["sru"]
 
-            o.capacity_used.cru = dir_item["used_resources"]["cru"]
-            o.capacity_used.hru = dir_item["used_resources"]["hru"]
-            o.capacity_used.mru = dir_item["used_resources"]["mru"]
-            o.capacity_used.sru = dir_item["used_resources"]["sru"]
+            if dir_item["total_resources"]:
+                o.capacity_total.cru = dir_item["total_resources"]["cru"]
+                o.capacity_total.hru = dir_item["total_resources"]["hru"]
+                o.capacity_total.mru = dir_item["total_resources"]["mru"]
+                o.capacity_total.sru = dir_item["total_resources"]["sru"]
+
+            if dir_item["used_resources"]:
+                o.capacity_used.cru = dir_item["used_resources"]["cru"]
+                o.capacity_used.hru = dir_item["used_resources"]["hru"]
+                o.capacity_used.mru = dir_item["used_resources"]["mru"]
+                o.capacity_used.sru = dir_item["used_resources"]["sru"]
 
             o.tfdir_found = True
 
@@ -219,7 +211,7 @@ class FarmerFactory(JSBASE):
             o.noderobot_ipaddr = dir_item["robot_address"]
 
             farmer = self.farmer_get_from_dir(dir_item["farmer_id"], return_none_if_not_exist=True)
-            if farmer != None:
+            if farmer:
                 o.farmer_id = farmer.id
                 o.farmer = True
 
@@ -231,37 +223,38 @@ class FarmerFactory(JSBASE):
                 o.location.longitude = dir_item["location"]["longitude"]
 
         robot = self.robot_get(o)
-        if robot != None:
-            if len(robot.templates.uids.keys()) >0 :
+        if False and robot:
+            if len(robot.templates.uids.keys()) > 0:
                 o.noderobot = True
                 o.noderobot_up_last = j.data.time.epoch
                 o.state = "OK"
 
         o.tfdir_up_last = ""
-        o.tf_dir_found = dir_item is not None
+        o.tf_dir_found = bool(dir_item)
 
-        o.update = j.data.time.epoch  #last time this check was done
+        o.update = j.data.time.epoch  # last time this check was done
 
         o = self.models.nodes.set(o)
 
         print(o)
 
-    def robot_get(self,node):
+    @staticmethod
+    def robot_get(node):
         """
         :param node:
         :return: robot connection for node (model) specified
         """
-        if node.noderobot_ipaddr == "":
+        if not node.noderobot_ipaddr:
             return None
-        
 
         if not node.node_zos_id:
             return None
+
         j.clients.zrobot.get(instance=node.node_zos_id, data={"url": node.noderobot_ipaddr})
         robot = j.clients.zrobot.robots[node.node_zos_id]
         return robot
 
-    def farmer_get_from_dir(self,name,return_none_if_not_exist=False):
+    def farmer_get_from_dir(self, name, return_none_if_not_exist=False):
         res = self.models.farmers.index.select().where(self.models.farmers.index.name == name).execute()
         if len(res) > 0:
             o = self.models.farmers.get(res[0].id)
@@ -278,13 +271,12 @@ class FarmerFactory(JSBASE):
         farmers = j.clients.threefold_directory.farmers
         for farmer in farmers:
             if "name" not in farmer:
-                j.shell()
-                w
+                continue
             obj = self.farmer_get_from_dir(farmer["name"])
             obj.name = farmer["name"]
-            for waladdr in farmer[ 'wallet_addresses']:
-                if waladdr not in obj.wallets:
-                    obj.wallets.append(waladdr)
+            for wallet_addr in farmer['wallet_addresses']:
+                if wallet_addr not in obj.wallets:
+                    obj.wallets.append(wallet_addr)
             obj.iyo_org = farmer['iyo_organization']
             self.models.farmers.set(obj)
 
@@ -307,7 +299,7 @@ class FarmerFactory(JSBASE):
     def node_get_from_tfdir(self, node_host_id, return_none_if_not_exist=False):
         """
         get the node starting from tf directory property
-        :param node_addr:
+        :param node_host_id:
         :param return_none_if_not_exist:
         :return:
         """
@@ -320,7 +312,7 @@ class FarmerFactory(JSBASE):
             o = self.models.nodes.new()
         return o
 
-    def zerotier_scan(self,reset=False):
+    def zerotier_scan(self, reset=False):
         """
         will do a scan of the full zerotier sysadmin network, this can take a long time
         :return:
@@ -330,21 +322,20 @@ class FarmerFactory(JSBASE):
         """
         for node in self.zerotier_net_sysadmin.members_list():
             online = node.data["online"]  # online from zerotier
-            online_past_sec = int(j.data.time.epoch - node.data["lastOnline"] / 1000)
+            # online_past_sec = int(j.data.time.epoch - node.data["lastOnline"] / 1000)
             ipaddr = node.data["config"]["ipAssignments"][0]
-            error = ""
             if online:
                 o = self.node_get_from_zerotier(node.address)
                 o.sysadmin_ipaddr = ipaddr
                 o.node_zerotier_id = node.address
-                self.node_check(o,reset=reset)
+                self.node_check(o, reset=reset)
             else:
                 o = self.node_get_from_zerotier(node.address, return_none_if_not_exist=True)
                 if o is not None:
                     # means existed in DB
-                    self.node_check(o,reset=reset)
+                    self.node_check(o, reset=reset)
 
-    def tf_dir_scan(self,reset=False):
+    def tf_dir_scan(self, reset=False):
         """
         walk over all nodes found in tfdir
         do ping test over pub zerotier grid network
@@ -356,7 +347,7 @@ class FarmerFactory(JSBASE):
             self.node_check(node, reset=reset)
 
     def _fail_save(self):
-        if self._bcdb == None:
+        if not self._bcdb:
             self.zdb = j.clients.zdb.testdb_server_start_client_get(reset=False)
             self._bcdb = j.data.bcdb.get(self.zdb, reset=False)
 
@@ -371,8 +362,6 @@ class FarmerFactory(JSBASE):
         """
         self.zdb = j.clients.zdb.testdb_server_start_client_get(reset=reset)
         self._bcdb = j.data.bcdb.get(self.zdb, reset=reset)  # to make sure we reset the index
-
-
         self.farmers_load()
         self.zerotier_scan(reset=reset)
         # self.tf_dir_scan(reset=reset)

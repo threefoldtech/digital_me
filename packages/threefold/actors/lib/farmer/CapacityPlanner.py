@@ -15,13 +15,14 @@ class CapacityPlanner(JSBASE):
 
     @staticmethod
     def get_robot(node):
-        j.clients.zrobot.get(instance=node.node_zos_id, data={"url": node.noderobot_ipaddr})
-        return j.clients.zrobot.robots[node.node_zos_id]
+        j.clients.zrobot.get(instance=node['node_zos_id'], data={"url": node['noderobot_ipaddr']})
+        return j.clients.zrobot.robots[node['node_zos_id']]
 
     @staticmethod
     def get_etcd_client(web_gateway):
         etcd_data = {
-            "host": web_gateway.etcd_url,
+            "host": web_gateway.etcd_host,
+            "port": web_gateway.etcd_port,
             "user": "root",
             "password_": web_gateway.etcd_secret
         }
@@ -52,7 +53,7 @@ class CapacityPlanner(JSBASE):
                                                     zerotier_token=zerotier_token, memory=memory, flist=flist,
                                                     cores=cores, zerotier_network=zerotier_network)
 
-        return node.noderobot_ipaddr, vm_service.data['secret'], ip_addresses, 6379
+        return node['noderobot_ipaddr'], vm_service.data['secret'], ip_addresses, 6379
 
     def ubuntu_reserve(self, node, vm_name, zerotier_token, memory=2048, cores=2, zerotier_network="", pub_ssh_key=""):
         """
@@ -81,7 +82,7 @@ class CapacityPlanner(JSBASE):
         vm_service, ip_addresses = self._vm_reserve(node=node, vm_name=vm_name, flist=flist,
                                                     zerotier_token=zerotier_token, zerotier_network=zerotier_network,
                                                     memory=memory, cores=cores, configs=configs)
-        return node.noderobot_ipaddr, vm_service.data['secret'], ip_addresses
+        return node['noderobot_ipaddr'], vm_service.data['secret'], ip_addresses
 
     def _vm_reserve(self, node, vm_name, zerotier_token, memory=128, cores=1, flist="", ipxe_url="",
                     zerotier_network="", configs=None):
@@ -186,7 +187,7 @@ class CapacityPlanner(JSBASE):
         reservation = self.models.reservations.new()
         reservation.secret = zdb_service.data['secret']
         reservation.node_service_id = zdb_service.data['guid']
-        return node.noderobot_ipaddr, zdb_service.data['secret'], ip_info
+        return node['noderobot_ipaddr'], zdb_service.data['secret'], ip_info
 
     def zdb_delete(self, node, zdb_name):
         robot = self.get_robot(node)

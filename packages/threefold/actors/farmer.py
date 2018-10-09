@@ -36,23 +36,36 @@ class Farmer(JSBASE):
             self._wgw_model = self._bcdb.model_get('threefold.grid.webgateway')
         return self._wgw_model
 
-    def farmers_get(self):
+    def farmers_get(self, dummy, schema_out):
         """
+        ```in
+        dummy = ""
+        ```
+        ```out
+        res = (LO) !threefold.grid.farmer
+        ```
         :return: [farmer_obj]
         """
-        return self.farmer_model.get_all()
+        out = schema_out.new()
+        out.res = self.farmer_model.get_all()
+        return out
 
-    def country_list(self):
+    def country_list(self, dummy, schema_out):
         """
+        ```in
+        dummy = ""
+        ```
+        ```out
+        res = (LS)
+        ```
         :return: list of countries
         """
         nodes = self.node_model.get_all()
-        result = {n.location.country for n in nodes}
-        if '' in result:
-            result.remove('')
-        return list(result)
+        out = schema_out.new()
+        out.res = list({n.location.country for n in nodes if n.location.country})
+        return out
 
-    def node_find(self, country="", farmer_name="", cores_min_nr=0, mem_min_mb=0, ssd_min_gb=0, hd_min_gb=0, nr_max=10):
+    def node_find(self, country, farmer_name, cores_min_nr, mem_min_mb, ssd_min_gb, hd_min_gb, nr_max, schema_out):
         """
         ```in
         country = "" (S)
@@ -62,6 +75,10 @@ class Farmer(JSBASE):
         ssd_min_gb = 0 (I)
         hd_min_gb = 0 (I)
         nr_max = 10 (I)
+        ```
+
+        ```out
+        res = (LO) !threefold.grid.node
         ```
 
         the capacity checked against is for free (available) capacity (total-used)
@@ -79,22 +96,23 @@ class Farmer(JSBASE):
         """
         nodes = self.node_model.get_all()
         if country:
-            nodes = list(filter(lambda x: country.lower() in x.location.country.lower(), nodes))
+            nodes = filter(lambda x: country.lower() in x.location.country.lower(), nodes)
         if farmer_name:
-            farmers = self.farmers_get()
+            farmers = self.farmer_model.get_all()
             farmer_ids = [farmer.id for farmer in farmers if farmer_name.lower() in farmer.name.lower()]
-            nodes = list(filter(lambda x: x.farmer_id in farmer_ids, nodes))
+            nodes = filter(lambda x: x.farmer_id in farmer_ids, nodes)
         if cores_min_nr:
-            nodes = list(filter(lambda x: x.capacity_total.cru >= cores_min_nr, nodes))
+            nodes = filter(lambda x: x.capacity_total.cru >= cores_min_nr, nodes)
         if mem_min_mb:
-            nodes = list(filter(lambda x: x.capacity_total.mru >= mem_min_mb, nodes))
+            nodes = filter(lambda x: x.capacity_total.mru >= mem_min_mb, nodes)
         if ssd_min_gb:
-            nodes = list(filter(lambda x: x.capacity_total.sru >= ssd_min_gb, nodes))
+            nodes = filter(lambda x: x.capacity_total.sru >= ssd_min_gb, nodes)
         if hd_min_gb:
-            nodes = list(filter(lambda x: x.capacity_total.hru >= hd_min_gb, nodes))
-
-        nodes = nodes[:nr_max]
-        return nodes
+            nodes = filter(lambda x: x.capacity_total.hru >= hd_min_gb, nodes)
+        nodes = list(nodes)[:nr_max]
+        out = schema_out.new()
+        out.res = nodes
+        return out
 
     def zos_reserve(self, jwttoken, node_id, vm_name, memory=1024, cores=1, zerotier_network=""):
         """
@@ -130,12 +148,12 @@ class Farmer(JSBASE):
         return self.capacity_planner.zos_reserve(node, vm_name, memory=memory, cores=cores,
                                                  zerotier_network=zerotier_network, organization="")
 
-    def ubuntu_reserve(self, jwttoken, node_id, vm_name, memory=2048, cores=2,
+    def ubuntu_reserve(self, jwttoken, node, vm_name, memory=2048, cores=2,
                        zerotier_network="", zerotier_token="", pub_ssh_key=""):
         """
         ```in
         jwttoken = (S)
-        node_id = (I)
+        node = (O) !threefold.grid.node
         vm_name = (S)
         memory = 2028 (I)
         cores = 2 (I)
@@ -146,7 +164,7 @@ class Farmer(JSBASE):
 
         deploys a ubuntu 18.04 for a customer on a chosen node
         :param jwttoken: jwt for authentication
-        :param node_id: is the id of the node on which you want to deploy
+        :param node: is the node obj on which you want to deploy
         :param vm_name: name freely chosen by customer
         :param memory: Amount of memory in MiB (defaults to 1024)
         :param cores: Number of virtual CPUs (defaults to 1)
@@ -154,7 +172,7 @@ class Farmer(JSBASE):
         :param zerotier_token: is optional additional network to connect to will need token to authorize
         :param pub_ssh_key: is the pub key for SSH authorization of the VM
 
-        :return: (node_robot_url, servicesecret,ipaddr_vm)
+        :return: (node_robot_url, servicesecret, ipaddr_vm)
 
         user can now connect to this ubuntu over SSH, port 22 (always), only on the 2 zerotiers
 
@@ -163,7 +181,6 @@ class Farmer(JSBASE):
         VM is only connected to the 1 or 2 zerotier networks ! and NAT connection to internet.
 
         """
-        node = self.node_model.get(node_id)
         return self.capacity_planner.ubuntu_reserve(node, vm_name, memory=memory, cores=cores,
                                                     zerotier_network=zerotier_network,
                                                     zerotier_token=zerotier_token, pub_ssh_key=pub_ssh_key)
@@ -292,12 +309,13 @@ class Farmer(JSBASE):
         self.farmer_model.set(new_farmer)
         return
 
-    def web_gateway_register(self, jwttoken, etcd_url, etcd_secret, farmer_id, name="",
+    def web_gateway_register(self, jwttoken, etcd_host, etcd_port, etcd_secret, farmer_id, name="",
                              pubip4=None, pubip6=None, country="", location="", description=""):
         """
         ```in
         jwttoken = (S)
-        etcd_url = (S)
+        etcd_host = (S)
+        etcd_port = (S)
         etcd_secret = (S)
         farmer_id = (I)
         name = "" (S)
@@ -309,8 +327,9 @@ class Farmer(JSBASE):
         ```
 
         allows a farmer to register
-        :param jwttoken is token as used in IYO
-        :param etcd_url its the url which allows this bot to configure the required forwards
+        :param jwttoken: is token as used in IYO
+        :param etcd_host: the etcd host which allows this bot to configure the required forwards
+        :param etcd_port: the etcd server port
         :param etcd_secret is the secret for the etcd connection
         :param farmer_id: the owner farmer of this gateway
         :param pubip4: comma separated list of public ip addr, ip v4
@@ -323,7 +342,8 @@ class Farmer(JSBASE):
         """
         new_gateway = self.wgw_model.new()
         new_gateway.name = name
-        new_gateway.etcd_url = etcd_url
+        new_gateway.etcd_url = etcd_host
+        new_gateway.etcd_port = etcd_port
         new_gateway.etcd_secret = etcd_secret
         new_gateway.country = country
         new_gateway.location = location

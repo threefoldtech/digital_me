@@ -111,6 +111,14 @@ class GedisChatBotSession(JSBASE):
         })
         return self.q_in.get()
 
+    def drop_down_choice(self, msg, options):
+        self.q_out.put({
+            "cat": "drop_down_choice",
+            "msg": msg,
+            "options": options
+        })
+        return self.q_in.get()
+
 
 def test(factory):
     sid = "123"
