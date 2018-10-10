@@ -145,7 +145,7 @@ class BCDB(JSBASE):
                     schema_text = schema_url
                 schema = j.data.schema.add(schema_text)
         else:
-            if not isinstance(schema, j.data.schema.SCHEMA_CLASS):
+            if not isinstance(schema_url, j.data.schema.SCHEMA_CLASS):
                 raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
 
         imodel = BCDBIndexModel(schema=schema) #model with info to generate

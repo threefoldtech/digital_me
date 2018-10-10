@@ -8,7 +8,7 @@ import copy
 import os
 
 class Schema(JSBASE):
-    def __init__(self, text=None, url=""):
+    def __init__(self, text, dbclient=None):
         JSBASE.__init__(self)
         self.properties = []
         self.lists = []
@@ -16,17 +16,12 @@ class Schema(JSBASE):
         self._capnp_template = None
         self._obj_class = None
         self._capnp = None
-        self.hash = ""
         self._index_list = None
         self._SCHEMA = True
-        if url:
-            self.url = url
-        else:
-            self.url = ""
-            
-        self.name = ""
-        if text:
-            self._schema_from_text(text)
+        self.dbclient = dbclient
+
+        self._schema_from_text(text)
+
 
     @property
     def _path(self):
@@ -84,12 +79,12 @@ class Schema(JSBASE):
 
         return (jumpscaletype, defvalue)
 
-    def _schema_from_text(self, schema):
-        self.logger.debug("load schema:\n%s" % schema)
+    def _schema_from_text(self, text):
+        self.logger.debug("load schema:\n%s" % text)
 
-        self.text = j.core.text.strip(schema)
+        self.text = j.core.text.strip(text)
 
-        self.hash = j.data.hash.blake2_string(schema)
+        self.md5 = j.data.hash.md5_string(j.core.text.strip(text))
 
         systemprops = {}
         self.properties = []
@@ -147,12 +142,12 @@ class Schema(JSBASE):
                 alias=alias[:-1]
 
             if propname in ["id"]:
-                self.error_raise("do not use 'id' in your schema, is reserved for system.",schema=schema)
+                self.error_raise("do not use 'id' in your schema, is reserved for system.",schema=text)
 
             return (propname, alias, jumpscaletype, defvalue, comment, pointer_type)
 
         nr = 0
-        for line in schema.split("\n"):
+        for line in text.split("\n"):
             line = line.strip()
             self.logger.debug("L:%s" % line)
             nr += 1
@@ -166,7 +161,7 @@ class Schema(JSBASE):
             if line.startswith("#"):
                 continue
             if "=" not in line:
-                self.error_raise("did not find =, need to be there to define field",schema=schema)
+                self.error_raise("did not find =, need to be there to define field",schema=text)
 
             propname, alias, jumpscaletype, defvalue, comment, pointer_type = process(line)
 
@@ -205,9 +200,9 @@ class Schema(JSBASE):
 
     @property
     def capnp_id(self):
-        if self.hash=="":
+        if self.md5=="":
             raise RuntimeError("hash cannot be empty")
-        return "f"+self.hash[1:16]  #first bit needs to be 1
+        return "f"+self.md5[1:16]  #first bit needs to be 1
 
     def _code_template_render(self,**args):
         tpath = "%s/templates/template_obj.py"%self._path
