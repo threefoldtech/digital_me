@@ -1,4 +1,3 @@
-
 from Jumpscale import j
 
 from .BCDB import BCDB
@@ -8,6 +7,7 @@ import gevent
 import os
 import sys
 import time
+import redis
 
 JSBASE = j.application.JSBaseClass
 
@@ -330,10 +330,8 @@ class BCDBFactory(JSBASE):
         js_shell 'j.data.bcdb.test4()'
 
         this is a test for the redis interface
-
         """
-        self.redis_server_start(background=True)
-
+        self.redis_server_start(port=6380, background=True)
         r = j.clients.redis.get(ipaddr="localhost", port=6380)
 
         S = """
@@ -376,7 +374,15 @@ class BCDBFactory(JSBASE):
             o.token_price = "10 EUR"
             return o
 
-        for i in range(10):
+        try:
+            o = get_obj(0)
+            id = r.hset("objects:despiegk.test", 0, o._json)
+            raise RuntimeError("should have raise runtime error when trying to write to index 0")
+        except redis.exceptions.ResponseError as err:
+            # runtime error is expected when trying to write to index 0
+            pass
+
+        for i in range(1, 11):
             o = get_obj(i)
             id = r.hset("objects:despiegk.test","new",o._json)
 
@@ -388,10 +394,10 @@ class BCDBFactory(JSBASE):
         assert r.hget("objects:despiegk.test", 5) == None
         assert r.hget("objects:despiegk.test", 5) == r.hget("objects:despiegk.test", "5")
 
-        resp = r.hget("objects:despiegk.test",9)
+        resp = r.hget("objects:despiegk.test",i)
         json = j.data.serializers.json.loads(resp)
         json2 = j.data.serializers.json.loads(o._json)
-        json2['id'] = 9
+        json2['id'] = i
         assert json == json2
 
         o.name="UPDATE"
@@ -405,13 +411,10 @@ class BCDBFactory(JSBASE):
         assert json != json3 #should have been updated in db, so no longer same
         assert json4 == json3
 
-
         #restart redis lets see if schema's are there autoloaded
-        self.redis_server_start(background=True)
-
+        self.redis_server_start(port=6380, background=True)
         r = j.clients.redis.get(ipaddr="localhost", port=6380)
-
-        j.shell()
+        assert r.hlen("objects:despiegk.test") == 8
 
         print("clean up database")
         r.delete("objects:despiegk.test")

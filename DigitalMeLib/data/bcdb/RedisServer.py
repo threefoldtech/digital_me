@@ -271,6 +271,8 @@ class RedisServer(JSBASE):
             o = model.set_dynamic(val)
         else:
             id = int(id)
+            if id == 0:
+                return response.error('trying to overwrite first metadata entry, not allowed')
             o = model.set_dynamic(val, obj_id=id)
         response.encode("%s" % o.id)
 
