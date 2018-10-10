@@ -60,7 +60,7 @@ class BCDBFactory(JSBASE):
             assert r.ping()
 
         else:
-            dbclient=j.core.db
+            dbclient = j.clients.zdb.testdb_server_start_client_get(reset=False)
             bcdb=self.get("test",dbclient=dbclient)
             bcdb.redis_server_start()
 
@@ -113,7 +113,10 @@ class BCDBFactory(JSBASE):
 
         bcdb = j.data.bcdb.get(name="test",dbclient=db_cl)
         bcdb.reset()
-        model = bcdb.model_add_from_schema(schema)
+        schemaobj=j.data.schema.get(schema)
+        model = bcdb.model_add_from_schema(schemaobj)
+
+        assert len(model.db.meta.schemas_load())==1  #check schema's loaded
 
         return bcdb,model
 
@@ -134,9 +137,11 @@ class BCDBFactory(JSBASE):
 
         def load():
 
+            #don't forget the record 0 is always a systems record
 
             db,model = self._load_test_model()
 
+            assert model.db.nsinfo["entries"]==1
 
             for i in range(10):
                 o = model.new()
@@ -152,8 +157,8 @@ class BCDBFactory(JSBASE):
                 o.name = "name%s" % i
                 o.email = "info%s@something.com" % i
                 o2 = model.set(o)
-                print (o2.id, i)
-                assert o2.id == i
+                print (o2.id, i+1)
+                assert o2.id == i+1
 
             o3 = model.get(o2.id)
             assert o3.id == o2.id
@@ -331,20 +336,21 @@ class BCDBFactory(JSBASE):
 
         r = j.clients.redis.get(ipaddr="localhost", port=6380)
 
-        S = """\
-@url = despiegk.test
-llist2 = "" (LS)
-name* = ""
-email* = ""
-nr* = 0
-date_start* = 0 (D)
-description = ""
-token_price* = "10 USD" (N)
-cost_estimate:hw_cost = 0.0 #this is a comment
-llist = []
-llist3 = "1,2,3" (LF)
-llist4 = "1,2,3" (L)
-"""
+        S = """
+        @url = despiegk.test
+        llist2 = "" (LS)
+        name* = ""
+        email* = ""
+        nr* = 0
+        date_start* = 0 (D)
+        description = ""
+        token_price* = "10 USD" (N)
+        cost_estimate:hw_cost = 0.0 #this is a comment
+        llist = []
+        llist3 = "1,2,3" (LF)
+        llist4 = "1,2,3" (L)
+        """
+        S=j.core.text.strip(S)
         print("set schema to 'despiegk.test'")
         r.set("schemas:despiegk.test", S)
 
@@ -357,9 +363,10 @@ llist4 = "1,2,3" (L)
         print('compare schema')
         s2=r.get("schemas:despiegk.test")
         #test schemas are same
+
         assert _compare_strings(S, s2)
 
-        schema=j.data.schema.add(S)
+        schema=j.data.schema.get(S)
 
         print("add objects")
         def get_obj(i):
@@ -398,11 +405,24 @@ llist4 = "1,2,3" (L)
         assert json != json3 #should have been updated in db, so no longer same
         assert json4 == json3
 
+
+        #restart redis lets see if schema's are there autoloaded
+        self.redis_server_start(background=True)
+
+        r = j.clients.redis.get(ipaddr="localhost", port=6380)
+
+        j.shell()
+
         print("clean up database")
         r.delete("objects:despiegk.test")
 
         #there should be 0 objects
         assert r.hlen("objects:despiegk.test") == 0
+
+        cl = j.clients.zdb.get("test")
+        res=cl.namespaces_list()
+
+        print("TEST OK")
 
 
 def _compare_strings(s1, s2):

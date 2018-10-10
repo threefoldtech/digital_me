@@ -188,8 +188,8 @@ class RedisServer(JSBASE):
                 return
 
         if cat == "schemas":
-            s = j.data.schema.add(schema=val)
-            self.bcdb.model_add_from_schema(schema_url=s.url)
+            s = j.data.schema.get(val)
+            self.bcdb.model_add_from_schema(s)
             response.encode("OK")
             return
 
@@ -310,7 +310,7 @@ class RedisServer(JSBASE):
             nr_deleted = 1
             # FIXME: what happens if the id doesn't exist ?
             # there is no exist method on the model for now
-            model.delete(id)
+            model.delete(int(id))
         response.encode(nr_deleted)
 
     def hlen(self, response, key):

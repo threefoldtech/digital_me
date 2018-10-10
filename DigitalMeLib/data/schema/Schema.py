@@ -19,7 +19,7 @@ class Schema(JSBASE):
         self._index_list = None
         self._SCHEMA = True
         self.dbclient = dbclient
-
+        self.url = ""
         self._schema_from_text(text)
 
 

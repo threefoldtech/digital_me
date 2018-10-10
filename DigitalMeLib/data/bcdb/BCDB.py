@@ -47,6 +47,20 @@ class BCDB(JSBASE):
 
         self._models_add_cache = {}
 
+        cl=self.dbclient.namespace_get("default")
+        cl.meta #make sure record 0 has been set
+
+        for nsname in self.dbclient.namespaces_list():
+            nsclient = self.dbclient.namespace_get(nsname)
+
+            try:
+                nsclient.meta
+            except Exception as e:
+                raise RuntimeError("meta record (record0) wrongly structured of :%s"%nsclient.nsinfo)
+
+            #load models
+            nsclient.meta.schemas_load()
+
 
     def redis_server_start(self):
 
@@ -118,44 +132,27 @@ class BCDB(JSBASE):
             self.models[model.schema.url] = model
 
 
-    def model_add_from_schema(self, schema_url, namespace=None, reload=False, dest=None,overwrite=True):
+    def model_add_from_schema(self, schema, namespace=None, reload=False, dest=None,overwrite=True):
         """
 
-        :param schema: is schema (text, or path or schemaobj of the schema)
+        :param schema: is schema object j.data.schema...
         :param namespace, std is the url of the schema
         :return:
         """
 
+        if not isinstance(schema, j.data.schema.SCHEMA_CLASS):
+            raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
 
-        if j.data.types.string.check(schema_url):
-            key = j.data.hash.md5_string(schema_url)
-        else:
-            #need to implement
-            j.shell()
 
-        if key in self._models_add_cache and reload is False:
-            return self._models_add_cache[key]
-
-        if j.data.types.string.check(schema_url):
-            schema = j.data.schema.get(schema_url,die=False)
-            if schema is None:
-                if "\n" not in schema_url and j.sal.fs.exists(schema_url):
-                    schema_text = j.sal.fs.fileGetContents(schema_url)
-                else:
-                    schema_text = schema_url
-                schema = j.data.schema.add(schema_text)
-        else:
-            if not isinstance(schema_url, j.data.schema.SCHEMA_CLASS):
-                raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
+        if schema.md5 in self._models_add_cache and reload is False:
+            return self._models_add_cache[schema.md5]
 
         imodel = BCDBIndexModel(schema=schema) #model with info to generate
         imodel.enable = True
         imodel.include_schema = True
         tpath = "%s/templates/Model.py"%j.data.bcdb._path
+
         key = j.core.text.strip_to_ascii_dense(schema.url).replace(".","_")
-        schema.key = key
-
-
         if dest==None:
             dest = "%s/model_%s.py" % (j.data.bcdb.code_generation_dir, key)
 
@@ -168,7 +165,10 @@ class BCDB(JSBASE):
 
         m = self.model_add_from_file(dest, namespace=namespace)
 
-        self._models_add_cache[key] = m
+        self._models_add_cache[schema.md5] = m
+
+        m.db.meta.schema_set(schema) #should always be the first record !
+
 
         return m
 

@@ -25,7 +25,7 @@ class BCDBModel(JSBASE):
         if bcdb is None:
             raise RuntimeError("bcdb should be set")
         self.bcdb = bcdb
-        self.schema = j.data.schema.get(url)
+        self.schema = j.data.schema.get(url=url)
 
         self.is_config = False  # when used for config management
 
@@ -42,6 +42,8 @@ class BCDBModel(JSBASE):
 
         self.db.type = self.bcdb.dbclient.type
 
+        self.db.meta
+
         self.index_enable = index_enable
         self.autosave = False  # if set it will make sure data is automatically set from object
 
@@ -56,7 +58,7 @@ class BCDBModel(JSBASE):
         pass
         # self.logger.info("build index done")
 
-    def destroy(self):
+    def destroy(self,die=True):
         """
         delete the index and all the items from the model
 
@@ -73,8 +75,29 @@ class BCDBModel(JSBASE):
                 delete_nr += 1
             self.db.delete("bcdb:%s:lastid" % self.namespace)
             return delete_nr
+        else:
+            myns= self.db.nsname #the namespace I want to remove
+            #need to check this database namespace is not used in other models.
+            for key,bcdbmodel in self.bcdb.models.items():
+                if bcdbmodel.namespace == self.namespace:
+                    #myself, go out
+                    continue
+                if bcdbmodel.db.nsname == myns:
+                    msg = "CANNOT DELETE THE NAMESPACE BECAUSE USED BY OTHER BCDBMODELS"
+                    if die:
+                        raise RuntimeError(msg)
+                    else:
+                        print(msg)
+                        return
+            #now I am sure I can remove it
+            ns=self.db.zdbclient.namespace_get(self.namespace)
+            secret = ns.secret
+            nsname = ns.nsname
 
-        raise RuntimeError("not implemented yet, need to go to db and remove namespace")
+            self.db.zdbclient.namespace_delete(nsname)
+            self.db = self.bcdb.dbclient.namespace_new(self.namespace)
+
+            return 1
 
     def delete(self, obj_id):
         """
@@ -137,7 +160,6 @@ class BCDBModel(JSBASE):
         :return:
         """
         self.check(obj)
-
         if self.bcdb.gevent_data_processing:
             if obj.id is None:
                 # means is first time object, need to ask unique id to db
