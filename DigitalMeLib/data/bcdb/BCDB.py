@@ -56,9 +56,7 @@ class BCDB(JSBASE):
 
     def reset(self):
         if self.dbclient.type == "ZDB":
-            print("NEEDS TO BE IMPLEMENTED")
-            j.shell()
-            pass
+            self.dbclient.reset()
         else:
             for item in self.dbclient.keys("bcdb:*"):
                 self.dbclient.delete(item)

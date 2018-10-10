@@ -207,12 +207,22 @@ class RedisServer(JSBASE):
             elif key == "":
                 response.encode(m.schema.text)
                 return
+        else:
+            j.shell()
+
+    def hget(self, response, key):
+        cat, url, key, model = self._split(key)
+        if url == "":
+            response.encode("ok")
+            return
         elif cat == "objects":
-            o=m.get(int(id))
+            j.shell()
+            o=model.get(int(id))
             response.encode(o._json)
             return
         else:
             j.shell()
+
 
     def set(self,response,key,val):
         cat, url, key, model = self._split(key)
@@ -226,7 +236,18 @@ class RedisServer(JSBASE):
             self.bcdb.model_add_from_schema(schema_url=s.url)
             response.encode("OK")
             return
-        elif cat == "objects":
+        else:
+            j.shell()
+
+    def hset(self,response,key,val):
+        cat, url, key, model = self._split(key)
+        if url == "":
+            response.error("url needs to be known, otherwise cannot set e.g. objects:despiegk.test:new")
+        if key == "":
+            response.error("key needs to be known, e.g. objects:despiegk.test:new or in stead of new e.g. 101 (id)")
+
+        if cat == "objects":
+            j.shell()
             if id=="new":
                 o=m.set_dynamic(val)
             else:
