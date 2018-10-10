@@ -4,7 +4,9 @@ import struct
 import gevent
 JSBASE = j.application.JSBaseClass
 
-#is the base class for the model which gets generated from the template
+# is the base class for the model which gets generated from the template
+
+
 class BCDBModel(JSBASE):
     def __init__(self, bcdb, url, namespace=None, index_enable=True):
         """
@@ -25,8 +27,7 @@ class BCDBModel(JSBASE):
         self.bcdb = bcdb
         self.schema = j.data.schema.get(url)
 
-        self.is_config = False #when used for config management
-
+        self.is_config = False  # when used for config management
 
         if namespace:
             self.namespace = namespace
@@ -34,7 +35,7 @@ class BCDBModel(JSBASE):
             self.namespace = j.core.text.strip_to_ascii_dense(self.schema.url).replace(".", "_")
 
         if self.bcdb.dbclient.type == "ZDB":
-            self.db = self.bcdb.dbclient.namespace_new(self.namespace)  #will check if it exists, if not create
+            self.db = self.bcdb.dbclient.namespace_new(self.namespace)  # will check if it exists, if not create
 
         else:
             self.db = self.bcdb.dbclient
@@ -42,7 +43,7 @@ class BCDBModel(JSBASE):
         self.db.type = self.bcdb.dbclient.type
 
         self.index_enable = index_enable
-        self.autosave = False #if set it will make sure data is automatically set from object
+        self.autosave = False  # if set it will make sure data is automatically set from object
 
         self.objects_in_queue = {}
 
@@ -51,18 +52,29 @@ class BCDBModel(JSBASE):
 
     def index_load(self):
         self.index_delete()
-        j.shell() #TODO:*1
+        j.shell()  # TODO:*1
         pass
         # self.logger.info("build index done")
 
     def destroy(self):
+        """
+        delete the index and all the items from the model
+
+
+        :raises RuntimeError: raised when the database type is not implemented/supported yet
+        :return: return the number of item deleted
+        :rtype: int
+        """
+        delete_nr = 0
         self.index_delete()
         if self.db.type == "RDB":
             for key in self.db.hkeys("bcdb:%s:data" % self.namespace):
-                self.db.hdel("bcdb:%s:data" % self.namespace,key)
-            self.db.delete("bcdb:%s:lastid"%self.namespace)
-        else:
-            raise RuntimeError("not implemented yet, need to go to db and remove namespace")
+                self.db.hdel("bcdb:%s:data" % self.namespace, key)
+                delete_nr += 1
+            self.db.delete("bcdb:%s:lastid" % self.namespace)
+            return delete_nr
+
+        raise RuntimeError("not implemented yet, need to go to db and remove namespace")
 
     def delete(self, obj_id):
         """
@@ -71,22 +83,22 @@ class BCDBModel(JSBASE):
         :return:
         """
 
-        if hasattr(obj, "_JSOBJ"):
-            obj_id = obj.id
+        if hasattr(self, "_JSOBJ"):
+            obj_id = self.id
 
-        #make sure the object is no longer remembered for queue processing
+        # make sure the object is no longer remembered for queue processing
         if self.bcdb.gevent_data_processing and obj_id in self.objects_in_queue:
-            #will first dump to a queue, so we know its all processed by 1 greenlet and nothing more
+            # will first dump to a queue, so we know its all processed by 1 greenlet and nothing more
             self.objects_in_queue.pop(obj_id)
 
         if self.db.type == "ZDB":
             self.db.delete(obj_id)
         else:
-            self.db.hdel("bcdb:%s:data"%self.namespace, obj_id)
+            self.db.hdel("bcdb:%s:data" % self.namespace, obj_id)
 
-        #TODO:*1 need to delete the part of index !!!
+        # TODO:*1 need to delete the part of index !!!
 
-    def check(self,obj):
+    def check(self, obj):
         if not hasattr(obj, "_JSOBJ"):
             raise RuntimeError("argument needs to be a bcdb obj")
 
@@ -116,9 +128,8 @@ class BCDBModel(JSBASE):
             obj = self.schema.get(data)
         else:
             raise RuntimeError("Cannot find data type, str,bin,obj or ddict is only supported")
-        obj.id = obj_id #do not forget
+        obj.id = obj_id  # do not forget
         return self.set(obj)
-
 
     def set(self, obj):
         """
@@ -132,14 +143,13 @@ class BCDBModel(JSBASE):
                 # means is first time object, need to ask unique id to db
                 obj = self._set(obj=obj, index=False)  # should not do index, will be done later to avoid race condition
             self.objects_in_queue[obj.id] = obj
-            #will first dump to a queue, so we know its all processed by 1 greenlet and nothing more
-            self.bcdb.queue.put([self.url,obj])
+            # will first dump to a queue, so we know its all processed by 1 greenlet and nothing more
+            self.bcdb.queue.put([self.url, obj])
             return obj
         else:
             return self._set(obj=obj)
 
-
-    def _set(self, obj,index=True):
+    def _set(self, obj, index=True):
         """
 
         @RETURN JSOBJ
@@ -168,8 +178,7 @@ class BCDBModel(JSBASE):
             if obj.id is None:
                 # means a new one
                 obj.id = self.db.incr("bcdb:%s:lastid" % self.namespace)-1
-            self.db.hset("bcdb:%s:data"%self.namespace, obj.id, data)
-
+            self.db.hset("bcdb:%s:data" % self.namespace, obj.id, data)
 
         if index:
             self.index_set(obj)
@@ -177,7 +186,7 @@ class BCDBModel(JSBASE):
         return obj
 
     def new(self):
-        obj =  self.schema.new()
+        obj = self.schema.new()
         obj.model = self
         return obj
 
@@ -189,10 +198,10 @@ class BCDBModel(JSBASE):
         :return: True when empty
         """
         if self.bcdb.gevent_data_processing:
-            counter=1
-            while len(self.objects_in_queue)>0:
+            counter = 1
+            while len(self.objects_in_queue) > 0:
                 gevent.sleep(0.001)
-                counter+=1
+                counter += 1
                 if counter == 10000:
                     raise RuntimeError("should never take this long to index, something went wrong")
         return True
@@ -221,7 +230,6 @@ class BCDBModel(JSBASE):
                 return obj._data
             return obj
 
-
         if self.db.type == "ZDB":
             data = self.db.get(id)
         else:
@@ -232,7 +240,7 @@ class BCDBModel(JSBASE):
 
         return self._unserialize(id, data, return_as_capnp=return_as_capnp)
 
-    def _unserialize(self, id, data,return_as_capnp=False, model=None):
+    def _unserialize(self, id, data, return_as_capnp=False, model=None):
 
         # if self.json_serialize:
         #     res = j.data.serializers.json.loads(data)
@@ -277,10 +285,10 @@ class BCDBModel(JSBASE):
             key_start is the start key, if not given will be start of database when direction = forward, else end
 
         """
-        def method_zdb(id,data,result0):
+        def method_zdb(id, data, result0):
             method_ = result0["method"]
-            obj = self._unserialize(id,data)
-            result0["result"] = method_(id=id,obj=obj,result=result0["result"])
+            obj = self._unserialize(id, data)
+            result0["result"] = method_(id=id, obj=obj, result=result0["result"])
             return result0
 
         if self.db.type == "ZDB":
@@ -288,26 +296,26 @@ class BCDBModel(JSBASE):
             result0["result"] = result
             result0["method"] = method
 
-            result0 = self.db.iterate(method=method_zdb,key_start=key_start,
-                            direction=direction,nrrecords=nrrecords,
-                            _keyonly=_keyonly,result=result0)
+            result0 = self.db.iterate(method=method_zdb, key_start=key_start,
+                                      direction=direction, nrrecords=nrrecords,
+                                      _keyonly=_keyonly, result=result0)
 
             return result0["result"]
 
         else:
-            #WE IGNORE Nrrecords
-            if not direction=="forward":
+            # WE IGNORE Nrrecords
+            if not direction == "forward":
                 raise RuntimeError("not implemented, only forward iteration supported")
             keys = [int(item.decode()) for item in self.db.hkeys("bcdb:%s:data" % self.namespace)]
             keys.sort()
-            if len(keys)==0:
+            if len(keys) == 0:
                 return result
-            if key_start==None:
+            if key_start == None:
                 key_start = keys[0]
             for key in keys:
-                if key>=key_start:
+                if key >= key_start:
                     obj = self.get(id=key)
-                    result = method(id,obj,result)
+                    result = method(id, obj, result)
             return result
 
     def get_all(self):

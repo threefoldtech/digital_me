@@ -85,7 +85,6 @@ class RedisServer(JSBASE):
                 break
 
             if not request:  # empty list request
-                # self.response.error('Empty request body .. probably this is a (TCP port) checking query')
                 self.logger.debug("EMPTYLIST")
                 continue
 
@@ -111,9 +110,6 @@ class RedisServer(JSBASE):
                 response.error("DB index is out of range")
                 continue
 
-            elif redis_cmd == "set":
-                self.set(response, request[1].decode(), request[2].decode())
-                continue
             elif redis_cmd in ["hscan"]:
                 kwargs = parser.request_to_dict(request[3:])
                 if not hasattr(self, redis_cmd):
@@ -127,35 +123,51 @@ class RedisServer(JSBASE):
                 continue
 
             else:
-                print(request)
-                kwargs = parser.request_to_dict(request)
-                arg = kwargs.pop(redis_cmd)
+                redis_cmd = request[0].decode().lower()
+                args = request[1:] if len(request) > 1 else []
+                args = [x.decode() for x in args]
+
                 if redis_cmd == "del":
                     redis_cmd = "delete"
                 if not hasattr(self, redis_cmd):
-                    # raise  RuntimeError("COULD NOT FIND COMMAND:%s"%redis_cmd)
-                    j.shell()
                     response.error("COULD NOT FIND COMMAND:%s" % redis_cmd)
-                else:
-                    method = getattr(self, redis_cmd)
-                    method(response, arg, **kwargs)
+                    return
+
+                method = getattr(self, redis_cmd)
+                method(response, *args)
+
                 continue
 
     def info(self):
         return b"NO INFO YET"
 
     def _split(self, key):
+        """
+        split function used in the "normal" methods
+        (len, set, get, del)
+
+        split the key into 3 composant:
+        - category: objects or schema
+        - url: url of the schema
+        - key: actual key of the object
+
+        :param key: full encoded key of an object. e.g: object:schema.url:key
+        :type key: str
+        :return: tuple of (category, url, key, model)
+        :rtype: tuple
+        """
         splitted = key.split(":")
+        len_splitted = len(splitted)
         m = ""
-        if len(splitted) == 1:
+        if len_splitted == 1:
             cat = splitted[0]
             url = ""
             key = ""
-        elif len(splitted) == 2:
+        elif len_splitted == 2:
             cat = splitted[0]
             url = splitted[1]
             key = ""
-        elif len(splitted) == 2:
+        elif len_splitted == 2:
             cat = splitted[0]
             url = splitted[1]
             key = splitted[2]
@@ -165,28 +177,23 @@ class RedisServer(JSBASE):
 
         return (cat, url, key, m)
 
-    def delete(self, response, key):
+    def set(self, response, key, val):
         cat, url, key, model = self._split(key)
-        if url == "":
-            response.encode("0")
-            return
-        if cat == "schemas":
-            response.encode("0")
-            return
-        elif cat == "objects":
+        if cat == "objects":
+            if url == "":
+                response.error("url needs to be known, otherwise cannot set e.g. objects:despiegk.test:new")
+                return
             if key == "":
-                # remove all items from model
-                j.shell()
-            else:
-                # remove 1 item from model
-                j.shell()
+                response.error("key needs to be known, e.g. objects:despiegk.test:new or in stead of new e.g. 101 (id)")
+                return
 
-        else:
-            response.error("cannot delete, cat:'%s' not found" % cat)
+        if cat == "schemas":
+            s = j.data.schema.add(schema=val)
+            self.bcdb.model_add_from_schema(schema_url=s.url)
+            response.encode("OK")
+            return
 
-    def hlen(self, response, key):
-        cat, url, key, model = self._split(key)
-        j.shell()
+        response.error("cannot set, cat:'%s' not supported" % cat)
 
     def get(self, response, key):
         cat, url, key, model = self._split(key)
@@ -200,58 +207,124 @@ class RedisServer(JSBASE):
             if url == "":
                 response.encode("")
                 return
-            elif key == "":
-                response.encode(m.schema.text)
+            if key == "":
+                response.encode(model.schema.text)
                 return
-        else:
-            j.shell()
+            if url in self.bcdb.models:
+                response.encode(self.bcdb.models[url].schema.text)
+                return
+        response.error("cannot get, cat:'%s' not found" % cat)
 
-    def hget(self, response, key):
+    def delete(self, response, key):
         cat, url, key, model = self._split(key)
-        if url == "":
-            response.encode("ok")
+        if url == "" or cat == "schemas" or model == '':
+            response.encode("0")
             return
-        elif cat == "objects":
-            j.shell()
-            o = model.get(int(id))
-            response.encode(o._json)
-            return
-        else:
-            j.shell()
-
-    def set(self, response, key, val):
-        cat, url, key, model = self._split(key)
-        if url == "":
-            response.error("url needs to be known, otherwise cannot set e.g. objects:despiegk.test:new")
-        if key == "":
-            response.error("key needs to be known, e.g. objects:despiegk.test:new or in stead of new e.g. 101 (id)")
-
-        if cat == "schemas":
-            s = j.data.schema.add(schema=val)
-            self.bcdb.model_add_from_schema(schema_url=s.url)
-            response.encode("OK")
-            return
-        else:
-            j.shell()
-
-    def hset(self, response, key, val):
-        cat, url, key, model = self._split(key)
-        if url == "":
-            response.error("url needs to be known, otherwise cannot set e.g. objects:despiegk.test:new")
-        if key == "":
-            response.error("key needs to be known, e.g. objects:despiegk.test:new or in stead of new e.g. 101 (id)")
 
         if cat == "objects":
-            j.shell()
-            if id == "new":
-                o = m.set_dynamic(val)
+            if key == "":
+                nr_deleted = model.destroy()
             else:
-                id = int(key)
-                o = m.set_dynamic(val, obj_id=id)
-            response.encode("%s" % o.id)
+                nr_deleted = 1
+                # FIXME: what happens if the key doesn't exist ?
+                # there is no exist method on the model for now
+                model.delete(key)
+            response.encode(nr_deleted)
             return
+
+        response.error("cannot delete, cat:'%s' not found" % cat)
+
+    def scan(self, response, startid, match='*', count=10000):
+        """
+
+        :param scan: id to start from
+        :param match: default *
+        :param count: nr of items per page
+        :return:
+        """
+        # in first version will only do 1 page, so ignore scan
+        res = []
+
+        if len(self.bcdb.models) > 0:
+            for url, model in self.bcdb.models.items():
+                res.append("schemas:%s" % url)
+                res.append("objects:%s" % url)
         else:
-            j.shell()
+            res.append("schemas")
+            res.append("objects")
+        res.append("info")
+        response._array(["0", res])
+
+    def hset(self, response, key, id, val):
+        cat, url, _, model = self._split(key)
+        if cat != 'objects':
+            response.error("category %s not valid" % cat)
+            return
+        if url == "":
+            response.error("url needs to be known, otherwise cannot set e.g. objects:despiegk.test:new")
+            return
+        if key == "":
+            response.error("key needs to be known, e.g. objects:despiegk.test:new or in stead of new e.g. 101 (id)")
+            return
+
+        if id == "new":
+            o = model.set_dynamic(val)
+        else:
+            id = int(id)
+            o = model.set_dynamic(val, obj_id=id)
+        response.encode("%s" % o.id)
+
+    def hget(self, response, key, id):
+        cat, url, _, model = self._split(key)
+        if cat != 'objects':
+            response.error("category %s not valid" % cat)
+            return
+        if url == "":
+            response.error("url needs to be known, otherwise cannot set e.g. objects:despiegk.test:new")
+            return
+        if key == "":
+            response.error("key needs to be known, e.g. objects:despiegk.test:new or in stead of new e.g. 101 (id)")
+            return
+
+        obj = model.get(int(id))
+        if obj is not None:
+            response.encode(obj._json)
+        else:
+            response.encode(None)
+
+    def hdel(self, response, key, id):
+        cat, url, _, model = self._split(key)
+        if cat != 'objects':
+            response.error("category %s not valid" % cat)
+            return
+        if url == "":
+            response.error("url needs to be known, otherwise cannot set e.g. objects:despiegk.test:new")
+            return
+        if key == "":
+            response.error("key needs to be known, e.g. objects:despiegk.test:new or in stead of new e.g. 101 (id)")
+            return
+
+        if id == "":
+            nr_deleted = model.destroy()
+        else:
+            nr_deleted = 1
+            # FIXME: what happens if the id doesn't exist ?
+            # there is no exist method on the model for now
+            model.delete(id)
+        response.encode(nr_deleted)
+
+    def hlen(self, response, key):
+        cat, url, _, model = self._split(key)
+        if cat != 'objects':
+            response.error("category %s not valid" % cat)
+            return
+
+        if url == "" or cat == "schemas" or model == '':
+            response.encode(0)
+            return
+
+        response.encode(len(model.get_all()))
+        return
 
     def ttl(self, response, key):
         response.encode("-1")
@@ -274,27 +347,6 @@ class RedisServer(JSBASE):
 
     def hscan(self, response, key, startid, count=10000):
         res = []
-        response._array(["0", res])
-
-    def scan(self, response, startid, match='*', count=10000):
-        """
-
-        :param scan: id to start from
-        :param match: default *
-        :param count: nr of items per page
-        :return:
-        """
-        # in first version will only do 1 page, so ignore scan
-        res = []
-
-        if len(self.bcdb.models) > 0:
-            for url, model in self.bcdb.models.items():
-                res.append("schemas:%s" % url)
-                res.append("objects:%s" % url)
-        else:
-            res.append("schemas")
-            res.append("objects")
-        res.append("info")
         response._array(["0", res])
 
     def info_internal(self, response):

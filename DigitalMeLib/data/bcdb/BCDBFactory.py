@@ -90,8 +90,8 @@ class BCDBFactory(JSBASE):
 
         schema = """
         @url = despiegk.test
-        llist2 = "" (LS)    
-        name* = ""    
+        llist2 = "" (LS)
+        name* = ""
         email* = ""
         nr* = 0
         date_start* = 0 (D)
@@ -198,7 +198,7 @@ class BCDBFactory(JSBASE):
         assert res.first().name == "name2"
 
         o = m.get(res.first().id)
-        
+
         o.name = "name2"
 
         assert o._changed_items == {}  # because data did not change, was already that data
@@ -289,7 +289,6 @@ class BCDBFactory(JSBASE):
 
         # print ("TEST2 DONE, but is still minimal")
 
-
     def test3(self, start=True):
         """
         js_shell 'j.data.bcdb.test3(start=False)'
@@ -332,20 +331,22 @@ class BCDBFactory(JSBASE):
 
         r = j.clients.redis.get(ipaddr="localhost", port=6380)
 
-        S = """
-        @url = despiegk.test
-        llist2 = "" (LS)    
-        name* = ""    
-        email* = ""
-        nr* = 0
-        date_start* = 0 (D)
-        description = ""
-        token_price* = "10 USD" (N)
-        cost_estimate:hw_cost = 0.0 #this is a comment
-        llist = []
-        llist3 = "1,2,3" (LF)
-        llist4 = "1,2,3" (L)
-        """
+        S = """\
+@url = despiegk.test
+llist2 = "" (LS)
+name* = ""
+email* = ""
+nr* = 0
+date_start* = 0 (D)
+description = ""
+token_price* = "10 USD" (N)
+cost_estimate:hw_cost = 0.0 #this is a comment
+llist = []
+llist3 = "1,2,3" (LF)
+llist4 = "1,2,3" (L)
+"""
+        print("set schema to 'despiegk.test'")
+        r.set("schemas:despiegk.test", S)
 
         r.delete("schemas:despiegk.test")
         r.delete("objects:despiegk.test")
@@ -353,14 +354,14 @@ class BCDBFactory(JSBASE):
         #there should be 0 objects
         assert r.hlen("objects:despiegk.test") == 0
 
-        r.set("schemas:despiegk.test", S)
-
+        print('compare schema')
         s2=r.get("schemas:despiegk.test")
         #test schemas are same
-        assert s2 == S
+        assert _compare_strings(S, s2)
 
         schema=j.data.schema.add(S)
 
+        print("add objects")
         def get_obj(i):
             o = schema.new()
             o.nr = i
@@ -369,29 +370,46 @@ class BCDBFactory(JSBASE):
             return o
 
         for i in range(10):
-            print(i)
             o = get_obj(i)
             id = r.hset("objects:despiegk.test","new",o._json)
 
+        print("validate added objects")
         #there should be 10 items now there
         assert r.hlen("objects:despiegk.test") == 10
-        assert r.hdel("objects:despiegk.test","10") == 10
+        assert r.hdel("objects:despiegk.test", 5) == 1
         assert r.hlen("objects:despiegk.test") == 9
-        assert r.hget("objects:despiegk.test","5") == None
-        assert r.hget("objects:despiegk.test",5) == r.hget("objects:despiegk.test","5")
+        assert r.hget("objects:despiegk.test", 5) == None
+        assert r.hget("objects:despiegk.test", 5) == r.hget("objects:despiegk.test", "5")
 
-        print("GET")
-
-        json = r.hget("objects:despiegk.test","10")
-        json2 = o._json
+        resp = r.hget("objects:despiegk.test",9)
+        json = j.data.serializers.json.loads(resp)
+        json2 = j.data.serializers.json.loads(o._json)
+        json2['id'] = 9
         assert json == json2
 
         o.name="UPDATE"
-        r.hset("objects:despiegk.test:1",o._json)
-        json3 = r.hget("objects:despiegk.test","1")
-        json4 = o._json
+        r.hset("objects:despiegk.test",1, o._json)
+        resp = r.hget("objects:despiegk.test", 1)
+        json3 = j.data.serializers.json.loads(resp)
+        assert json3['name'] == "UPDATE"
+        json4 = j.data.serializers.json.loads(o._json)
+        json4['id'] = 1
 
         assert json != json3 #should have been updated in db, so no longer same
         assert json4 == json3
 
-        j.shell()
+        print("clean up database")
+        r.delete("objects:despiegk.test")
+
+        #there should be 0 objects
+        assert r.hlen("objects:despiegk.test") == 0
+
+
+def _compare_strings(s1, s2):
+    # TODO: move somewhere into jumpsclale tree
+    def convert(s):
+        if isinstance(s, bytes):
+            s = s.decode()
+        return s
+
+    return convert(s1).strip() == convert(s2).strip()
