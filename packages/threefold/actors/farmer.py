@@ -94,62 +94,71 @@ class Farmer(JSBASE):
         :return: [node_objects]
 
         """
-        nodes = self.node_model.get_all()
-        if country:
-            nodes = filter(lambda x: country.lower() in x.location.country.lower(), nodes)
+        total_nodes = self.node_model.get_all()
+        selected_farmer = None
         if farmer_name:
             farmers = self.farmer_model.get_all()
-            farmer_ids = [farmer.id for farmer in farmers if farmer_name.lower() in farmer.name.lower()]
-            nodes = filter(lambda x: x.farmer_id in farmer_ids, nodes)
-        if cores_min_nr:
-            nodes = filter(lambda x: x.capacity_total.cru >= cores_min_nr, nodes)
-        if mem_min_mb:
-            nodes = filter(lambda x: x.capacity_total.mru >= mem_min_mb, nodes)
-        if ssd_min_gb:
-            nodes = filter(lambda x: x.capacity_total.sru >= ssd_min_gb, nodes)
-        if hd_min_gb:
-            nodes = filter(lambda x: x.capacity_total.hru >= hd_min_gb, nodes)
-        nodes = list(nodes)[:nr_max]
+            for farmer in farmers:
+                if farmer_name.lower() == farmer.name.lower():
+                    selected_farmer = farmer
+                    break
+        nodes = []
+        for node in total_nodes:
+            if country and country.lower() != node.location.country.lower():
+                continue
+            if selected_farmer and selected_farmer.id != node.farmer_id:
+                continue
+            if cores_min_nr and cores_min_nr > (node.capacity_total.cru - node.capacity_used.cru):
+                continue
+            if mem_min_mb and mem_min_mb > (node.capacity_total.mru - node.capacity_used.mru):
+                continue
+            if ssd_min_gb and ssd_min_gb > (node.capacity_total.sru - node.capacity_used.sru):
+                continue
+            if hd_min_gb and hd_min_gb > (node.capacity_total.hru - node.capacity_used.hru):
+                continue
+            nodes.append(node)
+        nodes = nodes[:nr_max]
         out = schema_out.new()
         out.res = nodes
         return out
 
-    def zos_reserve(self, jwttoken, node_id, vm_name, memory=1024, cores=1, zerotier_network=""):
+    def zos_reserve(self, jwttoken, node, vm_name, memory, cores, zerotier_token, organization, schema_out):
         """
         ```in
         jwttoken = (S)
-        node_id = (I)
+        node = (O) !threefold.grid.node
         vm_name = (S)
         memory = 1024 (I)
         cores = 1 (I)
-        zerotier_network = "" (S)
-        adminsecret = "" (S)
+        zerotier_token = "" (S)
+        organization = "" (S)
+        ```
+
+        ```out
+        robot_url = "" (S)
+        service_secret = "" (S)
+        ip_address = "" (S)
+        redis_port = (I)
         ```
 
         deploys a zero-os for a customer
 
         :param jwttoken: jwt for authentication
-        :param node_id: is the id of the node on which you want to deploy
+        :param node: is the node object on which you want to deploy
         :param vm_name: name freely chosen by customer
         :param memory: Amount of memory in MiB (defaults to 1024)
         :param cores: Number of virtual CPUs (defaults to 1)
-        :param zerotier_network: is optional additional network to connect to
-
-        :return: (node_robot_url, servicesecret, ipaddr_zos,redisport)
-
+        :param zerotier_token: is the zerotier token to get the ip address
         user can now connect the ZOS client to this ipaddress with specified adminsecret over SSL
-
-        each of these ZOS'es is automatically connected to the TF Public Zerotier network (TODO: which one is it)
-
-        ZOS is only connected to the 1 or 2 zerotier networks ! and NAT connection to internet.
-
         """
-        node = self.node_model.get(node_id)
-        return self.capacity_planner.zos_reserve(node, vm_name, memory=memory, cores=cores,
-                                                 zerotier_network=zerotier_network, organization="")
+        res = self.capacity_planner.zos_reserve(node, vm_name, memory=memory, cores=cores,
+                                                organization=organization, zerotier_token=zerotier_token)
+        out = schema_out.new()
+        out.robot_url, out.service_secret, out.ip_address, out.redis_port = res
+        return out
 
-    def ubuntu_reserve(self, jwttoken, node, vm_name, memory=2048, cores=2,
-                       zerotier_network="", zerotier_token="", pub_ssh_key=""):
+    def ubuntu_reserve(self, jwttoken, node, vm_name, memory, cores,
+                       zerotier_network, zerotier_token, pub_ssh_key, schema_out):
         """
         ```in
         jwttoken = (S)
@@ -162,6 +171,15 @@ class Farmer(JSBASE):
         pub_ssh_key = "" (S)
         ```
 
+        ```out
+        node_robot_url = "" (S)
+        service_secret = "" (S)
+        ip_addr1 = "" (S)
+        zt_network1 = "" (S)
+        ip_addr2 = "" (S)
+        zt_network2 = "" (S)
+        ```
+
         deploys a ubuntu 18.04 for a customer on a chosen node
         :param jwttoken: jwt for authentication
         :param node: is the node obj on which you want to deploy
@@ -172,25 +190,26 @@ class Farmer(JSBASE):
         :param zerotier_token: is optional additional network to connect to will need token to authorize
         :param pub_ssh_key: is the pub key for SSH authorization of the VM
 
-        :return: (node_robot_url, servicesecret, ipaddr_vm)
-
         user can now connect to this ubuntu over SSH, port 22 (always), only on the 2 zerotiers
-
         each of these VM's is automatically connected to the TF Public Zerotier network (TODO: which one is it)
-
         VM is only connected to the 1 or 2 zerotier networks ! and NAT connection to internet.
-
         """
-        return self.capacity_planner.ubuntu_reserve(node, vm_name, memory=memory, cores=cores,
-                                                    zerotier_network=zerotier_network,
-                                                    zerotier_token=zerotier_token, pub_ssh_key=pub_ssh_key)
+        res = self.capacity_planner.ubuntu_reserve(node, vm_name, memory=memory, zerotier_network=zerotier_network,
+                                                   zerotier_token=zerotier_token, pub_ssh_key=pub_ssh_key, cores=cores)
+        out = schema_out.new()
+        out.node_robot_url, out.service_secret, connection_info = res
+        out.ip_addr1 = connection_info[0]['ip_address'] or ""
+        out.zt_network1 = connection_info[0]['network_id'] or ""
+        out.ip_addr2 = connection_info[1]['ip_address'] or ""
+        out.zt_network2 = connection_info[1]['network_id'] or ""
+        return out
 
-    def zdb_reserve(self, jwt, node_id, zdb_name, name_space, disk_type="ssd",
-                    disk_size=10, namespace_size=2, secret=""):
+    def zdb_reserve(self, jwttoken, node, zdb_name, name_space, disk_type,
+                    disk_size, namespace_size, secret, schema_out):
         """
         ```in
         jwttoken = (S)
-        node_id = (I)
+        node = (O) !threefold.grid.node
         zdb_name = (S)
         name_space = (S)
         disk_type = "ssd" (S)
@@ -198,22 +217,35 @@ class Farmer(JSBASE):
         namespace_size = 2 (I)
         secret = "" (S)
         ```
-        
-        :param jwt: jwt for authentication
-        :param node_id: is the node_id we need to reserve on
+
+        ```out
+        robot_url = "" (S)
+        service_secret = "" (S)
+        ip_address = "" (S)
+        storage_ip = "" (S)
+        port = "" (S)
+        ```
+
+        :param jwttoken: jwt for authentication
+        :param node: is the node obj we need to reserve on
         :param zdb_name: is the name for the zdb
         :param name_space: the first namespace name in 0-db
         :param disk_type: disk type of 0-db (ssd or hdd)
         :param disk_size: disk size of the 0-db in GB
         :param namespace_size: the maximum size in GB for the namespace
         :param secret: secret to be given to the namespace
-        :return: (node_robot_url, servicesecret, ip_info)
+        :return: (node_robot_url, service_secret, ip_info)
 
         user can now connect to this ZDB using redis client
         """
-        node = self.node_model.get(node_id)
-        return self.capacity_planner.zdb_reserve(node, zdb_name, name_space, disk_type,
-                                                 disk_size, namespace_size, secret)
+        res = self.capacity_planner.zdb_reserve(node, zdb_name, name_space, disk_type,
+                                                disk_size, namespace_size, secret)
+        out = schema_out.new()
+        out.robot_url, out.service_secret, ip_info = res
+        out.ip_address = ip_info['ip']
+        out.storage_ip = ip_info['storage_ip']
+        out.port = ip_info['port']
+        return out
 
     def web_gateways_get(self, jwttoken, country="", farmer_name=""):
         """

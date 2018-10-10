@@ -28,7 +28,7 @@ class CapacityPlanner(JSBASE):
         }
         return j.clients.etcd.get(web_gateway.name, data=etcd_data)
 
-    def zos_reserve(self, node, vm_name, zerotier_token, memory=1024, cores=1, zerotier_network="", organization=""):
+    def zos_reserve(self, node, vm_name, zerotier_token, organization, memory=1024, cores=1):
         """
         deploys a zero-os for a customer
 
@@ -37,7 +37,6 @@ class CapacityPlanner(JSBASE):
         :param zerotier_token: zerotier token which will be used to get the ip address
         :param memory: Amount of memory in MiB (defaults to 1024)
         :param cores: Number of virtual CPUs (defaults to 1)
-        :param zerotier_network: is optional additional network to connect to
         :param organization: is the organization that will be used to get jwt to access zos through redis
 
         :return: (node_robot_url, service_secret, ipaddr_zos, redis_port)
@@ -46,14 +45,12 @@ class CapacityPlanner(JSBASE):
         ZOS is only connected to the 1 or 2 zerotier networks ! and NAT connection to internet.
         """
         flist = 'https://hub.grid.tf/tf-bootable/zero-os-bootable.flist'
-        ipxe_url = "https://bootstrap.grid.tf/ipxe/development/0/development"
-        if organization:
-            ipxe_url = "https://bootstrap.grid.tf/ipxe/development/0/organization='{}'%20development"
-        vm_service, ip_addresses = self._vm_reserve(node=node, vm_name=vm_name, ipxe_url=ipxe_url.format(organization),
-                                                    zerotier_token=zerotier_token, memory=memory, flist=flist,
-                                                    cores=cores, zerotier_network=zerotier_network)
+        ipxe_url = "https://bootstrap.grid.tf/ipxe/development/{}/organization='{}'%20development"
+        ipxe_url = ipxe_url.format(PUBLIC_ZT_NETWORK, organization)
+        vm_service, ip_addresses = self._vm_reserve(node=node, vm_name=vm_name, ipxe_url=ipxe_url, cores=cores,
+                                                    zerotier_token=zerotier_token, memory=memory, flist=flist)
 
-        return node['noderobot_ipaddr'], vm_service.data['secret'], ip_addresses, 6379
+        return node['noderobot_ipaddr'], vm_service.data['secret'], ip_addresses and ip_addresses[0]['ip_address'], 6379
 
     def ubuntu_reserve(self, node, vm_name, zerotier_token, memory=2048, cores=2, zerotier_network="", pub_ssh_key=""):
         """
@@ -184,9 +181,9 @@ class CapacityPlanner(JSBASE):
         zdb_service.schedule_action('install').wait(die=True)
         print("Getting IP info...")
         ip_info = zdb_service.schedule_action('connection_info').wait(die=True).result
-        reservation = self.models.reservations.new()
-        reservation.secret = zdb_service.data['secret']
-        reservation.node_service_id = zdb_service.data['guid']
+        # reservation = self.models.reservations.new()
+        # reservation.secret = zdb_service.data['secret']
+        # reservation.node_service_id = zdb_service.data['guid']
         return node['noderobot_ipaddr'], zdb_service.data['secret'], ip_info
 
     def zdb_delete(self, node, zdb_name):

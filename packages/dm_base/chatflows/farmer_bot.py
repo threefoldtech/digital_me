@@ -1,3 +1,5 @@
+import random
+
 from Jumpscale import j
 
 DEFAULT_CORE_NR = 2
@@ -54,23 +56,36 @@ def chat(bot):
                 kwargs[fields[field]["name"]] = bot.drop_down_choice("Enter {}".format(field), fields[field]["choices"])
         return kwargs
 
-    def ubuntu_reserve(jwt_token, node, vm_name, zerotier_network, zerotier_token, cores, memory):
+    def ubuntu_reserve(jwt_token, node, vm_name, zerotier_token, cores, memory):
         pub_ssh_key = bot.string_ask("Enter your public ssh key")
-        robot_url, service_secret, ip_addresses = gedis_client.farmer.ubuntu_reserve(jwttoken=jwt_token,
-                                                                                     node=node,
-                                                                                     vm_name=vm_name,
-                                                                                     memory=memory,
-                                                                                     cores=cores,
-                                                                                     zerotier_network=zerotier_network,
-                                                                                     zerotier_token=zerotier_token,
-                                                                                     pub_ssh_key=pub_ssh_key)
+        zerotier_network = bot.string_ask("Enter the extra zerotier network id you need the vm to join:")
+        res = gedis_client.farmer.ubuntu_reserve(jwttoken=jwt_token, node=node, vm_name=vm_name, memory=memory,
+                                                 cores=cores, zerotier_network=zerotier_network,
+                                                 zerotier_token=zerotier_token, pub_ssh_key=pub_ssh_key)
         report = """## Ubuntu reserved
-# you have successfully registered a zos vm
-- *robot url* = {robot_url}
-- *service secret* = `{service_secret}`
-- *ip addresses* = {ip_addresses}
-""".format(robot_url=robot_url, service_secret=service_secret, ip_addresses=ip_addresses)
+    # you have successfully registered a zos vm
+    - robot url = {robot_url}
+    - service secret = {service_secret}
+    - ZT Network 1 = {zt_network1}
+    - ZT IP 1 = {ip_addr1}
+    - ZT Network 2 = {zt_network2}
+    - ZT IP 2 = {ip_addr2}
+""".format(robot_url=res.node_robot_url, service_secret=res.service_secret, zt_network1=res.zt_network1,
+           zt_network2=res.zt_network2, ip_addr1=res.ip_addr1, ip_addr2=res.ip_addr2)
         bot.md_show(report)
+
+    def zos_reserve(jwttoken, node, vm_name, zerotier_token, memory, cores):
+        organization = bot.string_ask("Enter your itsyou.online organization")
+        res = gedis_client.farmer.zos_reserve(jwttoken, node, vm_name, memory, cores, zerotier_token, organization)
+        report = """## ZOS reserved
+# you have succesfully registered a zos vm
+    - robot url = {robot_url}
+    - service secret = {service_secret}
+    - ip address = {ip_address}
+    - port = {port}""".format(robot_url=res.robot_url, service_secret=res.service_secret,
+                              ip_address=res.ip_address, port=res.redis_port)
+        bot.md_show(report)
+        bot.redirect("https://threefold.me")
 
     def web_gateway_http_proxy_delete():
         bot.md_show("# NOT IMPLEMENTED YET")
@@ -81,27 +96,23 @@ def chat(bot):
     def web_gateway_register():
         bot.md_show("# NOT IMPLEMENTED YET")
 
-    def zdb_reserve():
-        bot.md_show("# NOT IMPLEMENTED YET")
-
-    def zos_reserve():
-        node_id = bot.string_ask("Please enter a node id")
-        vm_name = bot.string_ask("Please enter your VM name")
-        memory = bot.int_ask("choose the memory size")
-        cores = bot.int_ask("choose number of cores")
-        zerotier_network = bot.string_ask("Enter your zerotier network")
-        admin_secret = bot.string_ask("Enter your admin secret")
-        robot_url, service_secret, ip_addresses, port = gedis_client.farmer.zos_reserve(
-            jwttoken, node_id, vm_name, memory=memory, cores=cores,
-            zerotier_network=zerotier_network, adminsecret=admin_secret
-        )
-        report = """## ZOS reserved
-# you have succesfully registered a zos vm
-- *robot url* = {robot_url}
-- *service secret* = {service_secret}
-- *ip addresses* = {ip_addresses}
-- *port* = port""".format(robot_url=robot_url, service_secret=service_secret,
-                          ip_addresses=ip_addresses, port=port)
+    def zdb_reserve(jwttoken, node):
+        zdb_name = bot.string_ask("Please enter your ZDB name:")
+        disk_type = bot.single_choice("Please choose the disk type:", ["ssd", "hdd"])
+        disk_size = bot.int_ask("Please enter the disk size:")
+        namespace_name = bot.string_ask("Please enter your namespace name:")
+        namespace_size = bot.int_ask("Please enter the namespace size:")
+        namespace_secret = bot.password_ask("Please enter the namespace secret:")
+        res = gedis_client.farmer.zdb_reserve(jwttoken, node, zdb_name, namespace_name, disk_type, disk_size,
+                                              namespace_size, namespace_secret)
+        report = """## ZDB reserved
+        # you have successfully registered a Zero DB
+            - robot url = {robot_url}
+            - service secret = {service_secret}
+            - ip address = {ip_address}
+            - storage_ip = {storage_ip}
+            - port = port""".format(robot_url=res.robot_url, service_secret=res.service_secret,
+                                    ip_address=res.ip_address, port=res.port, storage_ip=res.storage_ip)
         bot.md_show(report)
         bot.redirect("https://threefold.me")
 
@@ -109,26 +120,24 @@ def chat(bot):
         jwt_token = bot.string_ask("Please enter your JWT, "
                                    "(click <a target='_blank' href='/client'>here</a> to get one)")
         node_filters = node_find()
-        vm_type = bot.single_choice("what do you want to do", ["Ubuntu", "Zero OS", "Zero DB"])
-        vm_name = bot.string_ask("What will you call the vm?")
-        zerotier_network = bot.string_ask("Enter your zerotier network id:")
-        zerotier_token = ""
-        if zerotier_network:
-            zerotier_token = bot.string_ask("Enter your zerotier token:")
         candidate_nodes = gedis_client.farmer.node_find(**node_filters)
         if not candidate_nodes.res:
             bot.md_show("No available nodes with these criteria")
+            bot.redirect("/chat/session/farmer_bot")
             return
-
-        node = candidate_nodes.res[0]
+        node = candidate_nodes.res[random.randint(0, len(candidate_nodes.res) - 1)]
+        vm_type = bot.single_choice("what do you want to do", ["Ubuntu", "Zero OS", "Zero DB"])
+        if vm_type == "Zero DB":
+            zdb_reserve(jwt_token, node)
+            return
+        vm_name = bot.string_ask("What will you call the vm?")
+        zerotier_token = bot.string_ask("Enter your zerotier token:")
         cores = int(node_filters.get('cores_min_nr', DEFAULT_CORE_NR))
         memory = int(node_filters.get('mem_min_mb', DEFAULT_MEM_SIZE))
         if vm_type == "Ubuntu":
-            ubuntu_reserve(jwt_token, node, vm_name, zerotier_network, zerotier_token, cores, memory)
+            ubuntu_reserve(jwt_token, node, vm_name, zerotier_token, cores, memory)
         elif vm_type == "Zero OS":
-            pass
-        elif vm_type == "Zero DB":
-            pass
+            zos_reserve(jwt_token, node, vm_name, zerotier_token, memory=memory, cores=cores)
 
     def main():
         methods = {
