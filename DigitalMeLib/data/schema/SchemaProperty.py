@@ -44,7 +44,7 @@ class SchemaProperty(JSBASE):
 
     @property
     def capnp_schema(self):
-        return self.jumpscaletype.capnp_schema_get(self.name_camel,self.nr)
+        return self.jumpscaletype.capnp_schema_get(self.name_camel, self.nr)
 
     def __str__(self):
         if not self.jumpscaletype.NAME == "list":

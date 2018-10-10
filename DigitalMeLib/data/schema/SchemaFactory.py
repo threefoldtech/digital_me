@@ -16,6 +16,7 @@ class SchemaFactory(JSBASE):
         self._code_generation_dir = None
         self.db = j.clients.redis.core_get()
         self.schemas = {}
+        self._schema_md5_to_schemaurl = {}
 
     @property
     def SCHEMA_CLASS(self):
@@ -36,47 +37,50 @@ class SchemaFactory(JSBASE):
     def reset(self):
         self.schemas = {}
 
-    def schema_get(self,url=None):
+    def get(self,url=None, die=True):
         url = url.lower().strip()
         if url in self.schemas:
             return self.schemas[url]
-        raise RuntimeError("could not find schema with url:%s"%url)
+        if die:
+            raise RuntimeError("could not find schema with url:%s"%url)
 
-    def schema_add(self, schema, url=None):
+    def exists(self,url):
+        return self.get(url=url, die=False) is not None
+
+    def add(self, schema=None, first=True):
         """
         can be the url of the schema
 
         schema can be text
-        can be more than 1 schema in the text but only the first one will be used
-
         can also be a path of a schema file
 
         :param schema_text or schema_path or schema_url
-        :param url normally None because specified as part of schema, can be specified independent of whats specified
-        :return: schema
+        :return: schema(s)
         """
+        if j.data.types.string.check(schema):
+            if "\n" not in schema and j.sal.fs.exists(schema):
+                schema_text = j.sal.fs.fileGetContents(schema)
+            else:
+                schema_text = schema
+        else:
+            if not isinstance(schema, j.data.schema.SCHEMA_CLASS):
+                raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
+            schema_text = schema.text
 
-        if url is not None:
-            if self._schema_from_url(url) is not None:
-                #check if its url
-                return self._schema_from_url(url)
-            elif not schema:
-                raise RuntimeError("url not found for schema:%s"%url)
+        schema_text2 = j.core.text.strip(schema_text)
+        md5 = j.data.hash.md5_string(schema_text2)
 
-        if schema is None:
-            raise RuntimeError("schema cannot be None")
+        if not md5 in self._schema_md5_to_schemaurl:
+            res = self._add(schema_text)
+            self._schema_md5_to_schemaurl[md5] = res #remember schemas
 
-        if j.sal.fs.exists(schema):
-            schema = j.sal.fs.fileGetContents(schema)
+        if first:
+            return self._schema_md5_to_schemaurl[md5][0]
+        else:
+            return self._schema_md5_to_schemaurl[md5]
 
-        s = self._schemas_add(schema)
 
-        if url is not None:
-            s.url = url
-
-        return s
-
-    def _schemas_add(self, txt):
+    def _add(self, txt):
         """
         add schema text (can be multile blocks starting with @) to this class
         result schema's can be found from self.schema_from_url(...)
@@ -109,17 +113,9 @@ class SchemaFactory(JSBASE):
             self.schemas[s.url] = s
             res.append(s)
 
-        return res[0]
+        return res
 
-    def _schema_from_url(self, url):
-        """
-        url e.g. despiegk.test
-        """
-        if url is None:
-            return None
-        url = url.lower().strip()
-        if url in self.schemas:
-            return self.schemas[url]
+
 
     def list_base_class_get(self):
         return List0
@@ -153,7 +149,8 @@ class SchemaFactory(JSBASE):
         #pool_type = "managed,unmanaged" (E)  #NOT DONE FOR NOW
         """
 
-        s = j.data.schema.schema_add(schema)
+        s = j.data.schema.add(schema)
+
         print (s)
 
         o = s.get()
@@ -206,9 +203,9 @@ class SchemaFactory(JSBASE):
         llist = []
         description = ""
         """
-        j.data.schema.schema_add(schema)
-        s1 = self.schema_get(url="despiegk.test2")
-        s2 = self.schema_get(url="despiegk.test3")
+        j.data.schema.add(schema)
+        s1 = self.get(url="despiegk.test2")
+        s2 = self.get(url="despiegk.test3")
 
         o1 = s1.get()
         o2 = s2.get()
@@ -236,8 +233,8 @@ class SchemaFactory(JSBASE):
         cost_estimate:hw_cost = 0.0 (N) #this is a comment
         """
 
-        s1 = self.schema_add(schema1)
-        s0 = self.schema_add(schema0)
+        s1 = self.add(schema1)
+        s0 = self.add(schema0)
         print(s0)
         o = s1.get()
 
@@ -271,9 +268,9 @@ class SchemaFactory(JSBASE):
         cmd2 = (O) !jumpscale.schema.test3.cmd
         
         """
-        self.schema_add(SCHEMA)
-        s2 = self.schema_get("jumpscale.schema.test3.serverschema")
-        s3 = self.schema_get("jumpscale.schema.test3.cmdbox")
+        self.add(SCHEMA)
+        s2 = self.get("jumpscale.schema.test3.serverschema")
+        s3 = self.get("jumpscale.schema.test3.cmdbox")
 
         o = s2.get()
         for i in range(4):
@@ -320,7 +317,7 @@ class SchemaFactory(JSBASE):
         comment = ""        
         nr = 0
         """
-        self.schema_add(S0)
+        self.add(S0)
 
         SCHEMA = """
         @url = jumpscale.myjobs.job
@@ -339,7 +336,7 @@ class SchemaFactory(JSBASE):
         cmd = (O) !jumpscale.schema.test3.cmd
         
         """
-        s = self.schema_add(SCHEMA)
+        s = self.add(SCHEMA)
         o = s.new()
         o.return_queues = ["a", "b"]
         assert o._return_queues.pylist() == ["a", "b"]

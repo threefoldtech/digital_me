@@ -10,6 +10,8 @@ class ModelOBJ():
             data = {}
         self._schema = schema
         self._capnp_schema = schema.capnp_schema
+        self.model = None
+        self.autosave = False
 
         if capnpbin != None:
             self._cobj_ = self._capnp_schema.from_bytes_packed(capnpbin)
@@ -50,7 +52,7 @@ class ModelOBJ():
         {% for prop in obj.properties %}
         #{{prop.name}}
         {% if prop.jumpscaletype.NAME == "jsobject" %}
-        self._schema_{{prop.name}} = j.data.schema.schema_get(url="{{prop.jumpscaletype.SUBTYPE}}")
+        self._schema_{{prop.name}} = j.data.schema.get(url="{{prop.jumpscaletype.SUBTYPE}}")
 
         if self._cobj_.{{prop.name_camel}}:
             self._changed_items["{{prop.name_camel}}"] = self._schema_{{prop.name}}.get(capnpbin=self._cobj_.{{prop.name_camel}})
@@ -89,6 +91,8 @@ class ModelOBJ():
         val = {{prop.js_typelocation}}.clean(val)  #is important because needs to come in right format e.g. binary for numeric
         if self.{{prop.alias}} != val:
             self._changed_items["{{prop.name_camel}}"] = val
+            if self.autosave:
+                self.save()
         {% endif %}
 
     {% if prop.jumpscaletype.NAME == "numeric" %}
@@ -129,12 +133,15 @@ class ModelOBJ():
         self._{{ll.alias}}._inner_list=[]
         for item in val:
             self._{{ll.alias}}.append(item)
-
+        if self.autosave:
+            self.save()
     {% endfor %}
 
 
-
-
+    def save(self):
+        if self.model:
+            o=self.model.set(self)
+            self.id = o.id
 
     def _check(self):
         #checks are done while creating ddict, so can reuse that
@@ -249,11 +256,32 @@ class ModelOBJ():
         {% endif %}
         {% endfor %}
         {% for prop in obj.lists %}
-        d["{{prop.name}}"] = self._{{prop.alias}}.pylist(ddict=False)
+        d["{{prop.name}}"] = self._{{prop.alias}}.pylist(subobj_format="H")
         {% endfor %}
         if self.id is not None:
             d["id"]=self.id
         return d
+
+    @property
+    def _ddict_json(self):
+        """
+        json readable dict
+        """
+        d={}
+        {% for prop in obj.properties %}
+        {% if prop.jumpscaletype.NAME == "jsobject" %}
+        d["{{prop.name}}"] = self.{{prop.alias}}._ddict_json
+        {% else %}
+        d["{{prop.name}}"] = {{prop.js_typelocation}}.toJSON(self.{{prop.alias}})
+        {% endif %}
+        {% endfor %}
+        {% for prop in obj.lists %}
+        d["{{prop.name}}"] = self._{{prop.alias}}.pylist(subobj_format="J")
+        {% endfor %}
+        if self.id is not None:
+            d["id"]=self.id
+        return d
+
 
     def _ddict_hr_get(self,exclude=[],maxsize=100):
         """
@@ -288,7 +316,7 @@ class ModelOBJ():
 
     @property
     def _json(self):
-        return j.data.serializers.json.dumps(self._ddict)
+        return j.data.serializers.json.dumps(self._ddict_json)
 
     @property
     def _msgpack(self):

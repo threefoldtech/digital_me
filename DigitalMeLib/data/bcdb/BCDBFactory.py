@@ -3,9 +3,11 @@ from Jumpscale import j
 
 from .BCDB import BCDB
 from .BCDBModel import BCDBModel
-from peewee import Model
+# from peewee import Model
+import gevent
 import os
 import sys
+import time
 
 JSBASE = j.application.JSBaseClass
 
@@ -16,14 +18,52 @@ class BCDBFactory(JSBASE):
         JSBASE.__init__(self)
         self.__jslocation__ = "j.data.bcdb"
         self._code_generation_dir = None
-        self.bcdb_instances = {}  #key is the namespace
+        self.bcdb_instances = {}  #key is the name
+        self.latest = None
 
-    def get(self, dbclient,namespace="default", reset=False, json_serialize=False,cache=True):
-        if not namespace in self.bcdb_instances or cache==False:
+    def get(self, name, dbclient=None,cache=True):
+        if dbclient is None:
+            dbclient = j.core.db
+        if not name in self.bcdb_instances or cache==False:
             if j.data.types.string.check(dbclient):
                 raise RuntimeError("zdbclient cannot be str")
-            self.bcdb_instances[namespace] = BCDB(dbclient,namespace=namespace,reset=reset,json_serialize=json_serialize)
-        return self.bcdb_instances[namespace]
+            self.bcdb_instances[name] = BCDB(dbclient=dbclient,name=name)
+            self.latest = self.bcdb_instances[name]
+        return self.bcdb_instances[name]
+
+    def redis_server_start(self,ipaddr="localhost",port=6380,background=False):
+        """
+        start a redis server on port 6380 on localhost only
+
+        you need to feed it with schema's
+
+        trick: use RDM to investigate (Redis Desktop Manager) to investigate DB.
+
+        js_shell "j.data.bcdb.redis_server_start(background=True)"
+
+
+        :return:
+        """
+
+        if background:
+            cmd = 'js_shell "j.data.bcdb.redis_server_start(ipaddr=\'%s\', port=%s)"'%(ipaddr,port)
+            j.tools.tmux.execute(
+                cmd,
+                session='main',
+                window='bcdb_server',
+                pane='main',
+                session_reset=False,
+                window_reset=True
+            )
+            j.sal.nettools.waitConnectionTest(ipaddr=ipaddr, port=port, timeoutTotal=5)
+            r = j.clients.redis.get(ipaddr=ipaddr, port=port)
+            assert r.ping()
+
+        else:
+            dbclient=j.core.db
+            bcdb=self.get("test",dbclient=dbclient)
+            bcdb.redis_server_start()
+
 
     @property
     def code_generation_dir(self):
@@ -46,10 +86,7 @@ class BCDBFactory(JSBASE):
         return j.sal.fs.getDirName(os.path.abspath(__file__))
 
 
-    def test(self,start=True):
-        """
-        js_shell 'j.data.bcdb.test(start=False)'
-        """
+    def _load_test_model(self,redis=False):
 
         schema = """
         @url = despiegk.test
@@ -69,16 +106,36 @@ class BCDBFactory(JSBASE):
         #pool_type = "managed,unmanaged" (E)  #NOT DONE FOR NOW
         """
 
+        if not redis:
+            db_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
+        else:
+            db_cl = j.core.db #fall back onto redis
+
+        bcdb = j.data.bcdb.get(name="test",dbclient=db_cl)
+        bcdb.reset()
+        model = bcdb.model_add_from_schema(schema)
+
+        return bcdb,model
+
+    def test(self,start=True):
+        """
+        js_shell 'j.data.bcdb.test(start=False)'
+        """
+        self.test1(start=start)
+        self.test2()
+        self.test3()
+        self.test4()
+        print ("ALL TESTS DONE OK FOR BCDB")
+
+    def test1(self,start=True):
+        """
+        js_shell 'j.data.bcdb.test1(start=False)'
+        """
 
         def load():
-    
-            db_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
-
-            # db_cl = j.core.db #fall back onto redis
 
 
-            db = j.data.bcdb.get(db_cl,namespace="test",reset=True)
-            model = db.model_create(schema=schema)
+            db,model = self._load_test_model()
 
 
             for i in range(10):
@@ -111,6 +168,7 @@ class BCDBFactory(JSBASE):
         m = db.model_get(url="despiegk.test")
         query = m.index.select()
         qres = [(item.name, item.nr) for item in query]
+
         assert qres == [('name0', 0),
              ('name1', 1),
              ('name2', 2),
@@ -142,9 +200,10 @@ class BCDBFactory(JSBASE):
         o = m.get(res.first().id)
         
         o.name = "name2"
-        assert o._changed_prop == False  # because data did not change, was already that data
+
+        assert o._changed_items == {}  # because data did not change, was already that data
         o.name = "name3"
-        assert o._changed_prop == True  # now it really changed
+        assert o._changed_items ==  {'name': 'name3'}  # now it really changed
 
         assert o._ddict["name"] == "name3"
 
@@ -184,14 +243,64 @@ class BCDBFactory(JSBASE):
     def test2(self, start=True):
         """
         js_shell 'j.data.bcdb.test2(start=False)'
+
+        this is a test where we use the queuing mechanism for processing data changes
+
+        """
+
+        db, m = self._load_test_model()
+
+        db.gevent_start()
+
+        def get_obj(i):
+            o = m.new()
+            o.nr = i
+            o.name= "somename%s"%i
+            return o
+
+        o = get_obj(1)
+
+        #should be empty
+        assert m.bcdb.queue.empty() == True
+
+        m.set(o)
+
+        o2 = m.get(o.id)
+        assert o2._data == o._data
+
+        #will process 1000 obj (set)
+        for x in range(1000):
+            m.set(get_obj(x))
+
+        #should be something in queue
+        assert m.bcdb.queue.empty() == False
+
+        #now make sure index processed and do a new get
+        m.index_ready()
+
+        o2 = m.get(o.id)
+        assert o2._data == o._data
+
+        assert m.bcdb.queue.empty()
+
+        j.shell()
+
+        # gevent.sleep(10000)
+
+        # print ("TEST2 DONE, but is still minimal")
+
+
+    def test3(self, start=True):
+        """
+        js_shell 'j.data.bcdb.test3(start=False)'
         """
 
         #make sure we remove the maybe already previously generated model file
         j.sal.fs.remove("%s/tests/models/bcdb_model_test.py"%self._path)
 
         zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
-        db = j.data.bcdb.get(zdb_cl)
-        db.index_create(reset=True)
+        db = j.data.bcdb.get(name="test",dbclient=zdb_cl)
+        db.reset_index()
 
         db.models_add("%s/tests"%self._path,overwrite=True)
 
@@ -210,4 +319,89 @@ class BCDBFactory(JSBASE):
 
         assert m.index.select().first().cost == 10.0  #is always in usd
 
-        print ("TEST2 DONE, but is still minimal")
+        print ("TEST3 DONE, but is still minimal")
+
+    def test4(self):
+        """
+        js_shell 'j.data.bcdb.test4()'
+
+        this is a test for the redis interface
+
+        """
+        self.redis_server_start(background=True)
+
+        r = j.clients.redis.get(ipaddr="localhost", port=6380)
+
+        S = """
+        @url = despiegk.test
+        llist2 = "" (LS)    
+        name* = ""    
+        email* = ""
+        nr* = 0
+        date_start* = 0 (D)
+        description = ""
+        token_price* = "10 USD" (N)
+        cost_estimate:hw_cost = 0.0 #this is a comment
+        llist = []
+        llist3 = "1,2,3" (LF)
+        llist4 = "1,2,3" (L)
+        """
+
+        r.delete("schemas:despiegk.test")
+        r.delete("objects:despiegk.test")
+        #there should be 0 objects
+        assert r.hlen("objects:despiegk.test") == 0
+
+        #there should be 0 schemas
+        assert r.hlen("schemas:despiegk.test") == 0
+        r.set("schemas:despiegk.test", S)
+        assert r.hlen("schemas:despiegk.test") == 1
+
+        s2=r.get("schemas:despiegk.test")
+        #test schemas are same
+        assert s2 == S
+
+        schema=j.data.schema.add(S)
+
+        def get_obj(i):
+            o = schema.new()
+            o.nr = i
+            o.name= "somename%s"%i
+            o.token_price = "10 EUR"
+            return o
+
+        r.set("schemas:despiegk.test", S)
+
+        assert r.hlen("schemas:despiegk.test") == 1
+        r.delete("schemas:despiegk.test")
+        assert r.hlen("schemas:despiegk.test") == 1 #schemas never get deleted but no error
+
+        for i in range(10):
+            print(i)
+            o = get_obj(i)
+            id = r.hset("objects:despiegk.test","new",o._json)
+
+        #there should be 10 items now there
+        assert r.hlen("objects:despiegk.test") == 10
+
+        assert r.delete("objects:despiegk.test:5") == 10
+        assert r.hlen("objects:despiegk.test:5") == 9
+        assert r.get("objects:despiegk.test:5") == None
+
+        print("GET")
+
+        json = r.get("objects:despiegk.test:1")
+        json2 = r.get("objects:despiegk.test:1")
+        assert json == json2
+
+        o.name="UPDATE"
+        r.set("objects:despiegk.test:1",o._json)
+        json3 = r.get("objects:despiegk.test:1")
+
+        assert json != json3 #should have been updated in db, so no longer same
+
+        j.shell()
+        o2 = s2.get(data=json3)
+        assert o2.name == "UPDATE"
+
+        j.shell()

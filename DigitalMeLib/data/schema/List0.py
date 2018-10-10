@@ -42,14 +42,23 @@ class List0(collections.MutableSequence):
             #means embedded objects, will expand the object
         return self._inner_list.__getitem__(index)
 
-    def pylist(self, ddict=True):
+    def pylist(self, subobj_format="D"):
         """
         python clean list
+
+        :param subobj_format, will be dict of J=DDICT_JSON, D=DDICT H=DDict_HR  representations of the object
         """
         if self.schema_property.pointer_type is None:
             return self._inner_list
         else:
-            return [item._ddict if ddict else item._ddict_hr for item in self._inner_list]
+            if subobj_format=="J":
+                return [item._ddict_json for item in self._inner_list]
+            elif subobj_format == "D":
+                return [item._ddict for item in self._inner_list]
+            elif subobj_format == "H":
+                return [item._ddict_hr for item in self._inner_list]
+            else:
+                raise RuntimeError("only support type J,D,H")
 
     def new(self,data=None):
         """
@@ -75,12 +84,12 @@ class List0(collections.MutableSequence):
         # issue #35 *REALLY* obscure bug, probably down to properties
         # being accessed in the wrong order (some cached, some not)
         # by ignoring self._pointer_schema and always re-generating
-        # using schema_get, the problem "goes away".
+        # using get, the problem "goes away".
         # definitely needs full investigation.
         if True or self._pointer_schema is None:
             if self.schema_property.pointer_type==None:
                 raise RuntimeError("can only be used when pointer_types used")
-            s =  j.data.schema.schema_get(url=self.schema_property.pointer_type)
+            s =  j.data.schema.get(url=self.schema_property.pointer_type)
             self._pointer_schema = s
         return self._pointer_schema
 

@@ -38,6 +38,23 @@ class RedisCommandParser(PythonParser):
         except ConnectionError as e:
             logger.error('Connection err %s' % e.args)
 
+    def request_to_dict(self,request):
+        # request.pop(0) #first one is command it self
+        key = None
+        res={}
+        for item in request:
+            item = item.decode()
+            if key is None:
+                key = item
+                continue
+            else:
+                key=key.lower()
+                res[key] = item
+                key=None
+        return res
+
+
+
 
 class RedisResponseWriter(object):
     """Writes data back to client as dictated by the Redis Protocol."""
@@ -50,6 +67,8 @@ class RedisResponseWriter(object):
             encoding_errors='strict',
             decode_responses=False
         )
+
+
 
     def encode(self, value):
         """Respond with data."""

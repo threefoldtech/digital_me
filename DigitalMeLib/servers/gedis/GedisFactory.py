@@ -134,7 +134,7 @@ class GedisFactory(JSConfigBase):
         # assert wallet_out1.addr == "testaddr"
         # print("[1] Done")
         print("[2] schema_in as inline schema with url")
-        wallet_schema = j.data.schema.schema_get("jumpscale.example.wallet")
+        wallet_schema = j.data.schema.get("jumpscale.example.wallet")
         wallet_in = wallet_schema.new()
         wallet_in.addr = "testaddr"
         wallet_in.jwt = "testjwt"

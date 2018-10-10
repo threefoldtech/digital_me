@@ -249,11 +249,17 @@ class Schema(JSBASE):
         return self._obj_class
 
     def get(self,data=None,capnpbin=None):
+        """
+
+        :param data:
+        :param capnpbin:
+        :param model: if a method given every change will call this method,
+                        can be used to implement autosave
+        :return:
+        """
         if data is None:
             data = {}
         obj =  self.objclass(schema=self,data=data,capnpbin=capnpbin)
-        # if (data is None or data=={}) and capnpbin is None:
-        #     obj._defaults_set()
         return obj
 
     def new(self):

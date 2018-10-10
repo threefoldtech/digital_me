@@ -8,7 +8,7 @@ SCHEMA="""
 {%- endif %}
 {%- if index.enable %}
 from peewee import *
-db = j.data.bcdb.bcdb_instances["{{bcdb.namespace}}"].sqlitedb
+db = j.data.bcdb.bcdb_instances["{{bcdb.name}}"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
@@ -24,11 +24,11 @@ class Index_{{schema.key}}(BaseModel):
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
-    def __init__(self, bcdb):
+    def __init__(self, bcdb, namespace):
         {%- if include_schema %}
-        MODEL_CLASS.__init__(self,bcdb=bcdb,schema=SCHEMA)
+        MODEL_CLASS.__init__(self,bcdb=bcdb,schema=SCHEMA,namespace=namespace)
         {%- else %}
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="{{schema.url}}")
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="{{schema.url}}", namespace=namespace)
         {%- endif %}
         self.url = "{{schema.url}}"
         {%- if index.enable %}

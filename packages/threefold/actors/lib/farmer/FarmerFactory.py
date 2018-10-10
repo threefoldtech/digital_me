@@ -124,127 +124,137 @@ class FarmerFactory(JSBASE):
         :param node: node from model threefold.grid.node
         :return: the populated node obj
         """
-        self._fail_save()
+
+        self._db_init() #makes sure db connection is ok
 
         if j.data.types.int.check(node):
             o = self.models.nodes.get(node)
         else:
             o = node
 
-        # def node_check(nodeid):
-
-
-
         if  o.update>j.data.time.epoch-3600 and reset==False:
             print("NOT NEEDED TO UPDATE:")
             print(o)
             return
 
-        o.sysadmin = False
-        o.error = ""
-        o.noderobot = False
-        o.sysadmin_up_ping = False
-        o.sysadmin_up_zos = False
-        o.tfdir_found = False
-        o.tfgrid_up_ping = False
+        def node_check(nodeid):
 
-        ipaddr = o.sysadmin_ipaddr
-
-        # PING TEST on sysadmin network
-        error = self._ping(ipaddr)
-        sysadmin_ping = error == ""
-
-        # ZOSCLIENT
-        zos = None
-        if sysadmin_ping:
-            try:
-                zos = j.clients.zos.get(data={"password_": self.jwt, "host": ipaddr},
-                                        instance="sysadmin_%s" % ipaddr)
-            except Exception as e:
-                if "Connection refused" in str(e):
-                    error = "connection refused zosclient"
-                else:
-                    error = str(e)
-
-        zos_ping = False
-        if zos != None:
-            try:
-                zos_ping = "PONG" in zos.client.ping()
-                o.sysadmin_up_last = j.data.time.epoch
-                o.sysadmin_up_zos = j.data.time.epoch
-            except Exception as e:
-                if "Connection refused" in str(e):
-                    zos_ping = False
-                    error = "connection refused ping"
-                else:
-                    error = str(e)
+            self.zdb = j.clients.zdb.testdb_server_start_client_get(reset=reset)
+            self._bcdb = j.data.bcdb.get(self.zdb, reset=reset)  # to make sure we reset the index
 
 
-        dir_item = self._tf_dir_node_find(ipaddr)
-        if dir_item != None and zos != None:
-            dir_item = self._tf_dir_node_find(id=zos.name)
+            o = self.models.nodes.get(nodeid)
 
-        if sysadmin_ping and zos_ping:
-            o.sysadmin = True
-            o.node_zos_id = zos.name#zos.client.info.os()['hostid']
+            o.sysadmin = False
+            o.error = ""
+            o.noderobot = False
+            o.sysadmin_up_ping = False
+            o.sysadmin_up_zos = False
+            o.tfdir_found = False
+            o.tfgrid_up_ping = False
+
+            ipaddr = o.sysadmin_ipaddr
+
+            # PING TEST on sysadmin network
+            error = self._ping(ipaddr)
+            sysadmin_ping = error == ""
+
+            # ZOSCLIENT
+            zos = None
+            if sysadmin_ping:
+                try:
+                    zos = j.clients.zos.get(data={"password_": self.jwt, "host": ipaddr},
+                                            instance="sysadmin_%s" % ipaddr)
+                except Exception as e:
+                    if "Connection refused" in str(e):
+                        error = "connection refused zosclient"
+                    else:
+                        error = str(e)
+
+            zos_ping = False
+            if zos != None:
+                try:
+                    zos_ping = "PONG" in zos.client.ping()
+                    o.sysadmin_up_last = j.data.time.epoch
+                    o.sysadmin_up_zos = j.data.time.epoch
+                except Exception as e:
+                    if "Connection refused" in str(e):
+                        zos_ping = False
+                        error = "connection refused ping"
+                    else:
+                        error = str(e)
+
+
+            dir_item = self._tf_dir_node_find(ipaddr)
+            if dir_item != None and zos != None:
+                dir_item = self._tf_dir_node_find(id=zos.name)
+
+            if sysadmin_ping and zos_ping:
+                o.sysadmin = True
+                o.node_zos_id = zos.name#zos.client.info.os()['hostid']
 
 
 
-        o.sysadmin_up_ping = sysadmin_ping
-        o.sysadmin_up_zos = zos_ping
-        if o.error is not "zerotier lost the connection to the node":
-            o.error = error
+            o.sysadmin_up_ping = sysadmin_ping
+            o.sysadmin_up_zos = zos_ping
+            if o.error is not "zerotier lost the connection to the node":
+                o.error = error
 
 
-        if dir_item is not None:
-            o.capacity_reserved.cru = dir_item["reserved_resources"]["cru"]
-            o.capacity_reserved.hru = dir_item["reserved_resources"]["hru"]
-            o.capacity_reserved.mru = dir_item["reserved_resources"]["mru"]
-            o.capacity_reserved.sru = dir_item["reserved_resources"]["sru"]
+            if dir_item is not None:
+                o.capacity_reserved.cru = dir_item["reserved_resources"]["cru"]
+                o.capacity_reserved.hru = dir_item["reserved_resources"]["hru"]
+                o.capacity_reserved.mru = dir_item["reserved_resources"]["mru"]
+                o.capacity_reserved.sru = dir_item["reserved_resources"]["sru"]
 
-            o.capacity_total.cru = dir_item["total_resources"]["cru"]
-            o.capacity_total.hru = dir_item["total_resources"]["hru"]
-            o.capacity_total.mru = dir_item["total_resources"]["mru"]
-            o.capacity_total.sru = dir_item["total_resources"]["sru"]
+                o.capacity_total.cru = dir_item["total_resources"]["cru"]
+                o.capacity_total.hru = dir_item["total_resources"]["hru"]
+                o.capacity_total.mru = dir_item["total_resources"]["mru"]
+                o.capacity_total.sru = dir_item["total_resources"]["sru"]
 
-            o.capacity_used.cru = dir_item["used_resources"]["cru"]
-            o.capacity_used.hru = dir_item["used_resources"]["hru"]
-            o.capacity_used.mru = dir_item["used_resources"]["mru"]
-            o.capacity_used.sru = dir_item["used_resources"]["sru"]
+                o.capacity_used.cru = dir_item["used_resources"]["cru"]
+                o.capacity_used.hru = dir_item["used_resources"]["hru"]
+                o.capacity_used.mru = dir_item["used_resources"]["mru"]
+                o.capacity_used.sru = dir_item["used_resources"]["sru"]
 
-            o.tfdir_found = True
+                o.tfdir_found = True
 
-            o.tfdir_up_last = dir_item["updated"]
+                o.tfdir_up_last = dir_item["updated"]
 
-            o.noderobot_ipaddr = dir_item["robot_address"]
+                o.noderobot_ipaddr = dir_item["robot_address"]
 
-            farmer = self.farmer_get_from_dir(dir_item["farmer_id"], return_none_if_not_exist=True)
-            if farmer != None:
-                o.farmer_id = farmer.id
-                o.farmer = True
+                farmer = self.farmer_get_from_dir(dir_item["farmer_id"], return_none_if_not_exist=True)
+                if farmer != None:
+                    o.farmer_id = farmer.id
+                    o.farmer = True
 
-            if "location" in dir_item:
-                o.location.city = dir_item["location"]["city"]
-                o.location.continent = dir_item["location"]["continent"]
-                o.location.country = dir_item["location"]["country"]
-                o.location.latitude = dir_item["location"]["latitude"]
-                o.location.longitude = dir_item["location"]["longitude"]
+                if "location" in dir_item:
+                    o.location.city = dir_item["location"]["city"]
+                    o.location.continent = dir_item["location"]["continent"]
+                    o.location.country = dir_item["location"]["country"]
+                    o.location.latitude = dir_item["location"]["latitude"]
+                    o.location.longitude = dir_item["location"]["longitude"]
 
-        robot = self.robot_get(o)
-        if robot != None:
-            if len(robot.templates.uids.keys()) >0 :
-                o.noderobot = True
-                o.noderobot_up_last = j.data.time.epoch
-                o.state = "OK"
+            robot = self.robot_get(o)
+            if robot != None:
+                if len(robot.templates.uids.keys()) >0 :
+                    o.noderobot = True
+                    o.noderobot_up_last = j.data.time.epoch
+                    o.state = "OK"
 
-        o.tfdir_up_last = ""
-        o.tf_dir_found = dir_item is not None
+            o.tfdir_up_last = ""
+            o.tf_dir_found = dir_item is not None
 
-        o.update = j.data.time.epoch  #last time this check was done
+            o.update = j.data.time.epoch  #last time this check was done
 
-        o = self.models.nodes.set(o)
+            # o = self.models.nodes.set(o)
+            j.shell()
+            w
 
-        print(o)
+            print(o)
+
+
+        j.servers.myjobs.schedule(node_check,o.id, return_queues=["node_check"])
 
     def robot_get(self,node):
         """
@@ -350,15 +360,20 @@ class FarmerFactory(JSBASE):
         do ping test over pub zerotier grid network
         :return:
         """
+        nr=0
         for item in j.clients.threefold_directory.capacity:
             node = self.node_get_from_tfdir(item["node_id"])
-
             self.node_check(node, reset=reset)
+            nr+=1
 
-    def _fail_save(self):
+        #like this we wait for all jobs
+        j.servers.myjobs.wait(queue_name="node_check", timeout=120, nr_items=nr)
+
+
+    def _db_init(self,reset=False):
         if self._bcdb == None:
             self.zdb = j.clients.zdb.testdb_server_start_client_get(reset=False)
-            self._bcdb = j.data.bcdb.get(self.zdb, reset=False)
+            self._bcdb = j.data.bcdb.get(self.zdb, reset=reset)
 
     def load(self, reset=False):
         """
@@ -369,9 +384,8 @@ class FarmerFactory(JSBASE):
         :param reset:
         :return:
         """
-        self.zdb = j.clients.zdb.testdb_server_start_client_get(reset=reset)
-        self._bcdb = j.data.bcdb.get(self.zdb, reset=reset)  # to make sure we reset the index
 
+        self._db_init(reset=reset)
 
         self.farmers_load()
         self.zerotier_scan(reset=reset)

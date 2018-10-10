@@ -157,35 +157,6 @@ class MyJobs(JSBASE):
         self.logger.debug("worker started:%s"%w.id)
         myworker(w.id,showout=True)
 
-    def _data_process(self,onetime=False):
-        while True:
-            #PROCESS DATA COMING BACK FROM WORKERS
-            #needs to happen like this because we cant operate sqlite index from 2 location
-            #because of this we also know data is never processed (written) elsewhere
-            d = self.queue_data.get_nowait()
-            while d != None:
-                # print(self.queue_data.qsize())
-                cat, id, data = j.data.serializers.msgpack.loads(d)
-                if cat=="W":
-                    #means is worker object
-                    worker=self.model_worker.schema.get(capnpbin=data)
-                    worker.id = id
-                    self.model_worker.set(worker)
-                    # self.logger.debug(worker)
-                elif cat=="J":
-                    #means is job object
-                    job=self.model_job.schema.get(capnpbin=data)
-                    job.id = id
-                    self.model_job.set(job)
-                    self.logger.debug(job)
-                else:
-                    raise RuntimeError("could not process returning data")
-                d = self.queue_data.get_nowait()
-
-            if onetime:
-                return
-
-            gevent.sleep(1) #important to not overload gedis
 
 
     def _main_loop(self):
@@ -231,7 +202,7 @@ class MyJobs(JSBASE):
                 if job_running:
                     job = self.model_job.get(w.current_job)
 
-                    if job.state != "OK" and j.data.time.epoch>job.time_start+job.timeout:
+                    if job !=None and job.state != "OK" and j.data.time.epoch>job.time_start+job.timeout:
                         #WE ARE IN TIMEOUT
                         # print("TIMEOUT")
                         # print(w)
@@ -291,7 +262,8 @@ class MyJobs(JSBASE):
 
 
 
-    def schedule(self,method,*args,category="", timeout=120, inprocess=False, return_queues=[], **kwargs):
+    def schedule(self,method,*args,category="", timeout=120, inprocess=False, return_queues=[],
+                 return_queues_reset=False, gevent=False, **kwargs):
         """
 
         :param method:
@@ -300,6 +272,8 @@ class MyJobs(JSBASE):
         :param timeout:
         :param inprocess:
         :param return_queues: the result job id will be posted on the specified return_queue names (error or ok)
+        :param return_queues_reset, if True will make sure the queues are empty
+        :param gevent: means return queues will not be kept in redis, but in gevent queues
         :param kwargs:
         :return:
         """
@@ -334,17 +308,58 @@ class MyJobs(JSBASE):
         job.category = category
         job.args = j.data.serializers.json.dumps(args)
         job.kwargs = j.data.serializers.json.dumps(kwargs)
-        for qname in return_queues:
-            job.return_queues.append(qname)
+        if not gevent:
+            for qname in return_queues:
+                job.return_queues.append(qname)
+                if return_queues_reset:
+                    q = j.clients.redis.getQueue(redisclient=j.clients.redis.core_get(), name="myjobs:%s" % queue_name)
+                    q.reset()
         job = self.model_job.set(job)
+
+        if gevent and return_queues != []:
+            # self.return_queues[job.id]
+            raise RuntimeError("need to implement")
 
         self.queue.put(job.id)
 
         return job.id
 
-    def wait(self,queue_name,timeout=0):
+    def result_queue_get(self,queue_name,timeout=10,nr_items=1):
+        """
+        wait for job to return on queue
+        :param queue_name:
+        :param timeout:
+        :param nr_items: will only return when nr of items equal min set, if more than 1 then as list
+        :return:
+        """
+        res=[]
+        if nr_items>1:
+            while True:
+                job = self.result_queue_get(queue_name=queue_name, timeout=timeout)
+                res.append(job)
+                if len(res)+1>nr_items:
+                    return res
+        else:
+            job = self.result_queue_get( queue_name=queue_name, timeout=timeout)
+        return job
+
+    def _result_queue_get(self,queue_name,timeout=10):
+        """
+        will wait for 1 entry to come in queue & will return it
+        :param queue_name:
+        :param timeout:
+        :return:
+        """
+        q=j.clients.redis.getQueue(redisclient=j.clients.redis.core_get(), name="myjobs:%s" % queue_name)
+        data = q.get(timeout=timeout)
+        if data is None:
+            raise RuntimeError("timeout on wait for queue:%s"%queue_name)
+        jid,data_ret=j.data.serializers.msgpack.loads(data)
         j.shell()
         w
+        job = self.model_job.schema.get(capnpbin=data_ret)
+        job.id = jid
+        return job
 
     def halt(self,graceful=True,reset=True):
 
@@ -401,6 +416,17 @@ class MyJobs(JSBASE):
         js_shell "j.servers.myjobs.test()"
         :return:
         """
+        self.test1()
+        self.test2()
+        self.test3()
+        print("TEST MYWORKERS FOR 3 TESTS DONE")
+
+
+    def test1(self):
+        """
+        js_shell "j.servers.myjobs.test1()"
+        :return:
+        """
 
         def kill():
             #kill leftovers from last time, if any
@@ -429,8 +455,7 @@ class MyJobs(JSBASE):
             import time
             time.sleep(2)
 
-        def use_jumpscale():
-            return j.data.serializers.json.dumps([1,2])
+
 
 
         #test the behaviour for 1 job in process, only gevent for data handling
@@ -508,12 +533,17 @@ class MyJobs(JSBASE):
         assert len(errors) == 1
 
         #test with publish_subscribe channels
-        j.servers.myjobs.schedule(add,1,2,return_queues=["myself"])
-        # j.servers.myjobs.schedule(use_jumpscale, publish_channel="mychannel")
-        j.shell()
-        o = j.servers.myjobs.wait("myself")
-        j.shell()
-        '[\n1,\n2\n]'
+        queue_name="myself"
+        q=j.clients.redis.getQueue(redisclient=j.clients.redis.core_get(), name="myjobs:%s" % queue_name)
+        q.reset() #lets make sure its empty
+
+        j.servers.myjobs.schedule(add,1,2,return_queues=[queue_name])
+        time.sleep(0.5)
+        assert q.qsize() == 1
+        job_return = j.servers.myjobs.wait("myself")
+        assert job_return.result == '3'
+        assert job_return.id == 11
+        assert job_return.state == 'OK'
 
         kill()
 
@@ -564,7 +594,7 @@ class MyJobs(JSBASE):
 
         self.halt(reset=True)
 
-        print ("TEST OK")
+        print ("TEST1 OK, ALL PASSED")
 
 
 
@@ -594,22 +624,34 @@ class MyJobs(JSBASE):
 
         self.halt(reset=True)
 
-    def test2_load(self):
+    def test3(self):
         """
-        js_shell "j.servers.myjobs.test2_load()"
+        js_shell "j.servers.myjobs.test3()"
         :return:
         """
         self.init(reset=True)
+        self.workers_nr_max= 100
 
-
-        def wait_2sec():
+        def wait_1sec():
             import time
-            time.sleep(2)
+            time.sleep(1)
             return "OK"
 
         ids=[]
-        for x in range(40):
-            ids.append(self.schedule(wait_2sec))
+        for x in range(100):
+            ids.append(self.schedule(wait_1sec))
 
         res = self.results(ids)
 
+        j.shell()
+
+    def test4(self):
+        """
+        js_shell "j.servers.myjobs.test2()"
+        :return:
+        """
+
+        def use_jumpscale():
+            return j.data.serializers.json.dumps([1,2])
+
+        self.result_queue_get()

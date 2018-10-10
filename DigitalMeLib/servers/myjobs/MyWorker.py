@@ -19,20 +19,19 @@ def myworker(id=999999,onetime=False,showout=False):
     queue_data = j.clients.redis.getQueue(redisclient=redisdb, name="myjobs_datachanges", fromcache=False)
 
     def return_data(cat, obj):
-        data = j.data.serializers.msgpack.dumps([cat, obj.id, obj._data])
+        data = j.data.serializers.msgpack.dumps([cat, obj.id, obj._json])
         queue_data.put(data)
 
     def return_job_obj(obj):
+        print("######")
         print(obj)
-        if obj.id>10:
-            j.shell()
-        if len(obj.return_queues)>0:
-            j.shell()
-        for queue_name in obj.return_queues:
-            j.shell()
-            queue = j.clients.redis.getQueue(redisclient=redisdb, name="myjobs:%s"%queue_name)
-            queue.put(obj.id)
+        print("######")
         return_data("J", obj)
+        for queue_name in obj.return_queues:
+            queue = j.clients.redis.getQueue(redisclient=redisdb, name="myjobs:%s"%queue_name)
+            data_out = j.data.serializers.msgpack.dumps([obj.id,obj._json])
+            queue.put(data_out)
+
 
     def return_worker_obj(obj):
         return_data("W", obj)
@@ -86,9 +85,9 @@ def myworker(id=999999,onetime=False,showout=False):
             return_worker_obj(w)
             job = model_job.get(id=jobid)
 
-            if job.id == 11:
-                j.shell()
-                w
+            # if job.id == 11:
+            #     j.shell()
+            #     w
 
             if job == None:
                 print("ERROR: job:%s not found"%jobid)
