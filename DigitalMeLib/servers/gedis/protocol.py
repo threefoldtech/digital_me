@@ -6,14 +6,13 @@ from redis.exceptions import ConnectionError
 logger = getLogger(__name__)
 
 
-
 class RedisCommandParser(PythonParser):
     """
     Parse the command send from the client
     """
 
     def __init__(self, socket, socket_read_size=8192
-    ):
+                 ):
         super(RedisCommandParser, self).__init__(
             socket_read_size=socket_read_size
         )
@@ -38,22 +37,20 @@ class RedisCommandParser(PythonParser):
         except ConnectionError as e:
             logger.error('Connection err %s' % e.args)
 
-    def request_to_dict(self,request):
+    def request_to_dict(self, request):
         # request.pop(0) #first one is command it self
         key = None
-        res={}
+        res = {}
         for item in request:
             item = item.decode()
             if key is None:
                 key = item
                 continue
             else:
-                key=key.lower()
+                key = key.lower()
                 res[key] = item
-                key=None
+                key = None
         return res
-
-
 
 
 class RedisResponseWriter(object):
@@ -68,11 +65,11 @@ class RedisResponseWriter(object):
             decode_responses=False
         )
 
-
-
     def encode(self, value):
         """Respond with data."""
-        if isinstance(value, int):
+        if value is None:
+            self._write('$-1\r\n')
+        elif isinstance(value, int):
             self._write(':%d\r\n' % value)
         elif isinstance(value, bool):
             self._write(':%d\r\n' % (1 if value else 0))
@@ -83,7 +80,7 @@ class RedisResponseWriter(object):
                 self._write('+%s\r\n' % value)
         elif isinstance(value, bytes):
             self._bulkbytes(value)
-        elif isinstance(value, list) and value and value[0]=="*REDIS*":
+        elif isinstance(value, list) and value and value[0] == "*REDIS*":
             self._array(value[1:])
         elif hasattr(value, '__repr__'):
             self._bulk(value.__repr__())
@@ -98,7 +95,7 @@ class RedisResponseWriter(object):
 
     def error(self, msg):
         """Send an error."""
-        print("###:%s"%msg)
+        print("###:%s" % msg)
         self._write("-ERR %s\r\n" % str(msg))
 
     def _bulk(self, value):
@@ -108,7 +105,7 @@ class RedisResponseWriter(object):
 
     def _array(self, value):
         """send an array."""
-        data2=self.__array(value)
+        data2 = self.__array(value)
         self._write(data2)
 
     def __array(self, value):
@@ -117,11 +114,10 @@ class RedisResponseWriter(object):
             if j.data.types.list.check(item):
                 data.append(self.__array(item))
             else:
-                data.append("+%s"%item)
+                data.append("+%s" % item)
             data.append("\r\n")
-        data2="".join(data)
+        data2 = "".join(data)
         return data2
-
 
     def _bulkbytes(self, value):
         data = [b"$", str(len(value)).encode(), b"\r\n", value, b"\r\n"]
