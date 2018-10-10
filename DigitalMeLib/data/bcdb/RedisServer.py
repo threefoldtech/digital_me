@@ -1,7 +1,7 @@
 from Jumpscale import j
 import json
 from gevent.pool import Pool
-from gevent import time,signal
+from gevent import time, signal
 import gevent
 from gevent.server import StreamServer
 from redis.exceptions import ConnectionError
@@ -17,7 +17,7 @@ class RedisServer(JSBASE):
         self._sig_handler = []
         self.logger_enable()
         self.host = "localhost"
-        self.port = 6380  #1 port higher than the std port
+        self.port = 6380  # 1 port higher than the std port
         self.ssl = False
 
     def init(self):
@@ -57,8 +57,6 @@ class RedisServer(JSBASE):
         self.logger.info('stopping server')
         self.redis_server.stop()
 
-
-
     def handle_redis(self, socket, address):
 
         parser = RedisCommandParser(socket)
@@ -80,7 +78,7 @@ class RedisServer(JSBASE):
         while True:
             request = parser.read_request()
 
-            self.logger.debug("%s:%s"%(socket.namespace,request))
+            self.logger.debug("%s:%s" % (socket.namespace, request))
 
             if request is None:
                 self.logger.debug("connection lost or tcp test")
@@ -93,7 +91,6 @@ class RedisServer(JSBASE):
 
             cmd = request[0]
             redis_cmd = cmd.decode("utf-8").lower()
-
 
             if redis_cmd == "command":
                 response.encode("OK")
@@ -120,73 +117,72 @@ class RedisServer(JSBASE):
             elif redis_cmd in ["hscan"]:
                 kwargs = parser.request_to_dict(request[3:])
                 if not hasattr(self, redis_cmd):
-                    raise  RuntimeError("COULD NOT FIND COMMAND:%s"%redis_cmd)
-                    response.error("COULD NOT FIND COMMAND:%s"%redis_cmd)
+                    raise RuntimeError("COULD NOT FIND COMMAND:%s" % redis_cmd)
+                    response.error("COULD NOT FIND COMMAND:%s" % redis_cmd)
                 else:
                     method = getattr(self, redis_cmd)
                     start_obj = int(request[2].decode())
                     key = request[1].decode()
-                    method(response,key, start_obj,**kwargs)
+                    method(response, key, start_obj, **kwargs)
                 continue
 
             else:
                 print(request)
                 kwargs = parser.request_to_dict(request)
                 arg = kwargs.pop(redis_cmd)
-                if redis_cmd=="del":
-                    redis_cmd="delete"
+                if redis_cmd == "del":
+                    redis_cmd = "delete"
                 if not hasattr(self, redis_cmd):
                     # raise  RuntimeError("COULD NOT FIND COMMAND:%s"%redis_cmd)
                     j.shell()
-                    response.error("COULD NOT FIND COMMAND:%s"%redis_cmd)
+                    response.error("COULD NOT FIND COMMAND:%s" % redis_cmd)
                 else:
                     method = getattr(self, redis_cmd)
-                    method(response,arg,**kwargs)
+                    method(response, arg, **kwargs)
                 continue
-
 
     def info(self):
         return b"NO INFO YET"
 
-    def _split(self,key):
-        splitted=key.split(":")
+    def _split(self, key):
+        splitted = key.split(":")
         m = ""
         if len(splitted) == 1:
-            cat=splitted[0]
+            cat = splitted[0]
             url = ""
             key = ""
-        elif len(splitted)==2:
-            cat=splitted[0]
+        elif len(splitted) == 2:
+            cat = splitted[0]
             url = splitted[1]
             key = ""
-        elif len(splitted)==2:
-            cat=splitted[0]
+        elif len(splitted) == 2:
+            cat = splitted[0]
             url = splitted[1]
             key = splitted[2]
         if url != "":
             if url in self.bcdb.models:
                 m = self.bcdb.model_get(url)
 
-        return (cat,url,key,m)
+        return (cat, url, key, m)
 
     def delete(self, response, key):
         cat, url, key, model = self._split(key)
         if url == "":
             response.encode("0")
             return
-        if cat=="schemas":
+        if cat == "schemas":
             response.encode("0")
             return
         elif cat == "objects":
-            if key=="":
-                #remove all items from model
+            if key == "":
+                # remove all items from model
                 j.shell()
             else:
-                #remove 1 item from model
+                # remove 1 item from model
                 j.shell()
 
         else:
-            response.error("cannot delete, cat:'%s' not found"%cat)
+            response.error("cannot delete, cat:'%s' not found" % cat)
 
     def hlen(self, response, key):
         cat, url, key, model = self._split(key)
@@ -217,14 +213,13 @@ class RedisServer(JSBASE):
             return
         elif cat == "objects":
             j.shell()
-            o=model.get(int(id))
+            o = model.get(int(id))
             response.encode(o._json)
             return
         else:
             j.shell()
 
-
-    def set(self,response,key,val):
+    def set(self, response, key, val):
         cat, url, key, model = self._split(key)
         if url == "":
             response.error("url needs to be known, otherwise cannot set e.g. objects:despiegk.test:new")
@@ -239,7 +234,7 @@ class RedisServer(JSBASE):
         else:
             j.shell()
 
-    def hset(self,response,key,val):
+    def hset(self, response, key, val):
         cat, url, key, model = self._split(key)
         if url == "":
             response.error("url needs to be known, otherwise cannot set e.g. objects:despiegk.test:new")
@@ -248,27 +243,27 @@ class RedisServer(JSBASE):
 
         if cat == "objects":
             j.shell()
-            if id=="new":
-                o=m.set_dynamic(val)
+            if id == "new":
+                o = m.set_dynamic(val)
             else:
-                id=int(key)
-                o = m.set_dynamic(val,obj_id=id)
-            response.encode("%s"%o.id)
+                id = int(key)
+                o = m.set_dynamic(val, obj_id=id)
+            response.encode("%s" % o.id)
             return
         else:
             j.shell()
 
-    def ttl(self,response,key):
+    def ttl(self, response, key):
         response.encode("-1")
 
-    def type(self,response,type):
+    def type(self, response, type):
         """
         :param type: is the key we need to give type for
         :return:
         """
         cat, url, key, model = self._split(type)
-        if key=="" and url!="":
-            #then its hset
+        if key == "" and url != "":
+            # then its hset
             response.encode("hash")
         else:
             response.encode("string")
@@ -277,11 +272,11 @@ class RedisServer(JSBASE):
         urls = [i for i in self.bcdb.models.keys()]
         return urls
 
-    def hscan(self,response,key,startid,count=10000):
+    def hscan(self, response, key, startid, count=10000):
         res = []
         response._array(["0", res])
 
-    def scan(self,response,startid,match='*',count=10000):
+    def scan(self, response, startid, match='*', count=10000):
         """
 
         :param scan: id to start from
@@ -289,22 +284,21 @@ class RedisServer(JSBASE):
         :param count: nr of items per page
         :return:
         """
-        #in first version will only do 1 page, so ignore scan
-        res=[]
+        # in first version will only do 1 page, so ignore scan
+        res = []
 
-        if len(self.bcdb.models)>0:
-            for url,model in self.bcdb.models.items():
-                res.append("schemas:%s"%url)
+        if len(self.bcdb.models) > 0:
+            for url, model in self.bcdb.models.items():
+                res.append("schemas:%s" % url)
                 res.append("objects:%s" % url)
         else:
             res.append("schemas")
             res.append("objects")
         res.append("info")
-        response._array(["0",res])
+        response._array(["0", res])
 
-
-    def info_internal(self,response):
-        C="""
+    def info_internal(self, response):
+        C = """
         # Server
         redis_version:4.0.11
         redis_git_sha1:00000000
@@ -325,13 +319,13 @@ class RedisServer(JSBASE):
         lru_clock:12104116
         executable:/Users/despiegk/redis-server
         config_file:
-        
+
         # Clients
         connected_clients:1
         client_longest_output_list:0
         client_biggest_input_buf:0
         blocked_clients:52
-        
+
         # Memory
         used_memory:11436720
         used_memory_human:10.91M
@@ -355,7 +349,7 @@ class RedisServer(JSBASE):
         mem_allocator:libc
         active_defrag_running:0
         lazyfree_pending_objects:0
-        
+
         # Persistence
         loading:0
         rdb_changes_since_last_save:66381
@@ -373,7 +367,7 @@ class RedisServer(JSBASE):
         aof_last_bgrewrite_status:ok
         aof_last_write_status:ok
         aof_last_cow_size:0
-        
+
         # Stats
         total_connections_received:627
         total_commands_processed:249830
@@ -401,7 +395,7 @@ class RedisServer(JSBASE):
         active_defrag_misses:0
         active_defrag_key_hits:0
         active_defrag_key_misses:0
-        
+
         # Replication
         role:master
         connected_slaves:0
@@ -413,18 +407,18 @@ class RedisServer(JSBASE):
         repl_backlog_size:1048576
         repl_backlog_first_byte_offset:0
         repl_backlog_histlen:0
-        
+
         # CPU
         used_cpu_sys:101.39
         used_cpu_user:64.27
         used_cpu_sys_children:0.00
         used_cpu_user_children:0.00
-        
+
         # Cluster
         cluster_enabled:0
-        
+
         # Keyspace
         # db0:keys=10000,expires=1,avg_ttl=7801480
         """
-        C=j.core.text.strip(C)
+        C = j.core.text.strip(C)
         response.encode(C)
