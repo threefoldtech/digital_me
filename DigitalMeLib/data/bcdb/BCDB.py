@@ -14,12 +14,13 @@ SCHEMA = """
 @url = jumpscale.bcdb.config
 cat = ""
 key = ""
-config = ""        
+config = ""
 """
 
+
 class BCDB(JSBASE):
-    
-    def __init__(self,name=None,dbclient=None):
+
+    def __init__(self, name=None, dbclient=None):
         JSBASE.__init__(self)
 
         if name is None or dbclient is None:
@@ -31,8 +32,8 @@ class BCDB(JSBASE):
             raise RuntimeError("name needs to be string")
 
         if dbclient:
-            if isinstance(dbclient,j.clients.redis._REDIS_CLIENT_CLASS) or isinstance(dbclient,StrictRedis):
-                dbclient.type = "RDB" #means is redis db
+            if isinstance(dbclient, j.clients.redis._REDIS_CLIENT_CLASS) or isinstance(dbclient, StrictRedis):
+                dbclient.type = "RDB"  # means is redis db
             else:
                 dbclient.type = "ZDB"
         self.dbclient = dbclient
@@ -47,8 +48,8 @@ class BCDB(JSBASE):
 
         self._models_add_cache = {}
 
-        cl=self.dbclient.namespace_get("default")
-        cl.meta #make sure record 0 has been set
+        cl = self.dbclient.namespace_get("default")
+        cl.meta  # make sure record 0 has been set
 
         for nsname in self.dbclient.namespaces_list():
             nsclient = self.dbclient.namespace_get(nsname)
@@ -56,11 +57,10 @@ class BCDB(JSBASE):
             try:
                 nsclient.meta
             except Exception as e:
-                raise RuntimeError("meta record (record0) wrongly structured of :%s"%nsclient.nsinfo)
+                raise RuntimeError("meta record (record0) wrongly structured of :%s" % nsclient.nsinfo)
 
-            #load models
+            # load models
             nsclient.meta.schemas_load()
-
 
     def redis_server_start(self):
 
@@ -76,7 +76,6 @@ class BCDB(JSBASE):
                 self.dbclient.delete(item)
         self.reset_index()
 
-
     def gevent_start(self):
         """
         will start a gevent loop and process the data in a greenlet
@@ -91,13 +90,13 @@ class BCDB(JSBASE):
         self.greenlet_data_processor = gevent.spawn(self._data_process)
 
     def _data_process(self):
-        #needs gevent loop to process incoming data
+        # needs gevent loop to process incoming data
 
         while True:
-            url,obj = self.queue.get()
+            url, obj = self.queue.get()
             m = self.models[url]
             if obj.id in m.objects_in_queue:
-                m._set(obj=obj,index=True) #now need to index, now only 1 greenlet can do the indexing
+                m._set(obj=obj, index=True)  # now need to index, now only 1 greenlet can do the indexing
                 m.objects_in_queue.pop(obj.id)
 
     @property
@@ -106,9 +105,9 @@ class BCDB(JSBASE):
 
             self._indexfile = j.sal.fs.joinPaths(self._data_dir, self.name + ".db")
             j.sal.fs.createDir(self._data_dir)
-            self.logger.debug("bcdb:indexdb:%s"%self._indexfile )
+            self.logger.debug("bcdb:indexdb:%s" % self._indexfile)
             try:
-                self._sqlitedb = SqliteDatabase(self._indexfile )
+                self._sqlitedb = SqliteDatabase(self._indexfile)
             except Exception as e:
                 j.shell()
         return self._sqlitedb
@@ -119,8 +118,7 @@ class BCDB(JSBASE):
     def model_get(self, url):
         if url in self.models:
             return self.models[url]
-        raise RuntimeError("could not find model for url:%s"%url)
-
+        raise RuntimeError("could not find model for url:%s" % url)
 
     def model_add(self, model):
         """
@@ -131,8 +129,7 @@ class BCDB(JSBASE):
         if isinstance(model, j.data.bcdb.MODEL_CLASS):
             self.models[model.schema.url] = model
 
-
-    def model_add_from_schema(self, schema, namespace=None, reload=False, dest=None,overwrite=True):
+    def model_add_from_schema(self, schema, namespace=None, reload=False, dest=None, overwrite=True):
         """
 
         :param schema: is schema object j.data.schema...
@@ -143,21 +140,20 @@ class BCDB(JSBASE):
         if not isinstance(schema, j.data.schema.SCHEMA_CLASS):
             raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
 
-
         if schema.md5 in self._models_add_cache and reload is False:
             return self._models_add_cache[schema.md5]
 
-        imodel = BCDBIndexModel(schema=schema) #model with info to generate
+        imodel = BCDBIndexModel(schema=schema)  # model with info to generate
         imodel.enable = True
         imodel.include_schema = True
-        tpath = "%s/templates/Model.py"%j.data.bcdb._path
+        tpath = "%s/templates/Model.py" % j.data.bcdb._path
 
-        key = j.core.text.strip_to_ascii_dense(schema.url).replace(".","_")
-        if dest==None:
+        key = j.core.text.strip_to_ascii_dense(schema.url).replace(".", "_")
+        if dest == None:
             dest = "%s/model_%s.py" % (j.data.bcdb.code_generation_dir, key)
 
         if overwrite or not j.sal.fs.exists(dest):
-            self.logger.debug("render model:%s"%dest)
+            self.logger.debug("render model:%s" % dest)
             if dest is None:
                 raise RuntimeError("cannot be None")
             j.tools.jinja2.file_render(tpath, write=True, dest=dest, schema=schema,
@@ -167,13 +163,11 @@ class BCDB(JSBASE):
 
         self._models_add_cache[schema.md5] = m
 
-        m.db.meta.schema_set(schema) #should always be the first record !
-
+        m.db.meta.schema_set(schema)  # should always be the first record !
 
         return m
 
-
-    def model_add_from_file(self,path, namespace=None):
+    def model_add_from_file(self, path, namespace=None):
         """
         add model to BCDB
         is path to python file
@@ -199,15 +193,15 @@ class BCDB(JSBASE):
             self.logger.debug("ok")
         except Exception as e:
             # j.shell()
-            raise RuntimeError("could not import module:%s in classpath:%s" % (modulename,path), e)
+            raise RuntimeError("could not import module:%s in classpath:%s" % (modulename, path), e)
 
-        model = model_module.Model(bcdb=self,namespace=namespace)
+        model = model_module.Model(bcdb=self, namespace=namespace)
 
         self.models[model.schema.url] = model
 
         return model
 
-    def models_add(self,path,namespace=None, overwrite=True):
+    def models_add(self, path, namespace=None, overwrite=True):
         """
         will walk over directory and each class needs to be a model
 
@@ -219,14 +213,12 @@ class BCDB(JSBASE):
 
         tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="*.toml", followSymlinks=True)
         for schemapath in tocheck:
-            dest = "%s/bcdb_model_%s.py"%(j.sal.fs.getDirName(schemapath),j.sal.fs.getBaseName(schemapath, True))
-            self.model_add_from_schema(schemapath,dest=dest,overwrite=overwrite,namespace=namespace)
+            dest = "%s/bcdb_model_%s.py" % (j.sal.fs.getDirName(schemapath), j.sal.fs.getBaseName(schemapath, True))
+            self.model_add_from_schema(schemapath, dest=dest, overwrite=overwrite, namespace=namespace)
 
         tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="*.py", followSymlinks=True)
         for classpath in tocheck:
             self.model_add_from_file(classpath)
-
-
 
     def destroy(self):
         """

@@ -58,7 +58,7 @@ class BCDBModel(JSBASE):
         pass
         # self.logger.info("build index done")
 
-    def destroy(self,die=True):
+    def destroy(self, die=True):
         """
         delete the index and all the items from the model
 
@@ -76,11 +76,11 @@ class BCDBModel(JSBASE):
             self.db.delete("bcdb:%s:lastid" % self.namespace)
             return delete_nr
         else:
-            myns= self.db.nsname #the namespace I want to remove
-            #need to check this database namespace is not used in other models.
-            for key,bcdbmodel in self.bcdb.models.items():
+            myns = self.db.nsname  # the namespace I want to remove
+            # need to check this database namespace is not used in other models.
+            for key, bcdbmodel in self.bcdb.models.items():
                 if bcdbmodel.namespace == self.namespace:
-                    #myself, go out
+                    # myself, go out
                     continue
                 if bcdbmodel.db.nsname == myns:
                     msg = "CANNOT DELETE THE NAMESPACE BECAUSE USED BY OTHER BCDBMODELS"
@@ -89,8 +89,8 @@ class BCDBModel(JSBASE):
                     else:
                         print(msg)
                         return
-            #now I am sure I can remove it
-            ns=self.db.zdbclient.namespace_get(self.namespace)
+            # now I am sure I can remove it
+            ns = self.db.zdbclient.namespace_get(self.namespace)
             secret = ns.secret
             nsname = ns.nsname
 
@@ -308,6 +308,8 @@ class BCDBModel(JSBASE):
 
         """
         def method_zdb(id, data, result0):
+            if id == 0:  # skip first metadata entry
+                return result0
             method_ = result0["method"]
             obj = self._unserialize(id, data)
             result0["result"] = method_(id=id, obj=obj, result=result0["result"])
