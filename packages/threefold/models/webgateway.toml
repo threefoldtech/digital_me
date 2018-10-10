@@ -4,15 +4,10 @@ name* = ""
 description = ""
 country = ""
 location = ""
-etcd_service_id = ""
-etcd_service_secret = ""
-coredns_service_id = ""
-coredns_service_secret = ""
-traefik_service_id = ""
-traefik_service_secret = ""
+etcd_host = ""
+etcd_port = ""
+etcd_secret = ""
 node_id = ""
 farmer_id = (I)
 pubip4 = [] (LS)
 pubip6 = [] (LS)
-
-

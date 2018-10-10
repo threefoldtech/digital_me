@@ -15,8 +15,18 @@ class CapacityPlanner(JSBASE):
 
     @staticmethod
     def get_robot(node):
-        j.clients.zrobot.get(instance=node.node_zos_id, data={"url": node.noderobot_ipaddr})
-        return j.clients.zrobot.robots[node.node_zos_id]
+        j.clients.zrobot.get(instance=node['node_zos_id'], data={"url": node['noderobot_ipaddr']})
+        return j.clients.zrobot.robots[node['node_zos_id']]
+
+    @staticmethod
+    def get_etcd_client(web_gateway):
+        etcd_data = {
+            "host": web_gateway.etcd_host,
+            "port": web_gateway.etcd_port,
+            "user": "root",
+            "password_": web_gateway.etcd_secret
+        }
+        return j.clients.etcd.get(web_gateway.name, data=etcd_data)
 
     def zos_reserve(self, node, vm_name, zerotier_token, memory=1024, cores=1, zerotier_network="", organization=""):
         """
@@ -43,7 +53,7 @@ class CapacityPlanner(JSBASE):
                                                     zerotier_token=zerotier_token, memory=memory, flist=flist,
                                                     cores=cores, zerotier_network=zerotier_network)
 
-        return node.noderobot_ipaddr, vm_service.data['secret'], ip_addresses, 6379
+        return node['noderobot_ipaddr'], vm_service.data['secret'], ip_addresses, 6379
 
     def ubuntu_reserve(self, node, vm_name, zerotier_token, memory=2048, cores=2, zerotier_network="", pub_ssh_key=""):
         """
@@ -72,7 +82,7 @@ class CapacityPlanner(JSBASE):
         vm_service, ip_addresses = self._vm_reserve(node=node, vm_name=vm_name, flist=flist,
                                                     zerotier_token=zerotier_token, zerotier_network=zerotier_network,
                                                     memory=memory, cores=cores, configs=configs)
-        return node.noderobot_ipaddr, vm_service.data['secret'], ip_addresses
+        return node['noderobot_ipaddr'], vm_service.data['secret'], ip_addresses
 
     def _vm_reserve(self, node, vm_name, zerotier_token, memory=128, cores=1, flist="", ipxe_url="",
                     zerotier_network="", configs=None):
@@ -138,9 +148,9 @@ class CapacityPlanner(JSBASE):
                 ip_addresses.append({"network_id": nic['id'], 'ip_address': nic.get('ip')})
 
         # Save reservation data
-        reservation = self.models.reservations.new()
-        reservation.secret = vm_service.data['secret']
-        reservation.node_service_id = vm_service.data['guid']
+        # reservation = self.models.reservations.new()
+        # reservation.secret = vm_service.data['secret']
+        # reservation.node_service_id = vm_service.data['guid']
         return vm_service, ip_addresses
 
     def vm_delete(self, node, vm_name):
@@ -152,6 +162,7 @@ class CapacityPlanner(JSBASE):
     def zdb_reserve(self, node, zdb_name, name_space, disk_type="ssd", disk_size=10, namespace_size=2, secret=""):
         """
         :param node: is the node obj from model
+        :param zdb_name: is the name for the zdb
         :param name_space: the first namespace name in 0-db
         :param disk_type: disk type of 0-db (ssd or hdd)
         :param disk_size: disk size of the 0-db in GB
@@ -176,7 +187,7 @@ class CapacityPlanner(JSBASE):
         reservation = self.models.reservations.new()
         reservation.secret = zdb_service.data['secret']
         reservation.node_service_id = zdb_service.data['guid']
-        return node.noderobot_ipaddr, zdb_service.data['secret'], ip_info
+        return node['noderobot_ipaddr'], zdb_service.data['secret'], ip_info
 
     def zdb_delete(self, node, zdb_name):
         robot = self.get_robot(node)
@@ -184,41 +195,68 @@ class CapacityPlanner(JSBASE):
         zdb_service.delete()
         return
 
-    def web_gateway_add_host(self, node, web_gateway, domain, backend_ip, backend_port, suffix=""):
+    def web_gateway_add_host(self, web_gateway, domain, backend_ip, backend_port):
         """
         Register new domain into web gateway
-        :param node: node object from node model
         :param web_gateway: web gateway object from web gateway model to be used to get services
         :param domain: the domain we need to register
         :param backend_ip: the vm/container ip that we need to forward to
         :param backend_port: the vm/container port that we need to forward to
-        :param suffix:
         :return: True if successfully added
         """
-        robot = self.get_robot(node)
-        coredns_service = robot.services.guids.get(web_gateway.coredns_service_id)
-        traefik_service = robot.services.guids.get(web_gateway.traefik_service_id)
-        if not coredns_service or not traefik_service:
-            return False
-        coredns_args = {"domain": domain, "ip": node.node_public_ip}
-        coredns_service.schecule_action("register_domain", args=coredns_args).wait(die=True)
-        traefik_args = {"domain": domain, "ip": backend_ip, "port": backend_port}
-        traefik_service.schecule_action("add_virtual_host", args=traefik_args).wait(die=True)
+        # Get etcd client
+        etcd_client = self.get_etcd_client(web_gateway)
+
+        # register the domain for coredns use
+        domain_parts = domain.split('.')
+        # The key for coredns should start with path(/hosts) and the domain reversed
+        # i.e. test.com => /hosts/com/test
+        key = "/hosts/{}".format("/".join(domain_parts[::-1]))
+        value = '{{"host":"{}","ttl":3600}}'.format(backend_ip)
+        etcd_client.put(key, value)
+
+        # register the domain for traefik use
+        # the name of frontend is frontend +  domain without dots
+        # i.e. test.com => frontendtestcom
+        # the same in backend using ip
+        backend_name = "backend{}{}".format(backend_ip.replace(".", ""), backend_port)
+        frontend_name = "frontend{}".format(domain.replace(".", ""))
+
+        backend_key = "/traefik/backends/{}/servers/server1/url".format(backend_name)
+        backend_value = "http://{}:{}".format(backend_ip, backend_port)
+        etcd_client.put(backend_key, backend_value)
+
+        frontend_key1 = "/traefik/frontends/{}/backend".format(frontend_name)
+        frontend_value1 = backend_name
+        etcd_client.put(frontend_key1, frontend_value1)
+
+        frontend_key2 = "/traefik/frontends/{0}/routes/{0}/rule".format(frontend_name)
+        frontend_value2 = "Host:{}".format(domain)
+        etcd_client.put(frontend_key2, frontend_value2)
+
         return True
 
-    def web_gateway_delete_host(self, node, web_gateway, domain):
+    def web_gateway_delete_host(self, web_gateway, domain):
         """
         delete a domain from web gateway
-        :param node: node object from node model
         :param web_gateway: web gateway object from web gateway model to be used to get services
         :param domain: the domain we need to delete
         """
-        robot = self.get_robot(node)
-        coredns_service = robot.services.guids.get(web_gateway.coredns_service_id)
-        traefik_service = robot.services.guids.get(web_gateway.traefik_service_id)
-        if not coredns_service or not traefik_service:
-            return False
-        args = {"domain": domain}
-        coredns_service.schecule_action("unregister_domain", args=args).wait(die=True)
-        traefik_service.schecule_action("delete_virtual_host", args=args).wait(die=True)
+        # Get etcd client
+        etcd_client = self.get_etcd_client(web_gateway)
+
+        # delete the domain from etcd
+        domain_parts = domain.split('.')
+        key = "/hosts/{}".format("/".join(domain_parts[::-1]))
+        etcd_client.delete(key)
+
+        # remove frontend from etcd
+        # the name of frontend is frontend +  domain without dots
+        # i.e. test.com => frontendtestcom
+        frontend_name = "frontend{}".format(domain.replace(".", ""))
+
+        frontend_key1 = "/traefik/frontends/{}/backend".format(frontend_name)
+        frontend_key2 = "/traefik/frontends/{0}/routes/{0}/rule".format(frontend_name)
+        etcd_client.delete(frontend_key1)
+        etcd_client.delete(frontend_key2)
         return

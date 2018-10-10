@@ -73,6 +73,21 @@ var singleChoiceGenerate = function(message, options){
     return contents;
 }
 
+var dropDownChoiceGenerate = function(message, options){
+    let choices = "";
+    $.each(options, function(i, value){
+        choices += `<option value="${value}">${value}</option>`;
+    });
+    let contents = `
+    <h4>${message}</h4>
+    <div class="form-group">
+        <select class="form-control" id="value">
+            ${choices}
+        </select>
+    </div>`;
+    return contents;
+}
+
 var addStep = function(){
     const currentStep = $(".f1-steps").children().length + 1;
 	const stepTemplate = `
@@ -118,6 +133,9 @@ var generateSlide = function(res) {
         case "single_choice":
             contents = singleChoiceGenerate(res['msg'], res['options'])
             break;
+        case "drop_down_choice":
+            contents = dropDownChoiceGenerate(res['msg'], res['options'])
+            break;
     }
 	contents = `
         <fieldset>
@@ -134,7 +152,7 @@ var generateSlide = function(res) {
         ev.preventDefault();
         $(this).attr("disabled", "disabled");
 		let value="";
-		if (["string_ask", "int_ask", "text_ask"].includes(res['cat'])) {
+		if (["string_ask", "int_ask", "text_ask", "drop_down_choice"].includes(res['cat'])) {
 			value = $("#value").val();
         } else if (res['cat'] === "single_choice"){
             value = $("input[name='value']:checked").val();

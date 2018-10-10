@@ -11,12 +11,14 @@ bash install.sh
 ```
 
 ### Running
+
 you can run Digital_me using `js_shell`
 ```bash
 js_shell 'j.servers.digitalme.start()'
 ```
 
 ### Packages
+
 DigitalMe already have some basic packages like (orderbook, dm_base, ..etc). 
 DigitalMe package must contain `dm_config.toml` file which contains some info about the package and can be enabled from there.
 

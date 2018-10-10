@@ -43,7 +43,7 @@ class BCDBTableMeta(JSBASE):
             if not isinstance(schema, j.data.schema.SCHEMA_CLASS):
                 raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
         #now we have the proper schema
-        
+
 
 
     def config_get(self,name):
