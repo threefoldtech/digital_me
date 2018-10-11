@@ -9,13 +9,13 @@ name* = ""
 description = ""
 country = ""
 location = ""
-etcd_url = ""
+etcd_host = ""
+etcd_port = ""
 etcd_secret = ""
+node_id = ""
 farmer_id = (I)
 pubip4 = [] (LS)
 pubip6 = [] (LS)
-
-
 
 """
 from peewee import *

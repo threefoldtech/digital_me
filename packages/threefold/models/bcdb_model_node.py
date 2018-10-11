@@ -8,6 +8,7 @@ SCHEMA="""
 
 node_zos_id* = ""               #zero os id of the host
 node_zerotier_id* = ""          #zerotier id
+node_public_ip = ""             #node public ip address
 
 description = ""
 

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Home</title>
+    <script src="/farmercharts/static/chart.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
+        crossorigin="" />
+    <link href="/farmercharts/static/bootstrap.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js" integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw=="
+        crossorigin=""></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt"
+        crossorigin="anonymous">
+    <link href="/farmercharts/static/main.css" rel="stylesheet">
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
+        crossorigin="anonymous"></script>
+    <script src="/farmercharts/static/generatemap.js" type="text/javaScript"></script>
+    <script src="/farmercharts/static/heatmap.min.js" type="text/javaScript"></script>
+    <script src="/farmercharts/static/leaflet-heatmap.js" type="text/javaScript"></script>
+
+    <script>
+        window.onload = function(){
+
+            var testData = {
+              max: {{max_count}},
+              data: [
+              {% for (latitude, longitude), count in heatmap_data.items() %}
+                    {lat: {{latitude}},lng: {{longitude}}, count: {{count}}},
+              {% endfor %}
+              ]
+            };
+
+            var baseLayer = L.tileLayer(
+              'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+                attribution: '...',
+                maxZoom: 18
+              }
+            );
+
+            var cfg = {
+
+              "radius": 2,
+              "maxOpacity": .8,
+
+              "scaleRadius": true,
+
+              "useLocalExtrema": false,
+
+              latField: 'lat',
+
+              lngField: 'lng',
+
+              valueField: 'count'
+            };
+
+
+            var heatmapLayer = new HeatmapOverlay(cfg);
+
+            var map = new L.Map('mapheatmap', {
+              center: new L.LatLng(0, 0),
+              zoom: 2,
+              layers: [baseLayer, heatmapLayer]
+            });
+
+            heatmapLayer.setData(testData);
+
+
+            var inputs = ["formMRU", "formCRU", "formSRU", "formHRU"];
+            inputs.forEach(function(id) {
+                var slider = document.getElementById(id);
+                var output = document.getElementById(id+"Value");
+                output.innerHTML = slider.value; // Display the default slider value
+
+                // Update the current slider value (each time you drag the slider handle)
+                slider.oninput = function() {
+                    output.innerHTML = this.value;
+                }
+            });
+        }
+        function select_node(id){
+            location.href = "node/" + id
+        }
+    </script>
+</head>
+<body>
+<div class="row">
+    <div class="col-md-8">
+        <div class="container">
+        <p class="float-right"><a href="https://threefoldfoundation.github.io/info_grid/#/">Threefold grid documentation</a></p>
+        <h2>Search for capacity</h2>
+        <form action="/" method="get">
+          <div class="form-group">
+              <label for="formCRU">Minimum <abbr title="CPU resource unit">CRU</abbr> : <span class="badge badge-pill badge-primary"><span id="formCRUValue">0</span> CPU</span></label>
+              <input class="form-control-range" id="formCRU" name="cru" value="0" step="1" type="range">
+          </div>
+          <div class="form-group">
+            <label for="formMRU">Minimum <abbr title="Memory resource unit">MRU</abbr> : <span class="badge badge-pill badge-primary"><span id="formMRUValue">0</span> GiB</span></label>
+            <input class="form-control-range" id="formMRU" name="mru" value="0" step="1" onchange="" type="range">
+          </div>
+          <div class="form-group">
+              <label for="formHRU">minimum <abbr title="HDD resource unit">HRU</abbr> : <span class="badge badge-pill badge-primary"><span id="formHRUValue">0</span> GiB</span></label>
+              <input class="form-control-range" id="formHRU" name="hru" value="0" step="1" max="5000" type="range">
+          </div>
+          <div class="form-group">
+              <label for="formSRU">minimum <abbr title="SSD resource unit">SRU</abbr> : <span class="badge badge-pill badge-primary"><span id="formSRUValue">0</span> GiB</span></label>
+              <input class="form-control-range" id="formSRU" name="sru" value="0" step="1" max="1000" type="range">
+          </div>
+          <div class="row">
+            <div class="form-group col-6">
+                <label for="formCountry">filter by country :</label>
+                <select class="form-control" id="formCountry" name="country">
+                  <option></option>
+                    {% for country in countries%}
+                        <option>{{country}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group col-6">
+                <label for="formFarmer">filter by farmer :</label>
+                <select class="form-control" id="formFarmer" name="farmer">
+                  <option></option>
+                    {% for farmer in farmers%}
+                        <option value="{{farmer.id}}">{{farmer.name}}</option>
+                    {% endfor %}
+
+                </select>
+            </div>
+          </div>
+          <div class="form-group">
+              <button type="submit" class="btn btn-primary">Search</button>
+              <a class="btn btn-secondary" href="#">Reset</a>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light mb-3">
+            <div class="card-header">Nodes Heatmap</div>
+            <div class="card-body">
+                <div id="mapheatmap" class="mapdiv" style="width: 100%; height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Node ID</th>
+      <th scope="col">Location</th>
+      <th scope="col">Farmer</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for node in nodes %}
+    <tr class="node-item" onclick="select_node({{node.id}})">
+      <th scope="row">{{node.id}}</th>
+      <td>{{node.node_zos_id}}</td>
+      <td>
+          <i class="far fa-map"></i>
+           {{node.location.continent}} > {{node.location.country}} > {{node.location.city}}
+      </td>
+      <td>{{node.farmer_id}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</body>
+</html>
