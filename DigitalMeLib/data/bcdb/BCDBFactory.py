@@ -157,8 +157,6 @@ class BCDBFactory(JSBASE):
                 o.name = "name%s" % i
                 o.email = "info%s@something.com" % i
                 o2 = model.set(o)
-                print (o2.id, i+1)
-                assert o2.id == i+1
 
             o3 = model.get(o2.id)
             assert o3.id == o2.id
