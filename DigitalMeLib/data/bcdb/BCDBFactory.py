@@ -21,13 +21,14 @@ class BCDBFactory(JSBASE):
         self.bcdb_instances = {}  #key is the name
         self.latest = None
 
-    def get(self, name, dbclient=None,cache=True):
-        if dbclient is None:
-            dbclient = j.core.db
+    def get(self, name, zdbclient=None,cache=True):
+        if zdbclient is None:
+            #now a generic client on zdb, but needs to become a sqlite version
+            zdbclient = j.clients.zdb.client_get(nsname="test", addr="localhost",port=9900,secret="1234",mode="seq")
         if not name in self.bcdb_instances or cache==False:
-            if j.data.types.string.check(dbclient):
+            if j.data.types.string.check(zdbclient):
                 raise RuntimeError("zdbclient cannot be str")
-            self.bcdb_instances[name] = BCDB(dbclient=dbclient,name=name)
+            self.bcdb_instances[name] = BCDB(zdbclient=zdbclient,name=name)
             self.latest = self.bcdb_instances[name]
         return self.bcdb_instances[name]
 
@@ -60,8 +61,8 @@ class BCDBFactory(JSBASE):
             assert r.ping()
 
         else:
-            dbclient = j.clients.zdb.testdb_server_start_client_get(reset=False)
-            bcdb=self.get("test",dbclient=dbclient)
+            zdbclient = j.clients.zdb.testdb_server_start_client_get(reset=False)
+            bcdb=self.get("test",zdbclient=zdbclient)
             bcdb.destroy()
             bcdb.redis_server_start()
 
@@ -87,7 +88,7 @@ class BCDBFactory(JSBASE):
         return j.sal.fs.getDirName(os.path.abspath(__file__))
 
 
-    def _load_test_model(self,redis=False):
+    def _load_test_model(self,reset=False,mode="seq"):
 
         schema = """
         @url = despiegk.test
@@ -107,12 +108,18 @@ class BCDBFactory(JSBASE):
         #pool_type = "managed,unmanaged" (E)  #NOT DONE FOR NOW
         """
 
-        if not redis:
-            db_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
-        else:
-            db_cl = j.core.db #fall back onto redis
+        server_db = j.servers.zdb.start_test_instance(reset=reset,mode=mode)
 
-        bcdb = j.data.bcdb.get(name="test",dbclient=db_cl)
+        j.shell()
+
+        # zdbclient_admin =
+        zdbclient_admin.namespace_new("test","1234")
+
+
+
+        j.shell()
+
+        bcdb = j.data.bcdb.get(name="test",zdbclient=zdbclient)
         bcdb.reset()
         schemaobj=j.data.schema.get(schema)
         model = bcdb.model_add_from_schema(schemaobj)
@@ -302,7 +309,7 @@ class BCDBFactory(JSBASE):
         j.sal.fs.remove("%s/tests/models/bcdb_model_test.py"%self._path)
 
         zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
-        db = j.data.bcdb.get(name="test",dbclient=zdb_cl)
+        db = j.data.bcdb.get(name="test",zdbclient=zdb_cl)
         db.reset_index()
 
         db.models_add("%s/tests"%self._path,overwrite=True)

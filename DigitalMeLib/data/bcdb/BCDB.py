@@ -9,34 +9,26 @@ from .BCDBIndexModel import BCDBIndexModel
 from .RedisServer import RedisServer
 import gevent
 from gevent import queue
-
-SCHEMA = """
-@url = jumpscale.bcdb.config
-cat = ""
-key = ""
-config = ""
-"""
-
+from JumpscaleLib.clients.zdb.ZDBClientBase import ZDBClientBase
 
 class BCDB(JSBASE):
 
-    def __init__(self, name=None, dbclient=None):
+    def __init__(self, name=None, zdbclient=None):
         JSBASE.__init__(self)
 
-        if name is None or dbclient is None:
-            raise RuntimeError("name and dbclient needs to be specified")
+        if name is None or zdbclient is None:
+            raise RuntimeError("name and zdbclient needs to be specified")
+
+        if not isinstance(zdbclient,ZDBClientBase):
+            raise RuntimeError("zdbclient needs to be type: JumpscaleLib.clients.zdb.ZDBClientBase")
 
         self.name = name
 
         if not j.data.types.string.check(self.name):
             raise RuntimeError("name needs to be string")
 
-        if dbclient:
-            if isinstance(dbclient, j.clients.redis._REDIS_CLIENT_CLASS) or isinstance(dbclient, StrictRedis):
-                dbclient.type = "RDB"  # means is redis db
-            else:
-                dbclient.type = "ZDB"
-        self.dbclient = dbclient
+        self.zdbclient = zdbclient
+        self.zdbclient.meta # make sure record 0 has been set
 
         self.models = {}
 
@@ -48,20 +40,20 @@ class BCDB(JSBASE):
 
         self._models_add_cache = {}
 
-        cl = self.dbclient.namespace_get("default")
-        cl.meta  # make sure record 0 has been set
+        self.zdbclient.meta.schemas_load()
 
-        for nsname in self.dbclient.namespaces_list():
-            j.shell()
-            nsclient = self.dbclient.namespace_get(nsname)
-
-            try:
-                nsclient.meta
-            except Exception as e:
-                raise RuntimeError("meta record (record0) wrongly structured of :%s" % nsclient.nsinfo)
-
-            # load models
-            nsclient.meta.schemas_load()
+        # #TODO:*1 kristof, need to find other namespaces
+        # for nsname in self.zdbclient.namespaces_list():
+        #     j.shell()
+        #     nsclient = self.zdbclient.namespace_get(nsname)
+        #
+        #     try:
+        #         nsclient.meta
+        #     except Exception as e:
+        #         raise RuntimeError("meta record (record0) wrongly structured of :%s" % nsclient.nsinfo)
+        #
+        #     # load models
+        #     nsclient.meta.schemas_load()
 
     def redis_server_start(self):
 
@@ -219,12 +211,12 @@ class BCDB(JSBASE):
         delete all objects in the zdb
         :return:
         """
-        self.dbclient.destroy()
+        self.zdbclient.destroy()
 
     def reset(self):
-        if self.dbclient.type == "ZDB":
-            self.dbclient.reset()
+        if self.zdbclient.type == "ZDB":
+            self.zdbclient.reset()
         else:
-            for item in self.dbclient.keys("bcdb:*"):
-                self.dbclient.delete(item)
+            for item in self.zdbclient.keys("bcdb:*"):
+                self.zdbclient.delete(item)
         self.reset_index()

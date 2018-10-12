@@ -5,10 +5,10 @@ import gevent
 JSBASE = j.application.JSBaseClass
 
 # is the base class for the model which gets generated from the template
-
+from JumpscaleLib.clients.zdb.ZDBClientBase import ZDBClientBase
 
 class BCDBModel(JSBASE):
-    def __init__(self, bcdb, url, namespace=None, index_enable=True):
+    def __init__(self, bcdb, url, zdbclient, index_enable=True):
         """
         for query example see http://docs.peewee-orm.com/en/latest/peewee/query_examples.html
 
@@ -29,18 +29,9 @@ class BCDBModel(JSBASE):
 
         self.is_config = False  # when used for config management
 
-        if namespace:
-            self.namespace = namespace
-        else:
-            self.namespace = j.core.text.strip_to_ascii_dense(self.schema.url).replace(".", "_")
+        if not isinstance(zdbclient,ZDBClientBase):
+            raise RuntimeError("zdbclient needs to be type: JumpscaleLib.clients.zdb.ZDBClientBase")
 
-        if self.bcdb.dbclient.type == "ZDB":
-            self.db = self.bcdb.dbclient.namespace_new(self.namespace)  # will check if it exists, if not create
-
-        else:
-            self.db = self.bcdb.dbclient
-
-        self.db.type = self.bcdb.dbclient.type
 
         self.db.meta
 
@@ -67,37 +58,31 @@ class BCDBModel(JSBASE):
         :return: return the number of item deleted
         :rtype: int
         """
-        delete_nr = 0
+
         self.index_delete()
-        if self.db.type == "RDB":
-            for key in self.db.hkeys("bcdb:%s:data" % self.namespace):
-                self.db.hdel("bcdb:%s:data" % self.namespace, key)
-                delete_nr += 1
-            self.db.delete("bcdb:%s:lastid" % self.namespace)
-            return delete_nr
-        else:
-            myns = self.db.nsname  # the namespace I want to remove
-            # need to check this database namespace is not used in other models.
-            for key, bcdbmodel in self.bcdb.models.items():
-                if bcdbmodel.namespace == self.namespace:
-                    # myself, go out
-                    continue
-                if bcdbmodel.db.nsname == myns:
-                    msg = "CANNOT DELETE THE NAMESPACE BECAUSE USED BY OTHER BCDBMODELS"
-                    if die:
-                        raise RuntimeError(msg)
-                    else:
-                        print(msg)
-                        return
-            # now I am sure I can remove it
-            ns = self.db.zdbclient.namespace_get(self.namespace)
-            secret = ns.secret
-            nsname = ns.nsname
+        myns = self.db.nsname  # the namespace I want to remove
 
-            self.db.zdbclient.namespace_delete(nsname)
-            self.db = self.bcdb.dbclient.namespace_new(self.namespace)
+        # need to check this database namespace is not used in other models.
+        for key, bcdbmodel in self.bcdb.models.items():
+            if bcdbmodel.namespace == self.namespace:
+                # myself, go out
+                continue
+            if bcdbmodel.db.nsname == myns:
+                msg = "CANNOT DELETE THE NAMESPACE BECAUSE USED BY OTHER BCDBMODELS"
+                if die:
+                    raise RuntimeError(msg)
+                else:
+                    print(msg)
+                    return
+        # now I am sure I can remove it
+        ns = self.db.zdbclient.namespace_get(self.namespace)
+        secret = ns.secret
+        nsname = ns.nsname
 
-            return 1
+        self.db.zdbclient.namespace_delete(nsname)
+        self.db = self.bcdb.zdbclient.namespace_new(self.namespace)
+
+        return 1
 
     def delete(self, obj_id):
         """
@@ -114,10 +99,7 @@ class BCDBModel(JSBASE):
             # will first dump to a queue, so we know its all processed by 1 greenlet and nothing more
             self.objects_in_queue.pop(obj_id)
 
-        if self.db.type == "ZDB":
-            self.db.delete(obj_id)
-        else:
-            self.db.hdel("bcdb:%s:data" % self.namespace, obj_id)
+        self.db.delete(obj_id)
 
         # TODO:*1 need to delete the part of index !!!
 
@@ -190,17 +172,11 @@ class BCDBModel(JSBASE):
         l = [acl, crc, signature, bdata]
         data = msgpack.packb(l)
 
-        if self.db.type == "ZDB":
-            if obj.id is None:
-                # means a new one
-                obj.id = self.db.set(data)
-            else:
-                self.db.set(data, key=obj.id)
+        if obj.id is None:
+            # means a new one
+            obj.id = self.db.set(data)
         else:
-            if obj.id is None:
-                # means a new one
-                obj.id = self.db.incr("bcdb:%s:lastid" % self.namespace)-1
-            self.db.hset("bcdb:%s:data" % self.namespace, obj.id, data)
+            self.db.set(data, key=obj.id)
 
         if index:
             self.index_set(obj)
@@ -252,10 +228,7 @@ class BCDBModel(JSBASE):
                 return obj._data
             return obj
 
-        if self.db.type == "ZDB":
-            data = self.db.get(id)
-        else:
-            data = self.db.hget("bcdb:%s:data" % self.namespace, id)
+        data = self.db.get(id)
 
         if not data:
             return None
@@ -315,32 +288,15 @@ class BCDBModel(JSBASE):
             result0["result"] = method_(id=id, obj=obj, result=result0["result"])
             return result0
 
-        if self.db.type == "ZDB":
-            result0 = {}
-            result0["result"] = result
-            result0["method"] = method
+        result0 = {}
+        result0["result"] = result
+        result0["method"] = method
 
-            result0 = self.db.iterate(method=method_zdb, key_start=key_start,
-                                      direction=direction, nrrecords=nrrecords,
-                                      _keyonly=_keyonly, result=result0)
+        result0 = self.db.iterate(method=method_zdb, key_start=key_start,
+                                  direction=direction, nrrecords=nrrecords,
+                                  _keyonly=_keyonly, result=result0)
 
-            return result0["result"]
-
-        else:
-            # WE IGNORE Nrrecords
-            if not direction == "forward":
-                raise RuntimeError("not implemented, only forward iteration supported")
-            keys = [int(item.decode()) for item in self.db.hkeys("bcdb:%s:data" % self.namespace)]
-            keys.sort()
-            if len(keys) == 0:
-                return result
-            if key_start == None:
-                key_start = keys[0]
-            for key in keys:
-                if key >= key_start:
-                    obj = self.get(id=key)
-                    result = method(id, obj, result)
-            return result
+        return result0["result"]
 
     def get_all(self):
         def do(id, obj, result):
