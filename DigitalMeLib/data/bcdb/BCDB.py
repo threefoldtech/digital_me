@@ -52,6 +52,7 @@ class BCDB(JSBASE):
         cl.meta  # make sure record 0 has been set
 
         for nsname in self.dbclient.namespaces_list():
+            j.shell()
             nsclient = self.dbclient.namespace_get(nsname)
 
             try:
@@ -68,13 +69,6 @@ class BCDB(JSBASE):
         self.redis_server.init()
         self.redis_server.start()
 
-    def reset(self):
-        if self.dbclient.type == "ZDB":
-            self.dbclient.reset()
-        else:
-            for item in self.dbclient.keys("bcdb:*"):
-                self.dbclient.delete(item)
-        self.reset_index()
 
     def gevent_start(self):
         """
@@ -226,3 +220,11 @@ class BCDB(JSBASE):
         :return:
         """
         self.dbclient.destroy()
+
+    def reset(self):
+        if self.dbclient.type == "ZDB":
+            self.dbclient.reset()
+        else:
+            for item in self.dbclient.keys("bcdb:*"):
+                self.dbclient.delete(item)
+        self.reset_index()

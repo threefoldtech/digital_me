@@ -31,7 +31,7 @@ class BCDBFactory(JSBASE):
             self.latest = self.bcdb_instances[name]
         return self.bcdb_instances[name]
 
-    def redis_server_start(self,ipaddr="localhost",port=6380,background=False):
+    def redis_server_start(self,ipaddr="localhost",port=6380,background=False,dbreset=False):
         """
         start a redis server on port 6380 on localhost only
 
@@ -62,6 +62,7 @@ class BCDBFactory(JSBASE):
         else:
             dbclient = j.clients.zdb.testdb_server_start_client_get(reset=False)
             bcdb=self.get("test",dbclient=dbclient)
+            bcdb.destroy()
             bcdb.redis_server_start()
 
 
@@ -329,7 +330,7 @@ class BCDBFactory(JSBASE):
 
         this is a test for the redis interface
         """
-        self.redis_server_start(port=6380, background=True)
+        self.redis_server_start(port=6380, background=True, dbreset=True)
         r = j.clients.redis.get(ipaddr="localhost", port=6380)
 
         S = """
@@ -412,6 +413,7 @@ class BCDBFactory(JSBASE):
         #restart redis lets see if schema's are there autoloaded
         self.redis_server_start(port=6380, background=True)
         r = j.clients.redis.get(ipaddr="localhost", port=6380)
+        j.shell()
         assert r.hlen("objects:despiegk.test") == 8
 
         print("clean up database")
