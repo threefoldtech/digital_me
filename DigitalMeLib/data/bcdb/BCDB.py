@@ -11,6 +11,7 @@ import gevent
 from gevent import queue
 from JumpscaleLib.clients.zdb.ZDBClientBase import ZDBClientBase
 
+
 class BCDB(JSBASE):
 
     def __init__(self, name=None, zdbclient=None):
@@ -19,7 +20,7 @@ class BCDB(JSBASE):
         if name is None or zdbclient is None:
             raise RuntimeError("name and zdbclient needs to be specified")
 
-        if not isinstance(zdbclient,ZDBClientBase):
+        if not isinstance(zdbclient, ZDBClientBase):
             raise RuntimeError("zdbclient needs to be type: JumpscaleLib.clients.zdb.ZDBClientBase")
 
         self.name = name
@@ -28,7 +29,7 @@ class BCDB(JSBASE):
             raise RuntimeError("name needs to be string")
 
         self.zdbclient = zdbclient
-        self.zdbclient.meta # make sure record 0 has been set
+        self.zdbclient.meta  # make sure record 0 has been set
 
         self.models = {}
 
@@ -60,7 +61,6 @@ class BCDB(JSBASE):
         self.redis_server = RedisServer(bcdb=self)
         self.redis_server.init()
         self.redis_server.start()
-
 
     def gevent_start(self):
         """
@@ -190,9 +190,7 @@ class BCDB(JSBASE):
     def models_add(self, path, namespace=None, overwrite=True):
         """
         will walk over directory and each class needs to be a model
-
         when overwrite used it will overwrite the generated models (careful)
-
         :param path:
         :return: None
         """
@@ -205,4 +203,3 @@ class BCDB(JSBASE):
         tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="*.py", followSymlinks=True)
         for classpath in tocheck:
             self.model_add_from_file(classpath)
-

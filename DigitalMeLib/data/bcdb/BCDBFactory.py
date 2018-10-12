@@ -17,6 +17,7 @@ class BCDBFactory(JSBASE):
     def __init__(self):
         JSBASE.__init__(self)
         self.__jslocation__ = "j.data.bcdb"
+        self._path = j.sal.fs.getDirName(os.path.abspath(__file__))
         self._code_generation_dir = None
         self.bcdb_instances = {}  #key is the name
         self.latest = None
@@ -82,11 +83,6 @@ class BCDBFactory(JSBASE):
     @property
     def MODEL_CLASS(self):
         return BCDBModel
-
-    @property
-    def _path(self):
-        return j.sal.fs.getDirName(os.path.abspath(__file__))
-
 
     def _load_test_model(self,reset=True,mode="seq"):
 
