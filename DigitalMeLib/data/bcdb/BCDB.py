@@ -115,7 +115,7 @@ class BCDB(JSBASE):
         if isinstance(model, j.data.bcdb.MODEL_CLASS):
             self.models[model.schema.url] = model
 
-    def model_add_from_schema(self, schema, namespace=None, reload=False, dest=None, overwrite=True):
+    def model_add_from_schema(self, schema, zdbclient, reload=False, dest=None, overwrite=True):
         """
 
         :param schema: is schema object j.data.schema...
@@ -145,15 +145,15 @@ class BCDB(JSBASE):
             j.tools.jinja2.file_render(tpath, write=True, dest=dest, schema=schema,
                                        schema_text=schema.text, bcdb=self, index=imodel)
 
-        m = self.model_add_from_file(dest, namespace=namespace)
+        m = self.model_add_from_file(dest, zdbclient=zdbclient)
 
         self._models_add_cache[schema.md5] = m
 
-        m.db.meta.schema_set(schema)  # should always be the first record !
+        m.zdbclient.meta.schema_set(schema)  # should always be the first record !
 
         return m
 
-    def model_add_from_file(self, path, namespace=None):
+    def model_add_from_file(self, path, zdbclient):
         """
         add model to BCDB
         is path to python file
@@ -181,7 +181,7 @@ class BCDB(JSBASE):
             # j.shell()
             raise RuntimeError("could not import module:%s in classpath:%s" % (modulename, path), e)
 
-        model = model_module.Model(bcdb=self, namespace=namespace)
+        model = model_module.Model(bcdb=self, zdbclient=zdbclient)
 
         self.models[model.schema.url] = model
 
@@ -206,17 +206,3 @@ class BCDB(JSBASE):
         for classpath in tocheck:
             self.model_add_from_file(classpath)
 
-    def destroy(self):
-        """
-        delete all objects in the zdb
-        :return:
-        """
-        self.zdbclient.destroy()
-
-    def reset(self):
-        if self.zdbclient.type == "ZDB":
-            self.zdbclient.reset()
-        else:
-            for item in self.zdbclient.keys("bcdb:*"):
-                self.zdbclient.delete(item)
-        self.reset_index()

@@ -33,7 +33,8 @@ class BCDBModel(JSBASE):
             raise RuntimeError("zdbclient needs to be type: JumpscaleLib.clients.zdb.ZDBClientBase")
 
 
-        self.db.meta
+        self.zdbclient = zdbclient
+        self.zdbclient.meta
 
         self.index_enable = index_enable
         self.autosave = False  # if set it will make sure data is automatically set from object
@@ -60,7 +61,7 @@ class BCDBModel(JSBASE):
         """
 
         self.index_delete()
-        myns = self.db.nsname  # the namespace I want to remove
+        myns = self.zdbclient.nsname  # the namespace I want to remove
 
         # need to check this database namespace is not used in other models.
         for key, bcdbmodel in self.bcdb.models.items():
@@ -75,12 +76,12 @@ class BCDBModel(JSBASE):
                     print(msg)
                     return
         # now I am sure I can remove it
-        ns = self.db.zdbclient.namespace_get(self.namespace)
+        ns = self.zdbclient.zdbclient.namespace_get(self.namespace)
         secret = ns.secret
         nsname = ns.nsname
 
-        self.db.zdbclient.namespace_delete(nsname)
-        self.db = self.bcdb.zdbclient.namespace_new(self.namespace)
+        self.zdbclient.zdbclient.namespace_delete(nsname)
+        self.zdbclient = self.bcdb.zdbclient.namespace_new(self.namespace)
 
         return 1
 
@@ -99,7 +100,7 @@ class BCDBModel(JSBASE):
             # will first dump to a queue, so we know its all processed by 1 greenlet and nothing more
             self.objects_in_queue.pop(obj_id)
 
-        self.db.delete(obj_id)
+        self.zdbclient.delete(obj_id)
 
         # TODO:*1 need to delete the part of index !!!
 
@@ -174,9 +175,9 @@ class BCDBModel(JSBASE):
 
         if obj.id is None:
             # means a new one
-            obj.id = self.db.set(data)
+            obj.id = self.zdbclient.set(data)
         else:
-            self.db.set(data, key=obj.id)
+            self.zdbclient.set(data, key=obj.id)
 
         if index:
             self.index_set(obj)
@@ -228,7 +229,7 @@ class BCDBModel(JSBASE):
                 return obj._data
             return obj
 
-        data = self.db.get(id)
+        data = self.zdbclient.get(id)
 
         if not data:
             return None
@@ -292,7 +293,7 @@ class BCDBModel(JSBASE):
         result0["result"] = result
         result0["method"] = method
 
-        result0 = self.db.iterate(method=method_zdb, key_start=key_start,
+        result0 = self.zdbclient.iterate(method=method_zdb, key_start=key_start,
                                   direction=direction, nrrecords=nrrecords,
                                   _keyonly=_keyonly, result=result0)
 

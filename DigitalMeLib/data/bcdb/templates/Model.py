@@ -24,11 +24,11 @@ class Index_{{schema.key}}(BaseModel):
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
-    def __init__(self, bcdb, namespace):
+    def __init__(self, bcdb, zdbclient):
         {%- if include_schema %}
-        MODEL_CLASS.__init__(self,bcdb=bcdb,schema=SCHEMA,namespace=namespace)
+        MODEL_CLASS.__init__(self,bcdb=bcdb,schema=SCHEMA,zdbclient=zdbclient)
         {%- else %}
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="{{schema.url}}", namespace=namespace)
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="{{schema.url}}", zdbclient=zdbclient)
         {%- endif %}
         self.url = "{{schema.url}}"
         {%- if index.enable %}
