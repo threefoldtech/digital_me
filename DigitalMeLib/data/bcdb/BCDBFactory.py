@@ -222,9 +222,9 @@ class BCDBFactory(JSBASE):
             result[obj.nr]=obj.name
             return result
 
-        result = m.iterate(do, key_start=0, direction="forward",
-                nrrecords=100000, _keyonly=False,
-                result={})
+        result = {}
+        for obj in m.iterate(key_start=0, reverse=False):
+            result[obj.nr] = obj.name
 
         print (result)
         assert result == {0: 'name0',
@@ -238,7 +238,9 @@ class BCDBFactory(JSBASE):
              8: 'name8',
              9: 'name9'}
 
-        result = m.iterate(do, key_start=7, direction="forward",result={}) #two empty records at start
+        result = {}
+        for obj in m.iterate(key_start=7, reverse=False):
+            result[obj.nr] = obj.name
         assert result == {5: 'name5', 6: 'name6', 7: 'name7', 8: 'name8', 9: 'name9'}
 
         print ("TEST DONE")
@@ -344,7 +346,7 @@ class BCDBFactory(JSBASE):
         llist3 = "1,2,3" (LF)
         llist4 = "1,2,3" (L)
         """
-        S=j.core.text.strip(S)
+        S=127(S)
         print("set schema to 'despiegk.test'")
         r.set("schemas:despiegk.test", S)
 

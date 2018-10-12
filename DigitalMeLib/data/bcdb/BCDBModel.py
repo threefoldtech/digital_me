@@ -7,6 +7,7 @@ JSBASE = j.application.JSBaseClass
 # is the base class for the model which gets generated from the template
 from JumpscaleLib.clients.zdb.ZDBClientBase import ZDBClientBase
 
+
 class BCDBModel(JSBASE):
     def __init__(self, bcdb, url, zdbclient, index_enable=True):
         """
@@ -29,9 +30,8 @@ class BCDBModel(JSBASE):
 
         self.is_config = False  # when used for config management
 
-        if not isinstance(zdbclient,ZDBClientBase):
+        if not isinstance(zdbclient, ZDBClientBase):
             raise RuntimeError("zdbclient needs to be type: JumpscaleLib.clients.zdb.ZDBClientBase")
-
 
         self.zdbclient = zdbclient
         self.zdbclient.meta
@@ -262,48 +262,29 @@ class BCDBModel(JSBASE):
             obj.model = self
             return obj
 
-    def iterate(self, method, key_start=None, direction="forward",
-                nrrecords=100000, _keyonly=False,
-                result=None):
-        """walk over the data and apply method as follows
-
-        call for each item:
-            '''
-            for each:
-                result = method(id,obj,result)
-            '''
-        result is the result of the previous call to the method
-
-        Arguments:
-            method {python method} -- will be called for each item found in the file
-
-        Keyword Arguments:
-            key_start is the start key, if not given will be start of database when direction = forward, else end
-
+    def iterate(self, key_start=None, reverse=False, keyonly=False):
         """
-        def method_zdb(id, data, result0):
-            if id == 0:  # skip first metadata entry
-                return result0
-            method_ = result0["method"]
+        walk over all the namespace and yield each object in the database
+
+        :param key_start: if specified start to walk from that key instead of the first one, defaults to None
+        :param key_start: str, optional
+        :param reverse: decide how to walk the namespace
+                if False, walk from older to newer keys
+                if True walk from newer to older keys
+                defaults to False
+        :param reverse: bool, optional
+        :param keyonly: [description], defaults to False
+        :param keyonly: bool, optional
+        :raises e: [description]
+        """
+        for key, data in self.zdbclient.iterate(key_start=key_start, reverse=reverse, keyonly=keyonly):
+            if key == 0:  # skip first metadata entry
+                continue
             obj = self._unserialize(id, data)
-            result0["result"] = method_(id=id, obj=obj, result=result0["result"])
-            return result0
-
-        result0 = {}
-        result0["result"] = result
-        result0["method"] = method
-
-        result0 = self.zdbclient.iterate(method=method_zdb, key_start=key_start,
-                                  direction=direction, nrrecords=nrrecords,
-                                  _keyonly=_keyonly, result=result0)
-
-        return result0["result"]
+            yield obj
 
     def get_all(self):
-        def do(id, obj, result):
-            result.append(obj)
-            return result
-        return self.iterate(do, result=[])
+        return [obj for obj in self.iterate()]
 
     def __str__(self):
         out = "model:%s\n" % self.namespace
