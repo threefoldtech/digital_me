@@ -84,7 +84,7 @@ class BCDBFactory(JSBASE):
     def MODEL_CLASS(self):
         return BCDBModel
 
-    def _load_test_model(self,reset=True,mode="seq"):
+    def _load_test_model(self,reset=True):
 
         schema = """
         @url = despiegk.test
@@ -121,19 +121,19 @@ class BCDBFactory(JSBASE):
 
         return bcdb,model
 
-    def test(self,start=True):
+    def test(self):
         """
-        js_shell 'j.data.bcdb.test(start=True)'
+        js_shell 'j.data.bcdb.test()'
         """
-        self.test1(start=start)
+        self.test1()
         self.test2()
         # self.test3()
         # self.test4()
         print ("ALL TESTS DONE OK FOR BCDB")
 
-    def test1(self,start=True):
+    def test1(self):
         """
-        js_shell 'j.data.bcdb.test1(start=False)'
+        js_shell 'j.data.bcdb.test1()'
         """
 
         def load():
@@ -245,9 +245,9 @@ class BCDBFactory(JSBASE):
 
         print ("TEST DONE")
 
-    def test2(self, start=True):
+    def test2(self):
         """
-        js_shell 'j.data.bcdb.test2(start=False)'
+        js_shell 'j.data.bcdb.test2()'
 
         this is a test where we use the queuing mechanism for processing data changes
 
@@ -268,6 +268,7 @@ class BCDBFactory(JSBASE):
         #should be empty
         assert m.bcdb.queue.empty() == True
 
+        j.shell()
         m.set(o)
 
         o2 = m.get(o.id)
