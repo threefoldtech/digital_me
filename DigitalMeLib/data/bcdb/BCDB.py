@@ -8,9 +8,11 @@ from redis import StrictRedis
 from .BCDBIndexModel import BCDBIndexModel
 from .RedisServer import RedisServer
 import gevent
+from gevent.event import Event
+from .BCDBDecorator import *
 from gevent import queue
 from JumpscaleLib.clients.zdb.ZDBClientBase import ZDBClientBase
-
+import gevent
 
 class BCDB(JSBASE):
 
@@ -33,28 +35,22 @@ class BCDB(JSBASE):
 
         self.models = {}
 
-        self.gevent_data_processing = False
-        self.greenlet_data_processor = None
-
         self._sqlitedb = None
         self._data_dir = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb")
 
         self._models_add_cache = {}
 
+        self.logger_enable()
+
         self.zdbclient.meta.schemas_load()
 
-        # #TODO:*1 kristof, need to find other namespaces
-        # for nsname in self.zdbclient.namespaces_list():
-        #     j.shell()
-        #     nsclient = self.zdbclient.namespace_get(nsname)
-        #
-        #     try:
-        #         nsclient.meta
-        #     except Exception as e:
-        #         raise RuntimeError("meta record (record0) wrongly structured of :%s" % nsclient.nsinfo)
-        #
-        #     # load models
-        #     nsclient.meta.schemas_load()
+        self.results={}
+        self.results_id = 0
+
+        self.dataprocessor_greenlet = None
+        self.dataprocessor_start()
+
+        self.logger.info("BCDB INIT DONE:%s"%self.name)
 
     def redis_server_start(self):
 
@@ -62,7 +58,17 @@ class BCDB(JSBASE):
         self.redis_server.init()
         self.redis_server.start()
 
-    def gevent_start(self):
+    def _data_process(self):
+        # needs gevent loop to process incoming data
+
+        while True:
+            method, args, kwargs, event, returnid = self.queue.get()
+            res = method(*args,**kwargs)
+            if returnid:
+                self.results[returnid]=res
+            event.set()
+
+    def dataprocessor_start(self):
         """
         will start a gevent loop and process the data in a greenlet
 
@@ -71,27 +77,61 @@ class BCDB(JSBASE):
 
         :return:
         """
-        self.gevent_data_processing = True
-        self.queue = gevent.queue.Queue()
-        self.greenlet_data_processor = gevent.spawn(self._data_process)
+        if self.dataprocessor_greenlet is None:
+            self.sqlitedb
+            self.queue = gevent.queue.Queue()
+            self.dataprocessor_greenlet = gevent.spawn(self._data_process)
+            self.dataprocessor_state = "RUNNING"
 
-    def _data_process(self):
-        # needs gevent loop to process incoming data
+    # def dataprocessor_stop(self):
+    #     """
+    #     means we stop using the data processor, if you want to pause use self.dataprocessor_pause
+    #     :return:
+    #     """
+    #     if self.dataprocessor_state in ["RUNNING"]:
+    #         evt = Event()
+    #         self.queue.put(("STOP",evt))
+    #         self.logger.debug("wait dataprocessor stop")
+    #         evt.wait()
 
-        while True:
-            url, obj = self.queue.get()
-            m = self.models[url]
-            if obj.id in m.objects_in_queue:
-                m._set(obj=obj, index=True)  # now need to index, now only 1 greenlet can do the indexing
-                m.objects_in_queue.pop(obj.id)
+
+    # def dataqueue_waitempty(self):
+    #     """
+    #     do not forget to call this before doing a search on index
+    #     this will make sure the index is fully populated
+    #     will wait till all objects are processed by indexer (the greenlet which processes the data, only 1 per bcdb)
+    #     :return: True when empty
+    #     """
+    #     if self.dataprocessor_data_processing:
+    #         counter = 1
+    #         while len(self.objects_in_queue) > 0:
+    #             gevent.sleep(0.001)
+    #             counter += 1
+    #             if counter == 10000:
+    #                 raise RuntimeError("should never take this long to index, something went wrong")
+    #     return True
+
+
+    @queue_method
+    def reset(self):
+        self.stop()
+        j.shell()
+
+    # @queue_method
+    # def stop(self):
+    #     self._sqlitedb.close()
+    #     if self.name in j.data.bcdb.bcdb_instances:
+    #         j.data.bcdb.bcdb_instances.pop(self.name)
+    #     # for model in self.models.values():
+    #     #     j.shell()
+    #     self.dataprocessor_stop()
 
     @property
     def sqlitedb(self):
         if self._sqlitedb is None:
-
             self._indexfile = j.sal.fs.joinPaths(self._data_dir, self.name + ".db")
+            self.logger.debug("SQLITEDB created in %s"%self._indexfile)
             j.sal.fs.createDir(self._data_dir)
-            self.logger.debug("bcdb:indexdb:%s" % self._indexfile)
             try:
                 self._sqlitedb = SqliteDatabase(self._indexfile)
             except Exception as e:
@@ -99,7 +139,21 @@ class BCDB(JSBASE):
         return self._sqlitedb
 
     def reset_index(self):
-        j.sal.fs.remove(self._data_dir)
+        for model in self.models.values():
+            model.index_delete()
+        # self._sqlitedb=None
+        # j.sal.fs.remove(self._data_dir)
+
+    def reset_data(self,zdbclient_admin):
+        """
+        remove index, walk over all zdb's & remove data
+        :param zdbclient_admin:
+        :return:
+        """
+        self.logger.info("reset data")
+        for model in self.models.values():
+            model.reset_data(zdbclient_admin=zdbclient_admin,force=True) #need to always remove
+
 
     def model_get(self, url):
         if url in self.models:
@@ -203,3 +257,6 @@ class BCDB(JSBASE):
         tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="*.py", followSymlinks=True)
         for classpath in tocheck:
             self.model_add_from_file(classpath)
+
+    def load(self,zdbclient):
+        return zdbclient.meta.models_load(self)

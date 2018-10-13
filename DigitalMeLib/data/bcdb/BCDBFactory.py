@@ -22,6 +22,7 @@ class BCDBFactory(JSBASE):
         self.bcdb_instances = {}  #key is the name
         self.latest = None
 
+
     def get(self, name, zdbclient=None,cache=True):
         if zdbclient is None:
             #now a generic client on zdb, but needs to become a sqlite version
@@ -104,20 +105,32 @@ class BCDBFactory(JSBASE):
         #pool_type = "managed,unmanaged" (E)  #NOT DONE FOR NOW
         """
 
-        server_db = j.servers.zdb.start_test_instance(reset=reset)
-        zdbclient_admin = server_db.client_admin_get()
+        if self.bcdb_instances=={}:
+            self.logger.debug("start bcdb in tmux")
+            server_db = j.servers.zdb.start_test_instance(reset=reset)
+            zdbclient_admin = j.servers.zdb.client_admin_get()
+            zdbclient = zdbclient_admin.namespace_new("test",secret="1234")
+            bcdb = j.data.bcdb.get(name="test",zdbclient=zdbclient)
+            schemaobj=j.data.schema.get(schema)
+            bcdb.model_add_from_schema(schemaobj,zdbclient=zdbclient) #model has now been added to the DB
+        else:
+            bcdb = self.bcdb_instances["test"]
 
-        zdbclient = zdbclient_admin.namespace_new("test",secret="1234")
+        bcdb.models = {} #just to make sure all is empty, good to test
 
-        bcdb = j.data.bcdb.get(name="test",zdbclient=zdbclient)
+        self.logger.debug("bcdb already exists")
+        zdbclient = j.servers.zdb.client_get("test",secret="1234")
+        res = bcdb.load(zdbclient)
+        model = bcdb.model_get("despiegk.test")
+
 
         if reset:
-            bcdb.reset_index()
-
-        schemaobj=j.data.schema.get(schema)
-        model = bcdb.model_add_from_schema(schemaobj,zdbclient=zdbclient)
+            zdbclient_admin = j.servers.zdb.client_admin_get()
+            model.reset_data(zdbclient_admin,force=True)  #we need a method which allows a user to delete its own data
 
         assert len(model.zdbclient.meta.schemas_load())==1  #check schema's loaded
+
+        assert model.get_all()==[]
 
         return bcdb,model
 
@@ -125,6 +138,7 @@ class BCDBFactory(JSBASE):
         """
         js_shell 'j.data.bcdb.test()'
         """
+        self.logger_enable()
         self.test1()
         self.test2()
         # self.test3()
@@ -243,7 +257,7 @@ class BCDBFactory(JSBASE):
             result[obj.nr] = obj.name
         assert result == {5: 'name5', 6: 'name6', 7: 'name7', 8: 'name8', 9: 'name9'}
 
-        print ("TEST DONE")
+        self.logger.info("TEST DONE")
 
     def test2(self):
         """
@@ -254,8 +268,6 @@ class BCDBFactory(JSBASE):
         """
 
         db, m = self._load_test_model()
-
-        db.gevent_start()
 
         def get_obj(i):
             o = m.new()
@@ -268,7 +280,7 @@ class BCDBFactory(JSBASE):
         #should be empty
         assert m.bcdb.queue.empty() == True
 
-        j.shell()
+        # j.shell()
         m.set(o)
 
         o2 = m.get(o.id)
@@ -278,8 +290,8 @@ class BCDBFactory(JSBASE):
         for x in range(1000):
             m.set(get_obj(x))
 
-        #should be something in queue
-        assert m.bcdb.queue.empty() == False
+        #should be nothing in queue
+        assert m.bcdb.queue.empty() == True
 
         #now make sure index processed and do a new get
         m.index_ready()
@@ -291,7 +303,7 @@ class BCDBFactory(JSBASE):
 
         # gevent.sleep(10000)
 
-        print ("TEST2 DONE, but is still minimal")
+        self.logger.info("TEST2 DONE")
 
     # def test3(self, start=True):
     #     """

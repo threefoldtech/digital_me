@@ -1,11 +1,16 @@
 from Jumpscale import j
 import msgpack
-import struct
-import gevent
+# import struct
+# import gevent
+# from gevent.event import Event
+from .BCDBDecorator import *
 JSBASE = j.application.JSBaseClass
 
 # is the base class for the model which gets generated from the template
 from JumpscaleLib.clients.zdb.ZDBClientBase import ZDBClientBase
+
+
+
 
 
 class BCDBModel(JSBASE):
@@ -27,6 +32,7 @@ class BCDBModel(JSBASE):
             raise RuntimeError("bcdb should be set")
         self.bcdb = bcdb
         self.schema = j.data.schema.get(url=url)
+        self.url = url
 
         self.is_config = False  # when used for config management
 
@@ -41,16 +47,30 @@ class BCDBModel(JSBASE):
 
         self.objects_in_queue = {}
 
+        self.key = "%s_%s"%(zdbclient.nsname,self.url)  #is unique id for a bcdbmodel (unique per zdbclient !)
+
+        self.logger_enable()
+
+    @queue_method
     def index_delete(self):
         self.index.delete().execute()
 
+    @queue_method
+    def index_ready(self):
+        """
+        doesn't do much, just makes sure that we wait that queue has been processed upto this point
+        :return:
+        """
+        return True
+
+    @queue_method
     def index_load(self):
         self.index_delete()
         j.shell()  # TODO:*1
         pass
-        # self.logger.info("build index done")
 
-    def destroy(self, die=True):
+    @queue_method
+    def reset_data(self, zdbclient_admin,die=True,force=False):
         """
         delete the index and all the items from the model
 
@@ -59,55 +79,50 @@ class BCDBModel(JSBASE):
         :return: return the number of item deleted
         :rtype: int
         """
+        self.logger.debug("reset data for model:%s"%self.url)
+        self.index_delete(noqueue=True)
 
-        self.index_delete()
-        myns = self.zdbclient.nsname  # the namespace I want to remove
-
-        # need to check this database namespace is not used in other models.
-        for key, bcdbmodel in self.bcdb.models.items():
-            if bcdbmodel.namespace == self.namespace:
-                # myself, go out
-                continue
-            if bcdbmodel.db.nsname == myns:
-                msg = "CANNOT DELETE THE NAMESPACE BECAUSE USED BY OTHER BCDBMODELS"
-                if die:
-                    raise RuntimeError(msg)
-                else:
-                    print(msg)
-                    return
+        if not force:
+            # need to check this database namespace is not used in other models.
+            for key, bcdbmodel in self.bcdb.models.items():
+                if bcdbmodel.key == self.key:
+                    # myself, go out
+                    continue
+                if bcdbmodel.zdbclient.nsname == self.zdbclient.nsname:
+                    msg = "CANNOT DELETE THE NAMESPACE BECAUSE USED BY OTHER BCDBMODELS"
+                    if die:
+                        raise RuntimeError(msg)
+                    else:
+                        print(msg)
+                        return
         # now I am sure I can remove it
-        ns = self.zdbclient.zdbclient.namespace_get(self.namespace)
-        secret = ns.secret
-        nsname = ns.nsname
+        data = self.zdbclient.meta._data
+        zdbclient_admin.namespace_delete(self.zdbclient.nsname)
+        zdbclient_admin.namespace_new(self.zdbclient.nsname)
+        #lets renew it
+        self.zdbclient = j.clients.zdb.client_get(nsname=self.zdbclient.nsname,
+                                                  addr=self.zdbclient.addr,
+                                                  port=self.zdbclient.port,
+                                                  secret=self.zdbclient.secret,
+                                                  mode="seq")
 
-        self.zdbclient.zdbclient.namespace_delete(nsname)
-        self.zdbclient = self.bcdb.zdbclient.namespace_new(self.namespace)
+        self.zdbclient.meta._data=data
+        self.zdbclient.meta.save()
 
-        return 1
+        assert self.zdbclient.get(1) == None
 
+
+    @queue_method
     def delete(self, obj_id):
-        """
-
-        :param obj_id: can be obj or obj id
-        :return:
-        """
-
-        if hasattr(self, "_JSOBJ"):
-            obj_id = self.id
-
-        # make sure the object is no longer remembered for queue processing
-        if self.bcdb.gevent_data_processing and obj_id in self.objects_in_queue:
-            # will first dump to a queue, so we know its all processed by 1 greenlet and nothing more
-            self.objects_in_queue.pop(obj_id)
-
-        self.zdbclient.delete(obj_id)
-
-        # TODO:*1 need to delete the part of index !!!
+        if hasattr(obj_id, "_JSOBJ"):
+            obj_id = obj_id.id
+        self.zdbclient.delete(objid)
 
     def check(self, obj):
         if not hasattr(obj, "_JSOBJ"):
             raise RuntimeError("argument needs to be a bcdb obj")
 
+    @queue_method
     def set_dynamic(self, data, obj_id=None):
         """
         if string -> will consider to be json
@@ -137,29 +152,14 @@ class BCDBModel(JSBASE):
         obj.id = obj_id  # do not forget
         return self.set(obj)
 
-    def set(self, obj):
+    @queue_method_results
+    def set(self, obj, index=True):
         """
         :param obj
-        :return:
+        :return: obj
         """
         self.check(obj)
-        if self.bcdb.gevent_data_processing:
-            if obj.id is None:
-                # means is first time object, need to ask unique id to db
-                obj = self._set(obj=obj, index=False)  # should not do index, will be done later to avoid race condition
-            self.objects_in_queue[obj.id] = obj
-            # will first dump to a queue, so we know its all processed by 1 greenlet and nothing more
-            self.bcdb.queue.put([self.url, obj])
-            return obj
-        else:
-            return self._set(obj=obj)
 
-    def _set(self, obj, index=True):
-        """
-
-        @RETURN JSOBJ
-
-        """
         # prepare
         obj = self.set_pre(obj)
 
@@ -189,28 +189,13 @@ class BCDBModel(JSBASE):
         obj.model = self
         return obj
 
-    def index_ready(self):
-        """
-        do not forget to call this before doing a search on index
-        this will make sure the index is fully populated
-        will wait till all objects are processed by indexer (the greenlet which processes the data, only 1 per bcdb)
-        :return: True when empty
-        """
-        if self.bcdb.gevent_data_processing:
-            counter = 1
-            while len(self.objects_in_queue) > 0:
-                gevent.sleep(0.001)
-                counter += 1
-                if counter == 10000:
-                    raise RuntimeError("should never take this long to index, something went wrong")
-        return True
-
     def set_pre(self, obj):
         return obj
 
     def index_set(self, obj):
         pass
 
+    @queue_method_results
     def get(self, id, return_as_capnp=False):
         """
         @PARAM id is an int or a key
@@ -222,12 +207,12 @@ class BCDBModel(JSBASE):
         if id == None:
             raise RuntimeError("id cannot be None")
 
-        obj_in_queue = self.objects_in_queue.get(id, None)
-        if obj_in_queue is not None:
-            obj = self.objects_in_queue[id]
-            if return_as_capnp:
-                return obj._data
-            return obj
+        # obj_in_queue = self.objects_in_queue.get(id, None)
+        # if obj_in_queue is not None:
+        #     obj = self.objects_in_queue[id]
+        #     if return_as_capnp:
+        #         return obj._data
+        #     return obj
 
         data = self.zdbclient.get(id)
 
@@ -277,6 +262,7 @@ class BCDBModel(JSBASE):
         :param keyonly: bool, optional
         :raises e: [description]
         """
+        self.index_ready()
         for key, data in self.zdbclient.iterate(key_start=key_start, reverse=reverse, keyonly=keyonly):
             if key == 0:  # skip first metadata entry
                 continue
@@ -287,7 +273,7 @@ class BCDBModel(JSBASE):
         return [obj for obj in self.iterate()]
 
     def __str__(self):
-        out = "model:%s\n" % self.namespace
+        out = "model:%s\n" % self.url
         out += j.core.text.prefix("    ", self.schema.text)
         return out
 
