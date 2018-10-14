@@ -12,7 +12,7 @@ class BCDB(JSBASE):
     
     def __init__(self,dbclient,namespace="default",reset=False,json_serialize=False):
         JSBASE.__init__(self)
-        if isinstance(dbclient,j.clients.redis.REDIS_CLIENT_CLASS) or isinstance(dbclient,StrictRedis):
+        if isinstance(dbclient,j.clients.redis._REDIS_CLIENT_CLASS) or isinstance(dbclient,StrictRedis):
             dbclient.type = "RDB" #means is redis db
         else:
             dbclient.type = "ZDB"

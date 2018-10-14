@@ -275,7 +275,7 @@ class Farmer(JSBASE):
             gws = list(filter(lambda x: x.farmer_id == farmer_id, gws))
         return gws
 
-    def web_gateway_add_host(self, jwttoken, web_gateway_id, domain, backend_ip, backend_port, suffix=""):
+    def web_gateway_add_host(self, jwttoken, web_gateway_id, domain, backend_ip, backend_port, suffix):
         """
         ```in
         jwttoken = (S)
@@ -341,8 +341,8 @@ class Farmer(JSBASE):
         self.farmer_model.set(new_farmer)
         return
 
-    def web_gateway_register(self, jwttoken, etcd_host, etcd_port, etcd_secret, farmer_id, name="",
-                             pubip4=None, pubip6=None, country="", location="", description=""):
+    def web_gateway_register(self, jwttoken, etcd_host, etcd_port, etcd_secret, farmer_id, name,
+                             pubip4, pubip6, country, location, description, schema_out):
         """
         ```in
         jwttoken = (S)
@@ -356,6 +356,9 @@ class Farmer(JSBASE):
         description = "" (S)
         pubip4 = [] (LS)
         pubip6 = [] (LS)
+        ```
+        ```out
+        res = (O) !threefold.grid.webgateway
         ```
 
         allows a farmer to register
@@ -383,5 +386,7 @@ class Farmer(JSBASE):
         new_gateway.pubip4 = pubip4
         new_gateway.pubip6 = pubip6
         new_gateway.description = description
-        self.wgw_model.set(new_gateway)
-        return
+        new_gateway = self.wgw_model.set(new_gateway)
+        out = schema_out.new()
+        out.res = new_gateway
+        return out

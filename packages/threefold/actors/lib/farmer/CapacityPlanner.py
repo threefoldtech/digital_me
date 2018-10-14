@@ -209,7 +209,7 @@ class CapacityPlanner(JSBASE):
         # The key for coredns should start with path(/hosts) and the domain reversed
         # i.e. test.com => /hosts/com/test
         key = "/hosts/{}".format("/".join(domain_parts[::-1]))
-        value = '{{"host":"{}","ttl":3600}}'.format(backend_ip)
+        value = '{{"host":"{}","ttl":3600}}'.format(web_gateway.pubip4[0])
         etcd_client.put(key, value)
 
         # register the domain for traefik use
