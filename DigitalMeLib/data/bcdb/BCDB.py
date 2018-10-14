@@ -52,9 +52,9 @@ class BCDB(JSBASE):
 
         self.logger.info("BCDB INIT DONE:%s"%self.name)
 
-    def redis_server_start(self):
+    def redis_server_start(self,port=6380,secret="123456"):
 
-        self.redis_server = RedisServer(bcdb=self)
+        self.redis_server = RedisServer(bcdb=self,port=port,secret=secret)
         self.redis_server.init()
         self.redis_server.start()
 

@@ -11,14 +11,20 @@ JSBASE = j.application.JSBaseClass
 
 
 class RedisServer(JSBASE):
-    def __init__(self, bcdb):
+    def __init__(self,bcdb, addr="localhost",port=6380,secret="123456"):
         JSBASE.__init__(self)
         self.bcdb = bcdb
         self._sig_handler = []
         self.logger_enable()
-        self.host = "localhost"
-        self.port = 6380  # 1 port higher than the std port
+        self.host = addr
+        self.port = port  # 1 port higher than the std port
+        self.secret = secret
         self.ssl = False
+
+        #temporarly solution
+        self.zdb_admin_hack = j.clients.zdb.client_admin_get(addr='localhost', port=9900, secret='123456', mode='seq')
+
+        self.init()
 
     def init(self):
         self._sig_handler.append(gevent.signal(signal.SIGINT, self.stop))
@@ -141,6 +147,10 @@ class RedisServer(JSBASE):
     def info(self):
         return b"NO INFO YET"
 
+    def auth(self,*args,**kwargs):
+        j.shell()
+        return "OK"
+
     def _split(self, key):
         """
         split function used in the "normal" methods
@@ -189,7 +199,7 @@ class RedisServer(JSBASE):
 
         if cat == "schemas":
             s = j.data.schema.get(val)
-            self.bcdb.model_add_from_schema(s)
+            self.bcdb.model_add_from_schema(s,zdbclient=self.bcdb.zdbclient)
             response.encode("OK")
             return
 
@@ -208,6 +218,7 @@ class RedisServer(JSBASE):
                 response.encode("")
                 return
             if key == "":
+                #get content from schema
                 response.encode(model.schema.text)
                 return
             if url in self.bcdb.models:
@@ -222,8 +233,10 @@ class RedisServer(JSBASE):
             return
 
         if cat == "objects":
-            if key == "":
-                nr_deleted = model.destroy()
+            if key == "" and url!="":
+                #remove data from model @TODO:hack
+                model.reset_data(zdbclient_admin=self.zdb_admin_hack,force=True)
+                nr_deleted = 1
             else:
                 nr_deleted = 1
                 # FIXME: what happens if the key doesn't exist ?

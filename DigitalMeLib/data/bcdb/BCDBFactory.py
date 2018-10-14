@@ -21,6 +21,7 @@ class BCDBFactory(JSBASE):
         self._code_generation_dir = None
         self.bcdb_instances = {}  #key is the name
         self.latest = None
+        self.logger_enable()
 
 
     def get(self, name, zdbclient=None,cache=True):
@@ -34,7 +35,17 @@ class BCDBFactory(JSBASE):
             self.latest = self.bcdb_instances[name]
         return self.bcdb_instances[name]
 
-    def redis_server_start(self,ipaddr="localhost",port=6380,background=False,dbreset=False):
+    def redis_server_start(self,   name="test",
+                                   ipaddr="localhost",
+                                   port=6380,
+                                   background=False,
+                                   secret="123456",
+                                   zdbclient_addr="localhost",
+                                   zdbclient_port=9900,
+                                   zdbclient_namespace="test",
+                                   zdbclient_secret="1234",
+                                   zdbclient_mode="seq",
+                                   ):
         """
         start a redis server on port 6380 on localhost only
 
@@ -49,7 +60,19 @@ class BCDBFactory(JSBASE):
         """
 
         if background:
-            cmd = 'js_shell "j.data.bcdb.redis_server_start(ipaddr=\'%s\', port=%s)"'%(ipaddr,port)
+
+            args="ipaddr=\"%s\", "%ipaddr
+            args+="name=\"%s\", "%name
+            args+="port=%s, "%port
+            args+="secret=\"%s\", "%secret
+            args+="zdbclient_addr=\"%s\", "%zdbclient_addr
+            args+="zdbclient_port=%s, "%zdbclient_port
+            args+="zdbclient_namespace=\"%s\", "%zdbclient_namespace
+            args+="zdbclient_secret=\"%s\", "%zdbclient_secret
+            args+="zdbclient_mode=\"%s\", "%zdbclient_mode
+
+
+            cmd = 'js_shell \'j.data.bcdb.redis_server_start(%s)\''%args
             j.tools.tmux.execute(
                 cmd,
                 session='main',
@@ -59,14 +82,15 @@ class BCDBFactory(JSBASE):
                 window_reset=True
             )
             j.sal.nettools.waitConnectionTest(ipaddr=ipaddr, port=port, timeoutTotal=5)
-            r = j.clients.redis.get(ipaddr=ipaddr, port=port)
+            r = j.clients.redis.get(ipaddr=ipaddr, port=port, password=secret)
             assert r.ping()
 
         else:
-            zdbclient = j.clients.zdb.testdb_server_start_client_get(reset=False)
-            bcdb=self.get("test",zdbclient=zdbclient)
-            bcdb.destroy()
-            bcdb.redis_server_start()
+            zdbclient = j.clients.zdb.client_get(nsname=zdbclient_namespace, addr=zdbclient_addr, port=zdbclient_port,
+                                                 secret=zdbclient_secret, mode=zdbclient_mode)
+            bcdb=self.get(name,zdbclient=zdbclient)
+            bcdb.redis_server_start(port=port,secret=secret)
+            bcdb.load(zdbclient)
 
 
     @property
@@ -336,17 +360,18 @@ class BCDBFactory(JSBASE):
     #
     #     print ("TEST3 DONE, but is still minimal")
 
-    def test4(self):
+    def test4(self,start=False):
         """
-        js_shell 'j.data.bcdb.test4()'
+        js_shell 'j.data.bcdb.test4(start=False)'
 
         this is a test for the redis interface
         """
-        self.redis_server_start(port=6380, background=True, dbreset=True)
-        r = j.clients.redis.get(ipaddr="localhost", port=6380)
+        if start:
+            self.redis_server_start(port=6381, background=True, dbreset=True)
+        r = j.clients.redis.get(ipaddr="localhost", port=6381)
 
         S = """
-        @url = despiegk.test
+        @url = despiegk.test2
         llist2 = "" (LS)
         name* = ""
         email* = ""
@@ -359,25 +384,29 @@ class BCDBFactory(JSBASE):
         llist3 = "1,2,3" (LF)
         llist4 = "1,2,3" (L)
         """
-        S=127(S)
-        print("set schema to 'despiegk.test'")
-        r.set("schemas:despiegk.test", S)
-
-        r.delete("schemas:despiegk.test")
-        r.delete("objects:despiegk.test")
-
-        #there should be 0 objects
-        assert r.hlen("objects:despiegk.test") == 0
-
-        print('compare schema')
-        s2=r.get("schemas:despiegk.test")
+        S=j.core.text.strip(S)
+        self.logger.debug("set schema to 'despiegk.test2'")
+        r.set("schemas:despiegk.test2", S)
+        self.logger.debug('compare schema')
+        s2=r.get("schemas:despiegk.test2")
         #test schemas are same
 
         assert _compare_strings(S, s2)
 
+        self.logger.debug("delete schema")
+        r.delete("schemas:despiegk.test2")
+        self.logger.debug("delete data")
+        r.delete("objects:despiegk.test2")
+
+        r.set("schemas:despiegk.test2", S)
+
+        self.logger.debug('there should be 0 objects')
+        assert r.hlen("objects:despiegk.test2") == 0
+
+
         schema=j.data.schema.get(S)
 
-        print("add objects")
+        self.logger.debug("add objects")
         def get_obj(i):
             o = schema.new()
             o.nr = i
@@ -387,33 +416,36 @@ class BCDBFactory(JSBASE):
 
         try:
             o = get_obj(0)
-            id = r.hset("objects:despiegk.test", 0, o._json)
+            id = r.hset("objects:despiegk.test2", 0, o._json)
             raise RuntimeError("should have raise runtime error when trying to write to index 0")
         except redis.exceptions.ResponseError as err:
             # runtime error is expected when trying to write to index 0
             pass
 
         for i in range(1, 11):
+            # print(i)
             o = get_obj(i)
-            id = r.hset("objects:despiegk.test","new",o._json)
+            id = r.hset("objects:despiegk.test2","new",o._json)
 
-        print("validate added objects")
+        self.logger.debug("validate added objects")
         #there should be 10 items now there
-        assert r.hlen("objects:despiegk.test") == 10
-        assert r.hdel("objects:despiegk.test", 5) == 1
-        assert r.hlen("objects:despiegk.test") == 9
-        assert r.hget("objects:despiegk.test", 5) == None
-        assert r.hget("objects:despiegk.test", 5) == r.hget("objects:despiegk.test", "5")
+        assert r.hlen("objects:despiegk.test2") == 10
+        assert r.hdel("objects:despiegk.test2", 5) == 1
+        assert r.hlen("objects:despiegk.test2") == 9
+        assert r.hget("objects:despiegk.test2", 5) == None
+        assert r.hget("objects:despiegk.test2", 5) == r.hget("objects:despiegk.test2", "5")
 
-        resp = r.hget("objects:despiegk.test",i)
+        resp = r.hget("objects:despiegk.test2",i+1)
         json = j.data.serializers.json.loads(resp)
         json2 = j.data.serializers.json.loads(o._json)
-        json2['id'] = i
+        json2['id'] = i+1
         assert json == json2
 
+        self.logger.debug("update obj")
         o.name="UPDATE"
-        r.hset("objects:despiegk.test",1, o._json)
-        resp = r.hget("objects:despiegk.test", 1)
+        r.hset("objects:despiegk.test2",1, o._json)
+        j.shell()
+        resp = r.hget("objects:despiegk.test2", 1)
         json3 = j.data.serializers.json.loads(resp)
         assert json3['name'] == "UPDATE"
         json4 = j.data.serializers.json.loads(o._json)
@@ -423,21 +455,22 @@ class BCDBFactory(JSBASE):
         assert json4 == json3
 
         #restart redis lets see if schema's are there autoloaded
+        j.shell()
         self.redis_server_start(port=6380, background=True)
         r = j.clients.redis.get(ipaddr="localhost", port=6380)
         j.shell()
-        assert r.hlen("objects:despiegk.test") == 8
+        assert r.hlen("objects:despiegk.test2") == 8
 
-        print("clean up database")
-        r.delete("objects:despiegk.test")
+        self.logger.debug("clean up database")
+        r.delete("objects:despiegk.test2")
 
         #there should be 0 objects
-        assert r.hlen("objects:despiegk.test") == 0
+        assert r.hlen("objects:despiegk.test2") == 0
 
         cl = j.clients.zdb.get("test")
         res=cl.namespaces_list()
 
-        print("TEST OK")
+        self.logger.debug("TEST OK")
 
 
 def _compare_strings(s1, s2):

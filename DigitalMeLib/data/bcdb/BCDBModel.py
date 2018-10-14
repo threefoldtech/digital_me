@@ -116,7 +116,7 @@ class BCDBModel(JSBASE):
     def delete(self, obj_id):
         if hasattr(obj_id, "_JSOBJ"):
             obj_id = obj_id.id
-        self.zdbclient.delete(objid)
+        self.zdbclient.delete(obj_id)
 
     def check(self, obj):
         if not hasattr(obj, "_JSOBJ"):
