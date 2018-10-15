@@ -172,6 +172,8 @@ class BCDBModel(JSBASE):
 
             if len(res) == 4:
                 acr, crc, signature, bdata = res
+            elif b'schemas' in res:  # this means we are in the metadata record
+                return
             else:
                 raise RuntimeError("not supported format in table yet")
 
@@ -203,22 +205,22 @@ class BCDBModel(JSBASE):
             key_start is the start key, if not given will be start of database when direction = forward, else end
 
         """
-        def method_zdb(id,data,result0):
-            method_ = result0["method"]
-            obj = self._get(id,data)
-            result0["result"] = method_(id=id,obj=obj,result=result0["result"])
-            return result0
 
         if self.db.type == "ZDB":
-            result0 = {}
-            result0["result"] = result
-            result0["method"] = method
+            results = self.db.iterate(key_start=key_start, keyonly=_keyonly)
+            results_list = []
 
-            result0 = self.db.iterate(method=method_zdb,key_start=key_start,
-                            direction=direction,nrrecords=nrrecords,
-                            _keyonly=_keyonly,result=result0)
+            while nrrecords > 0:
+                nrrecords -= 1
+                try:
+                    key, data = next(results)
+                    record = self._get(key, data)
+                    if record:
+                        results_list.append(method(record))
+                except StopIteration:
+                    break
 
-            return result0["result"]
+            return results_list
 
         else:
             #WE IGNORE Nrrecords
@@ -237,10 +239,7 @@ class BCDBModel(JSBASE):
             return result
 
     def get_all(self):
-        def do(id, obj, result):
-            result.append(obj)
-            return result
-        return self.iterate(do, result=[])
+        return self.iterate(lambda obj: obj)
 
     def __str__(self):
         out = "model:%s\n" % self.key
