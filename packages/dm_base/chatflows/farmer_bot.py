@@ -5,6 +5,9 @@ from Jumpscale import j
 DEFAULT_CORE_NR = 2
 DEFAULT_MEM_SIZE = 2048
 
+gedis_client = None
+countries = []
+farmers = []
 
 def chat(bot):
     """
@@ -12,9 +15,6 @@ def chat(bot):
     :param bot:
     :return:
     """
-    gedis_client = j.servers.gedis.latest.client_get()
-    countries = gedis_client.farmer.country_list().res
-    farmers = gedis_client.farmer.farmers_get().res
 
     def country_list():
         report = ""
@@ -139,7 +139,32 @@ def chat(bot):
         elif vm_type == "Zero OS":
             zos_reserve(jwt_token, node, vm_name, zerotier_token, memory=memory, cores=cores)
 
+    def get_gedis_client():
+        global gedis_client, countries, farmers
+        # Previously configured gedis clients
+        gedis_clients = j.clients.gedis.list()
+        gedis_client_name = ""
+        if gedis_clients:
+            gedis_client_name = bot.single_choice(
+                "Choose the farmer robot you want to use or choose other to configure new one:",
+                gedis_clients + ['other']
+            )
+        if not gedis_client_name or gedis_client_name == "other":
+            gedis_host = bot.string_ask("Enter the farmer robot host ip:")
+            gedis_port = bot.int_ask("Enter the farmer robot host port: ")
+            gedis_client_name = bot.string_ask("Choose a convenient name for the farmer robot:")
+            gedis_client = j.clients.gedis.get(instance=gedis_client_name, data={
+                'host': gedis_host,
+                'port': gedis_port
+            })
+        else:
+            gedis_client = j.clients.gedis.get(instance=gedis_client_name)
+        countries = gedis_client.farmer.country_list().res
+        farmers = gedis_client.farmer.farmers_get().res
+        return
+
     def main():
+        get_gedis_client()
         methods = {
             "List countries": country_list,
             "List farmers": farmers_get,
