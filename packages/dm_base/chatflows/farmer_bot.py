@@ -119,12 +119,13 @@ def chat(bot):
     def reserve_vm():
         jwt_token = bot.string_ask("Please enter your JWT, "
                                    "(click <a target='_blank' href='/client'>here</a> to get one)")
-        node_filters = node_find()
-        candidate_nodes = gedis_client.farmer.node_find(**node_filters)
-        if not candidate_nodes.res:
-            bot.md_show("No available nodes with these criteria")
-            bot.redirect("/chat/session/farmer_bot")
-            return
+        while True:
+            node_filters = node_find()
+            candidate_nodes = gedis_client.farmer.node_find(**node_filters)
+            if candidate_nodes.res:
+                break
+            bot.md_show("No available nodes with these criteria, please try again")
+
         node = candidate_nodes.res[random.randint(0, len(candidate_nodes.res) - 1)]
         vm_type = bot.single_choice("what do you want to do", ["Ubuntu", "Zero OS", "Zero DB"])
         if vm_type == "Zero DB":
