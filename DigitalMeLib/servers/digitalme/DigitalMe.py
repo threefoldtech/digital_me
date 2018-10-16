@@ -80,7 +80,7 @@ class DigitalMe(JSBASE):
         monkey.patch_all(subprocess=False)
         self.rack = self.server_rack_get()
 
-        geventserver = j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
+        geventserver = j.servers.gedis.configure(host="0.0.0.0", port="8001", ssl=False,
                                   adminsecret=adminsecret, instance=name)
         # configure a local webserver server (the master one)
         j.servers.web.configure(instance=name, port=8000, port_ssl=0, host="0.0.0.0", secret=adminsecret)
