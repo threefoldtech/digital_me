@@ -101,22 +101,22 @@
         <div class="container">
         <p class="float-right"><a href="https://threefoldfoundation.github.io/info_grid/#/">Threefold grid documentation</a></p>
         <h2>Search for capacity</h2>
-        <form action="/" method="get">
+        <form  method="get">
           <div class="form-group">
               <label for="formCRU">Minimum <abbr title="CPU resource unit">CRU</abbr> : <span class="badge badge-pill badge-primary"><span id="formCRUValue">0</span> CPU</span></label>
-              <input class="form-control-range" id="formCRU" name="cru" value="0" step="1" type="range">
+              <input class="form-control-range" id="formCRU" name="cores_min_nr" value="0" step="1" type="range">
           </div>
           <div class="form-group">
             <label for="formMRU">Minimum <abbr title="Memory resource unit">MRU</abbr> : <span class="badge badge-pill badge-primary"><span id="formMRUValue">0</span> GiB</span></label>
-            <input class="form-control-range" id="formMRU" name="mru" value="0" step="1" onchange="" type="range">
+            <input class="form-control-range" id="formMRU" name="mem_min_mb" value="0" step="1" onchange="" type="range">
           </div>
           <div class="form-group">
               <label for="formHRU">minimum <abbr title="HDD resource unit">HRU</abbr> : <span class="badge badge-pill badge-primary"><span id="formHRUValue">0</span> GiB</span></label>
-              <input class="form-control-range" id="formHRU" name="hru" value="0" step="1" max="5000" type="range">
+              <input class="form-control-range" id="formHRU" name="hd_min_gb" value="0" step="1" max="5000" type="range">
           </div>
           <div class="form-group">
               <label for="formSRU">minimum <abbr title="SSD resource unit">SRU</abbr> : <span class="badge badge-pill badge-primary"><span id="formSRUValue">0</span> GiB</span></label>
-              <input class="form-control-range" id="formSRU" name="sru" value="0" step="1" max="1000" type="range">
+              <input class="form-control-range" id="formSRU" name="ssd_min_gb" value="0" step="1" max="1000" type="range">
           </div>
           <div class="row">
             <div class="form-group col-6">
@@ -130,10 +130,10 @@
             </div>
             <div class="form-group col-6">
                 <label for="formFarmer">filter by farmer :</label>
-                <select class="form-control" id="formFarmer" name="farmer">
+                <select class="form-control" id="formFarmer" name="farmer_name">
                   <option></option>
                     {% for farmer in farmers%}
-                        <option value="{{farmer.id}}">{{farmer.name}}</option>
+                        <option value="{{farmer.name}}">{{farmer.name}}</option>
                     {% endfor %}
 
                 </select>
