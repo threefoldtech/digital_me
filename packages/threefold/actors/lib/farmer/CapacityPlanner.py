@@ -21,12 +21,12 @@ class CapacityPlanner(JSBASE):
     @staticmethod
     def get_etcd_client(web_gateway):
         etcd_data = {
-            "host": web_gateway.etcd_host,
-            "port": web_gateway.etcd_port,
+            "host": web_gateway['etcd_host'],
+            "port": web_gateway['etcd_port'],
             "user": "root",
-            "password_": web_gateway.etcd_secret
+            "password_": web_gateway['etcd_secret']
         }
-        return j.clients.etcd.get(web_gateway.name, data=etcd_data)
+        return j.clients.etcd.get(web_gateway['name'], data=etcd_data)
 
     def zos_reserve(self, node, vm_name, zerotier_token, organization, memory=1024, cores=1):
         """
@@ -192,68 +192,65 @@ class CapacityPlanner(JSBASE):
         zdb_service.delete()
         return
 
-    def web_gateway_add_host(self, web_gateway, domain, backend_ip, backend_port):
+    def web_gateway_add_host(self, web_gateway, rule_name, domains, backends):
         """
         Register new domain into web gateway
-        :param web_gateway: web gateway object from web gateway model to be used to get services
-        :param domain: the domain we need to register
-        :param backend_ip: the vm/container ip that we need to forward to
-        :param backend_port: the vm/container port that we need to forward to
-        :return: True if successfully added
+        :param web_gateway: web gateway dict from web gateway model to be used to get services
+        :param domains: list of domains to configure
+        :param rule_name: the rule convenient name that we can refer to afterwards
+        :param backends: list of `ip:port` for the vm service we need to serve (i.e. [192.168.1.2:80])
         """
         # Get etcd client
         etcd_client = self.get_etcd_client(web_gateway)
 
-        # register the domain for coredns use
-        domain_parts = domain.split('.')
+        # register the domains for coredns use
         # The key for coredns should start with path(/hosts) and the domain reversed
         # i.e. test.com => /hosts/com/test
-        key = "/hosts/{}".format("/".join(domain_parts[::-1]))
-        value = '{{"host":"{}","ttl":3600}}'.format(web_gateway.pubip4[0])
-        etcd_client.put(key, value)
+        for domain in domains:
+            domain_parts = domain.strip().split('.')
+            for i, ip in enumerate(web_gateway['pubip4']):
+                key = "/hosts/{}/x{}".format("/".join(domain_parts[::-1]), i+1)
+                value = '{{"host":"{}","ttl":3600}}'.format(ip)
+                etcd_client.put(key, value)
 
         # register the domain for traefik use
-        # the name of frontend is frontend +  domain without dots
-        # i.e. test.com => frontendtestcom
-        # the same in backend using ip
-        backend_name = "backend{}{}".format(backend_ip.replace(".", ""), backend_port)
-        frontend_name = "frontend{}".format(domain.replace(".", ""))
+        for i, backend in enumerate(backends):
+            backend_key = "/traefik/backends/{}/servers/server{}/url".format(rule_name, i+1)
+            backend_value = "http://{}".format(backend)
+            etcd_client.put(backend_key, backend_value)
 
-        backend_key = "/traefik/backends/{}/servers/server1/url".format(backend_name)
-        backend_value = "http://{}:{}".format(backend_ip, backend_port)
-        etcd_client.put(backend_key, backend_value)
-
-        frontend_key1 = "/traefik/frontends/{}/backend".format(frontend_name)
-        frontend_value1 = backend_name
+        frontend_key1 = "/traefik/frontends/{}/backend".format(rule_name)
+        frontend_value1 = rule_name
         etcd_client.put(frontend_key1, frontend_value1)
 
-        frontend_key2 = "/traefik/frontends/{0}/routes/{0}/rule".format(frontend_name)
-        frontend_value2 = "Host:{}".format(domain)
+        frontend_key2 = "/traefik/frontends/{}/routes/base/rule".format(rule_name)
+        frontend_value2 = "Host:{}".format(",".join(domains))
         etcd_client.put(frontend_key2, frontend_value2)
+        return
 
-        return True
-
-    def web_gateway_delete_host(self, web_gateway, domain):
+    def web_gateway_delete_host(self, web_gateway, rule_name):
         """
         delete a domain from web gateway
-        :param web_gateway: web gateway object from web gateway model to be used to get services
-        :param domain: the domain we need to delete
+        :param web_gateway: web gateway dict from web gateway model to be used to get services
+        :param rule_name: the rule we need to delete
         """
         # Get etcd client
         etcd_client = self.get_etcd_client(web_gateway)
 
-        # delete the domain from etcd
-        domain_parts = domain.split('.')
-        key = "/hosts/{}".format("/".join(domain_parts[::-1]))
-        etcd_client.delete(key)
+        # delete configured domains with this rule_name
+        domains_key = "/traefik/frontends/{}/routes/base/rule".format(rule_name)
+        domains_value = etcd_client.get(domains_key)
+        if not domains_value:
+            return
+        domains = domains_value[5:]  # domains_value: "Host:test.com,www.test.com"
+        for domain in domains.split(","):
+            domain_parts = domain.strip().split('.')
+            key = "/hosts/{}".format("/".join(domain_parts[::-1]))
+            etcd_client.api.delete_prefix(key)
 
-        # remove frontend from etcd
-        # the name of frontend is frontend +  domain without dots
-        # i.e. test.com => frontendtestcom
-        frontend_name = "frontend{}".format(domain.replace(".", ""))
-
-        frontend_key1 = "/traefik/frontends/{}/backend".format(frontend_name)
-        frontend_key2 = "/traefik/frontends/{0}/routes/{0}/rule".format(frontend_name)
-        etcd_client.delete(frontend_key1)
-        etcd_client.delete(frontend_key2)
+        # remove backend, frontend from traefik etcd config
+        backend_key = "/traefik/backends/{}".format(rule_name)
+        frontend_key = "/traefik/frontends/{}".format(rule_name)
+        etcd_client.api.delete_prefix(backend_key)
+        etcd_client.api.delete_prefix(frontend_key)
         return

@@ -164,7 +164,7 @@ class Farmer(JSBASE):
         jwttoken = (S)
         node = (O) !threefold.grid.node
         vm_name = (S)
-        memory = 2028 (I)
+        memory = 2048 (I)
         cores = 2 (I)
         zerotier_network = "" (S)
         zerotier_token = "" (S)
@@ -247,7 +247,7 @@ class Farmer(JSBASE):
         out.port = ip_info['port']
         return out
 
-    def web_gateways_get(self, jwttoken, country="", farmer_name=""):
+    def web_gateways_get(self, jwttoken, country, farmer_name, schema_out):
         """
         ```in
         jwttoken = (S)
@@ -256,12 +256,7 @@ class Farmer(JSBASE):
         ```
 
         ```out
-        farmer_id = (S)
-        farmer_name = (S)
-        name = (s)
-        location = ""
-        ipaddr_public_4 = ""
-        ipaddr_public_6 = ""
+        res = (LO) !threefold.grid.webgateway
         ```
 
         :return:
@@ -270,51 +265,45 @@ class Farmer(JSBASE):
         if country:
             gws = list(filter(lambda x: x.location.country == country, gws))
         if farmer_name:
-            farmers = self.farmers_get()
+            farmers = self.farmer_model.get_all()
             farmer_id = [farmer.id for farmer in farmers if farmer.name == farmer_name]
             gws = list(filter(lambda x: x.farmer_id == farmer_id, gws))
-        return gws
+        out = schema_out.new()
+        out.res = gws
+        return out
 
-    def web_gateway_add_host(self, jwttoken, web_gateway_id, domain, backend_ip, backend_port, suffix):
+    def web_gateway_add_host(self, jwttoken, web_gateway, rule_name, domains, backends):
         """
         ```in
         jwttoken = (S)
-        web_gateway_id = (I)
-        domain = (S)
-        backend_ip = (S)
-        backend_port = (I)
-        suffix = "" (S)
+        web_gateway = (O) !threefold.grid.webgateway
+        rule_name = "" (S)
+        domains = [] (LS)
+        backends = [] (LS)
         ```
         
         will configure the a virtual_host in the selected web gateway
+        :param rule_name: the rule name for this config to be referred to afterwards
         :param jwttoken: jwt for authentication
-        :param web_gateway_id: id of the obj you get through self.webgateways_get()
-        :param domain: e.g. docsify.js.org
-        :param backend_ip: e.g. 10.10.100.10
-        :param backend_port: e.g. 8080
-        :param suffix: e.f. /mysub/name/
-        :return: True if successfully added
+        :param web_gateway: the web gateway object we need to add host in it
+        :param domains: list of domains we need to register e.g. ["threefold.io", "www.threefold.io"]
+        :param backends: list of backends that the domains will point to e.g. ['10.10.100.10:80', '10.10.100.11:80']
         """
-        web_gateway = self.wgw_model.get(web_gateway_id)
-        node = self.node_model.get(web_gateway.node_id)
-        return self.capacity_planner.web_gateway_add_host(node, web_gateway_id, domain,
-                                                          backend_ip, backend_port, suffix)
+        return self.capacity_planner.web_gateway_add_host(web_gateway, rule_name, domains, backends)
 
-    def web_gateway_remove_host(self, jwttoken, web_gateway_id, domain):
+    def web_gateway_remove_host(self, jwttoken, web_gateway, rule_name):
         """
         ```in
         jwttoken = (S)
-        web_gateway_id = (I)
-        domain = (S)
+        web_gateway = (O) !threefold.grid.webgateway
+        rule_name = (S)
         ```
         delete all info for the specified domain from web_gateway
-        :param web_gateway_id: the web gateway that have the domain to be deleted
-        :param domain: the domain to be deleted
+        :param web_gateway: the web gateway that have the domain to be deleted
+        :param rule_name: the rule name for the config you need to delete
         :return:
         """
-        web_gateway = self.wgw_model.get(web_gateway_id)
-        node = self.node_model.get(web_gateway.node_id)
-        return self.capacity_planner.web_gateway_delete_host(node, web_gateway, domain)
+        return self.capacity_planner.web_gateway_delete_host(web_gateway, rule_name)
 
     def farmer_register(self, jwttoken, farmername, email_addresses=None, mobile_numbers=None, pubkey=""):
         """
@@ -377,7 +366,7 @@ class Farmer(JSBASE):
         """
         new_gateway = self.wgw_model.new()
         new_gateway.name = name
-        new_gateway.etcd_url = etcd_host
+        new_gateway.etcd_host = etcd_host
         new_gateway.etcd_port = etcd_port
         new_gateway.etcd_secret = etcd_secret
         new_gateway.country = country

@@ -71,6 +71,7 @@ class FarmerFactory(JSBASE):
             self._models.farmers = self.bcdb.model_get("threefold.grid.farmer")
             self._models.reservations = self.bcdb.model_get("threefold.grid.reservation")
             self._models.threebots = self.bcdb.model_get("threefold.grid.threebot")
+            self._models.webgateways = self.bcdb.model_get("threefold.grid.webgateway")
             self.capacity_planner.models = self._models
         return self._models
 
