@@ -41,5 +41,8 @@ for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
 
 done
 
+service redis-server start
+js_shell "j.servers.zdb.build()"
+js_shell "j.clients.zdb.testdb_server_start_client_get() "
 #try build
 tar -cpzf "/tmp/archives/jumpscale_simple.tar.gz" --exclude tmp --exclude dev --exclude sys --exclude proc  /
