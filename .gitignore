@@ -106,3 +106,10 @@ venv.bak/
 dump.rdb
 packages/examples/models/bcdb_model*
 packages/dm_base/blueprints/base/static
+
+#Dashboard
+packages/threefold/blueprints/dashboard/build/
+packages/threefold/blueprints/dashboard/node_modules/
+packages/threefold/blueprints/dashboard/weblibs/
+packages/threefold/blueprints/dashboard/webpack.config.js
+packages/threefold/blueprints/dashboard/package.json
