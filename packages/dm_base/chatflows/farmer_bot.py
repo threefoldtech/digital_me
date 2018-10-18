@@ -94,7 +94,21 @@ def chat(bot):
         bot.md_show("# NOT IMPLEMENTED YET")
 
     def web_gateway_register():
-        bot.md_show("# NOT IMPLEMENTED YET")
+        jwttoken = bot.string_ask("Please enter your JWT, "
+                                   "(click <a target='_blank' href='/client'>here</a> to get one)")
+        etcd_host = bot.string_ask("Enter etcd host:")
+        etcd_port = bot.string_ask("Enter etcd port:")
+        etcd_secret = bot.string_ask("Enter etcd secret:")
+        farmer_name = bot.single_choice("choose farmer:", [farmer.name for farmer in farmers])
+        name = bot.string_ask("Enter gateway name:")
+        pubip4 = bot.string_ask("Enter public ip4:")
+        pubip6 = bot.string_ask("Enter public ip6:")
+        country = bot.single_choice("choose country:", countries)
+        location = None  # what is the difference between location and country
+        description = bot.string_ask("Additional description?")
+
+        gedis_client.farmer.web_gateway_register(jwttoken, etcd_host, etcd_port, etcd_secret, farmer_name, name,
+                             pubip4, pubip6, country, location, description)
 
     def zdb_reserve(jwttoken, node):
         zdb_name = bot.string_ask("Please enter your ZDB name:")
