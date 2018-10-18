@@ -9,7 +9,7 @@ mkdir -p $ARCHIVE
 
 # install system deps (done)
 apt-get update
-apt-get install -y locales git wget tar sudo python3-pip redis-server netcat libffi-dev python3-dev libssl-dev libpython3-dev libssh-dev libsnappy-dev build-essential pkg-config libvirt-dev libsqlite3-dev -y
+apt-get install -y locales git wget tar sudo python3-pip redis-server libffi-dev python3-dev libssl-dev libpython3-dev libssh-dev libsnappy-dev build-essential pkg-config libvirt-dev libsqlite3-dev -y
 
 # setting up locales
 if ! grep -q ^en_US /etc/locale.gen; then
@@ -42,11 +42,7 @@ for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
 
 done
 
-service redis-server start
-while ! nc -z localhost 6379; do   
-  sleep 1 # wait for 1 second before check again
-done
+redis-server --daemonize yes
 js_shell "j.servers.zdb.build()"
-js_shell "j.clients.zdb.testdb_server_start_client_get() "
-#try build
+
 tar -cpzf "/tmp/archives/jumpscale_simple.tar.gz" --exclude tmp --exclude dev --exclude sys --exclude proc  /
