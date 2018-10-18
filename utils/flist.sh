@@ -15,6 +15,10 @@ apt-get install -y locales git sudo python3-pip libffi-dev python3-dev libssl-de
 if ! grep -q ^en_US /etc/locale.gen; then
     echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
     locale-gen en_US.UTF-8
+    export LC_ALL=en_US.UTF-8
+    export LANG=en_US.UTF-8
+    export LANGUAGE=en_US.UTF-8
+
 fi
 
 for target in /usr/local $HOME/opt $HOME/opt/cfg $HOME/opt/bin $HOME/code $HOME/code/github $HOME/code/github/threefoldtech $HOME/opt/var/capnp $HOME/opt/var/log $HOME/jumpscale/cfg; do
