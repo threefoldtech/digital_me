@@ -46,7 +46,7 @@ class DigitalMe(JSBASE):
         if p.name not in self.packages:
             self.packages[p.name]=p
 
-    def start(self,path="",name="test",zdbclients={},adminsecret="1234"):
+    def start(self,path="",name="test",zdbclients={},adminsecret="1234", zrobot=False):
         """
         examples:
 
@@ -63,7 +63,7 @@ class DigitalMe(JSBASE):
             path = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/0-robot")
             j.sal.process.execute("cd %s;pip3 install -e ." % path)
 
-        if "_zrobot" not in j.servers.__dict__.keys():
+        if "_zrobot" not in j.servers.__dict__.keys() and zrobot:
             # means not installed yet
             install_zrobot()
 
