@@ -41,4 +41,5 @@ for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
 
 done
 
+#try build
 tar -cpzf "/tmp/archives/jumpscale_simple.tar.gz" --exclude tmp --exclude dev --exclude sys --exclude proc  /
