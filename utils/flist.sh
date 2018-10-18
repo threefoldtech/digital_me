@@ -41,8 +41,11 @@ for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
     pip3 install -e .
 
 done
-pip3 install redis
+
 service redis-server start
+while ! nc -z localhost 6379; do   
+  sleep 1 # wait for 1 second before check again
+done
 js_shell "j.servers.zdb.build()"
 js_shell "j.clients.zdb.testdb_server_start_client_get() "
 #try build
