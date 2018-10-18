@@ -17,18 +17,12 @@ if ! grep -q ^en_US /etc/locale.gen; then
     locale-gen
 fi
 
-for target in /usr/local $HOME/opt $HOME/opt/cfg $HOME/opt/code $HOME/opt/code/github $HOME/opt/code/github/threefoldtech $HOME/opt/var/capnp $HOME/opt/var/log $HOME/jumpscale/cfg; do
+for target in /usr/local $HOME/opt $HOME/opt/cfg $HOME/opt/bin $HOME/code $HOME/code/github $HOME/code/github/threefoldtech $HOME/opt/var/capnp $HOME/opt/var/log $HOME/jumpscale/cfg; do
     mkdir -p $target
     sudo chown -R $USER:$USER $target
 done
 
-
-for target in /usr/local $HOME/opt $HOME/opt/cfg $HOME/opt/code $HOME/opt/code/github $HOME/opt/code/github/threefoldtech $HOME/opt/var/capnp $HOME/opt/var/log $HOME/jumpscale/cfg; do
-    mkdir -p $target
-    sudo chown -R $USER:$USER $target
-done
-
-pushd $HOME/opt/code/github/threefoldtech
+pushd $HOME/code/github/threefoldtech
 
 # cloning source code
 
@@ -36,11 +30,15 @@ export JUMPSCALEBRANCH="development_simple"
 curl https://raw.githubusercontent.com/threefoldtech/jumpscale_core/$JUMPSCALEBRANCH/install.sh?$RANDOM > /tmp/install_jumpscale.sh;bash /tmp/install_jumpscale.sh
 # install jumpscale
 for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
-    cd $HOME/opt/code/github/threefoldtech/${target}
+    cd $HOME/code/github/threefoldtech/${target}
     pip3 install -e .
 
 done
 
+wget http://download.redis.io/redis-stable.tar.gz
+tar xvzf redis-stable.tar.gz
+cd redis-stable
+make
 service redis-server start
 js_shell "j.servers.zdb.build()"
 js_shell "j.clients.zdb.testdb_server_start_client_get() "
