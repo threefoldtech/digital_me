@@ -9,7 +9,7 @@ mkdir -p $ARCHIVE
 
 # install system deps (done)
 apt-get update
-apt-get install -y locales git curl wget tar sudo python3-pip libffi-dev python3-dev libssl-dev libpython3-dev libssh-dev libsnappy-dev build-essential pkg-config libvirt-dev libsqlite3-dev -y
+apt-get install -y locales git wget tar sudo python3-pip libffi-dev python3-dev libssl-dev libpython3-dev libssh-dev libsnappy-dev build-essential pkg-config libvirt-dev libsqlite3-dev -y
 
 # setting up locales
 if ! grep -q ^en_US /etc/locale.gen; then
@@ -30,12 +30,14 @@ pushd $HOME/code/github/threefoldtech
 
 # cloning source code
 
-export JUMPSCALEBRANCH="development_simple"
-curl https://raw.githubusercontent.com/threefoldtech/jumpscale_core/$JUMPSCALEBRANCH/install.sh?$RANDOM > /tmp/install_jumpscale.sh;bash /tmp/install_jumpscale.sh
+for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me; do
+    git clone https://github.com/threefoldtech/${target}
+done
 
 # install jumpscale
 for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
     cd $HOME/code/github/threefoldtech/${target}
+    git checkout development_simple
     pip3 install -e .
 
 done
