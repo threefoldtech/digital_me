@@ -28,6 +28,7 @@ pushd $HOME/code/github/threefoldtech
 
 export JUMPSCALEBRANCH="development_simple"
 curl https://raw.githubusercontent.com/threefoldtech/jumpscale_core/$JUMPSCALEBRANCH/install.sh?$RANDOM > /tmp/install_jumpscale.sh;bash /tmp/install_jumpscale.sh
+
 # install jumpscale
 for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
     cd $HOME/code/github/threefoldtech/${target}
