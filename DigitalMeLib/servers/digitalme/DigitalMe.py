@@ -46,12 +46,11 @@ class DigitalMe(JSBASE):
         if p.name not in self.packages:
             self.packages[p.name]=p
 
-    def start(self,path="",name="test",zdbclients={},adminsecret="1234"):
+    def start(self,path="",name="test",zdbclients={},adminsecret="1234",nssecret="1234"):
         """
         examples:
 
         js_shell 'j.servers.digitalme.start()'
-        js_shell 'j.servers.digitalme.start(nrworkers=4)'
 
         path can be git url or path
 
@@ -68,7 +67,9 @@ class DigitalMe(JSBASE):
             install_zrobot()
 
         if zdbclients == {}:
-            zdbclients["default"] = j.clients.zdb.testdb_server_start_client_get()
+            zdb_admin_client = j.clients.zdb.testdb_server_start_client_get()
+            zdb_admin_client.namespace_new("digitalme", secret=nssecret)
+            zdbclients["default"] = j.clients.zdb.client_get(nsname='digitalme')
 
         if path is not "":
             if not j.sal.fs.exists(path):
@@ -77,7 +78,7 @@ class DigitalMe(JSBASE):
             path = j.clients.git.getContentPathFromURLorPath(
                 "https://github.com/threefoldtech/digital_me/tree/development/packages")
 
-        monkey.patch_all(subprocess=False)
+        monkey.patch_all(subprocess=False) #TODO: should try not to monkey patch, its not good practice at all
         self.rack = self.server_rack_get()
 
         geventserver = j.servers.gedis.configure(host="localhost", port="8001", ssl=False,

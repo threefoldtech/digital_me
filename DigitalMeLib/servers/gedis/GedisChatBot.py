@@ -68,6 +68,13 @@ class GedisChatBotSession(JSBASE):
         })
         return self.q_in.get()
 
+    def password_ask(self, msg):
+        self.q_out.put({
+            "cat": "password_ask",
+            "msg": msg
+        })
+        return self.q_in.get()
+
     def text_ask(self, msg):
         self.q_out.put({
             "cat": "text_ask",

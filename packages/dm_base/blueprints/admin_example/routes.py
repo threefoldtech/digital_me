@@ -7,8 +7,6 @@ login_manager = j.servers.web.latest.loader.login_manager
 from gevent import time
 
 
-#alias for scheduling rq job
-schedule = j.servers.gedis.latest.job_schedule
 
 users = [
     {"id": 1, "name": "ahmed", "email": "ahmed@dmdm.com"},

@@ -20,6 +20,7 @@ class RedisServer(JSBASE):
         self.port = port  # 1 port higher than the std port
         self.secret = secret
         self.ssl = False
+        j.clients.redis.core_check()  #need to make sure we have a core redis
 
         #temporarly solution
         self.zdb_admin_hack = j.clients.zdb.client_admin_get(addr='localhost', port=9900, secret='123456', mode='seq')
@@ -147,9 +148,9 @@ class RedisServer(JSBASE):
     def info(self):
         return b"NO INFO YET"
 
-    def auth(self,*args,**kwargs):
-        j.shell()
-        return "OK"
+    def auth(self,response,*args,**kwargs):
+        # j.shell()
+         response.encode("OK")
 
     def _split(self, key):
         """
@@ -285,8 +286,17 @@ class RedisServer(JSBASE):
         else:
             id = int(id)
             if id == 0:
-                return response.error('trying to overwrite first metadata entry, not allowed')
-            o = model.set_dynamic(val, obj_id=id)
+                response.error('trying to overwrite first metadata entry, not allowed')
+                return
+            try:
+                o = model.set_dynamic(val, obj_id=id)
+            except Exception as e:
+                if str(e).find("cannot update object")!=-1:
+                    response.error('cannot update object with id:%s, it does not exist'%id)
+                    return
+                response.error(str(e))
+                return
+
         response.encode("%s" % o.id)
 
     def hget(self, response, key, id):

@@ -72,7 +72,6 @@ setup(
         'python-jose>=1.3.2',
         'g8storclient',
         'gipc',
-        'rq-dashboard',
         'cryptocompare',
         'flask_login',
         'flask_sockets',

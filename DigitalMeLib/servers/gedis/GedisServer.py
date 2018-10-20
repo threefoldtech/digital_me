@@ -12,12 +12,6 @@ from .GedisCmds import GedisCmds
 JSConfigBase = j.tools.configmanager.JSBaseClassConfig
 
 
-from rq import Queue
-from redis import Redis
-
-from rq.decorators import job
-# from importlib.machinery import SourceFileLoader
-
 
 TEMPLATE = """
     host = "0.0.0.0"
@@ -64,12 +58,6 @@ class GedisServer(StreamServer, JSConfigBase):
         self.chatbot = GedisChatBotFactory(ws=self)
 
         self.namespaces = ["system","default"]
-
-        #for the workers RQ
-        redis_conn = Redis()
-        self.workers_queue =  Queue(connection=redis_conn)
-        self.workers_jobs = {}
-        # self.cmd_paths = []
 
         self.logger_enable()
 

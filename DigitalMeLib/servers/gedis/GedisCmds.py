@@ -41,7 +41,7 @@ class GedisCmds(JSBASE):
         namespace = ""
         cmds = (LO) !jumpscale.gedis.cmd  
         """
-        j.data.schema.schema_add(SCHEMA)
+        j.data.schema.get(SCHEMA)
         self.schema = j.data.schema.get(url="jumpscale.gedis.api")
 
         self._cmds = {}

@@ -3,7 +3,6 @@ from Jumpscale import j
 
 
 SCHEMA="""
-
 @url = threefold.grid.reservation
 threebot_id* = ""         #the user who bought the capacity
 payment_secret = ""       #when time is there for renewal the farmer robot will ask the 3bot for payment, needs this secret
@@ -32,15 +31,7 @@ node_service_id = "" (S)  #id in which the farmer can ask for deletion of the se
 payments = (LO) !threefold.grid.payment
 
 
-@url = threefold.grid.payment
-transactionid = ""        #transaction id in the blockchain
-datetime = 0 (D)          #time when payment was done
-tft_nr = 0 (F)            #amounts of tokens paid
 
-zrobot_service_secret = ""       #secret as returned by the zero node robot
-
-
-#TODO:*1 for the specs of VM/ZDB/...
 """
 from peewee import *
 db = j.data.bcdb.bcdb_instances["default"].sqlitedb
@@ -49,7 +40,7 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_threefold_grid_reservation(BaseModel):
+class Index_(BaseModel):
     id = IntegerField(unique=True)
     threebot_id = TextField(index=True)
     date_start = IntegerField(index=True)
@@ -60,10 +51,10 @@ class Index_threefold_grid_reservation(BaseModel):
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
-    def __init__(self, bcdb):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.reservation")
+    def __init__(self, bcdb, zdbclient):
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.reservation", zdbclient=zdbclient)
         self.url = "threefold.grid.reservation"
-        self.index = Index_threefold_grid_reservation
+        self.index = Index_
         self.index.create_table()
     
     def index_set(self,obj):

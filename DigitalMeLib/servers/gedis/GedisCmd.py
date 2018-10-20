@@ -25,7 +25,7 @@ class GedisCmd(JSBASE):
                 url=cmd.schema_in.strip("!").strip()
                 self.schema_in = j.data.schema.get(url=url)
             else:
-                self.schema_in=j.data.schema.schema_add(cmd.schema_in,url=self.namespace+".%s.in"%cmd.name)
+                self.schema_in=j.data.schema.get(cmd.schema_in,url=self.namespace+".%s.in"%cmd.name)
             self.schema_in.objclass
         else:
             self.schema_in = None
@@ -35,7 +35,7 @@ class GedisCmd(JSBASE):
                 url=cmd.schema_out.strip("!").strip()
                 self.schema_out = j.data.schema.get(url=url)
             else:
-                self.schema_out = j.data.schema.schema_add(cmd.schema_out,url=self.namespace+".%s.out"%cmd.name)
+                self.schema_out = j.data.schema.get(cmd.schema_out,url=self.namespace+".%s.out"%cmd.name)
             self.schema_out.objclass
         else:
             self.schema_out = None

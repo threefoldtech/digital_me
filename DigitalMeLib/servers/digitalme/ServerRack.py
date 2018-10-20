@@ -59,14 +59,6 @@ class ServerRack(JSBASE):
         else:
             monitor_changes_subprocess(gedis_instance_name=gedis_instance_name)
 
-    def workers_start(self,nr=4):
-        """
-        @param gedis_instance_name: gedis instance name that will be monitored
-        """
-        self._nomonkeypatch_check()
-        from .RQ import workers
-        self.workers = workers(nr=nr)
-
     def zrobot_start(self):
         # get zrobot instance
         self._monkeypatch()

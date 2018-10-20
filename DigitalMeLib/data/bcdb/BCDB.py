@@ -252,11 +252,12 @@ class BCDB(JSBASE):
         tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="*.toml", followSymlinks=True)
         for schemapath in tocheck:
             dest = "%s/bcdb_model_%s.py" % (j.sal.fs.getDirName(schemapath), j.sal.fs.getBaseName(schemapath, True))
-            self.model_add_from_schema(schemapath, dest=dest, overwrite=overwrite, namespace=namespace)
+            schema = j.data.schema.get(schemapath)
+            self.model_add_from_schema(schema=schema, zdbclient=self.zdbclient, reload=False, dest=dest, overwrite=overwrite)
 
         tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="*.py", followSymlinks=True)
         for classpath in tocheck:
-            self.model_add_from_file(classpath)
+            self.model_add_from_file(classpath,zdbclient=self.zdbclient)
 
     def load(self,zdbclient):
         return zdbclient.meta.models_load(self)

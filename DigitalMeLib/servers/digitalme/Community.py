@@ -44,7 +44,7 @@ class Community(JSBASE):
         self.service_dna = {}        #are the classes for services (which can run inside coordinators)
         self.knowledge = []          #are paths to the knowledge to learn
 
-        self.schema_state = j.data.schema.schema_add(SCHEMA)
+        # self.schema_state = j.data.schema.get(SCHEMA)
 
         self._key = None
 
@@ -174,7 +174,7 @@ class Community(JSBASE):
             SCHEMA2 += "state = \"new,active,error,halted,deleted\" (S)\n"  #TODO: *1 needs enumeration
         print(SCHEMA2)
         try:
-            module.schema_obj = j.data.schema.schema_add(SCHEMA2)[0]
+            module.schema_obj = j.data.schema.get(SCHEMA2)[0]
         except Exception as e:
             self.error_raise("cannot parse schema:%s"%SCHEMA2,e=e)
 

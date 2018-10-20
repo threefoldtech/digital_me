@@ -65,7 +65,7 @@ class GedisClient(JSConfigBase):
         schemas_meta = j.data.serializers.msgpack.loads(schemas_meta)
         for key,txt in schemas_meta.items():
             if key not in j.data.schema.schemas:
-                j.data.schema.schema_add(txt)
+                j.data.schema.get(txt)
 
         schema_urls = self.redis.execute_command("schema_urls")
         self.schema_urls = j.data.serializers.msgpack.loads(schema_urls)

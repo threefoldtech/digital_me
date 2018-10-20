@@ -89,13 +89,13 @@ class Package(JSBASE):
 
         self.zdbclients = zdbclients
 
-        #use redis to make the packages persistent, so we can autoreload them later, #TODO: not done now
-        #IS STILL WORK AROUND THE CORE DB IS USED TO STORE THE PACKAGES (will be changed)
-        self._bcdb_core = j.data.bcdb.get(j.core.db,namespace="system") #get system namespace for own metadata
-        self._bcdb_core.model_create(schema=SCHEMA_PACKAGE)
-        self._model = self._bcdb_core.model_get(url="jumpscale.digitalme.package")
+        #SOMEWHERE IN FUTURE WE WILL HAVE TO STORE THE MODELS IN OWN ZDB
+        # self._bcdb_core = j.data.bcdb.get(j.core.db,namespace="system") #get system namespace for own metadata
+        # self._bcdb_core.model_create(schema=SCHEMA_PACKAGE)
+        # self._model = self._bcdb_core.model_get(url="jumpscale.digitalme.package")
 
-        self.data = self._model.new()
+        s=j.data.schema.get(SCHEMA_PACKAGE)
+        self.data = s.new()
         self.data.path = j.sal.fs.getDirName(path)
 
         data = j.data.serializers.toml.load(path)  #path is the toml file
@@ -299,12 +299,12 @@ class Package(JSBASE):
         for item in self.data.models:
             if not self.namespace in j.data.bcdb.bcdb_instances:
                 if self.namespace in self.zdbclients:
-                    dbcl = self.zdbclients[self.namespace]
+                    zdbclient = self.zdbclients[self.namespace]
                 else:
                     if "default" not in self.zdbclients:
                         raise RuntimeError("default zdb client not specified")
-                    dbcl = self.zdbclients["default"]
-                bcdb = j.data.bcdb.get(dbcl, namespace=self.namespace, reset=False)
+                    zdbclient = self.zdbclients["default"]
+                j.data.bcdb.bcdb_instances[self.namespace] = j.data.bcdb.get(name=self.namespace, zdbclient=zdbclient)
             bcdb = j.data.bcdb.bcdb_instances[self.namespace]
             bcdb.models_add(item.path)
 

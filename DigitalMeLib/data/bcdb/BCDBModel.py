@@ -177,7 +177,12 @@ class BCDBModel(JSBASE):
             # means a new one
             obj.id = self.zdbclient.set(data)
         else:
-            self.zdbclient.set(data, key=obj.id)
+            try:
+                self.zdbclient.set(data, key=obj.id)
+            except Exception as e:
+                if str(e).find("only update authorized")!=-1:
+                    raise RuntimeError("cannot update object:%s\n with id:%s, does not exist"%(obj,obj.id))
+                raise e
 
         if index:
             self.index_set(obj)

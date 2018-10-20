@@ -3,23 +3,18 @@ from Jumpscale import j
 
 
 SCHEMA="""
-
 @url = threefold.grid.webgateway
 name* = ""
 description = ""
 country = ""
 location = ""
-etcd_service_id = ""
-etcd_service_secret = ""
-coredns_service_id = ""
-coredns_service_secret = ""
-traefik_service_id = ""
-traefik_service_secret = ""
+etcd_host = ""
+etcd_port = ""
+etcd_secret = ""
 node_id = ""
 farmer_id = (I)
 pubip4 = [] (LS)
 pubip6 = [] (LS)
-
 
 
 """
@@ -30,17 +25,17 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_threefold_grid_webgateway(BaseModel):
+class Index_(BaseModel):
     id = IntegerField(unique=True)
     name = TextField(index=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
-    def __init__(self, bcdb):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.webgateway")
+    def __init__(self, bcdb, zdbclient):
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.webgateway", zdbclient=zdbclient)
         self.url = "threefold.grid.webgateway"
-        self.index = Index_threefold_grid_webgateway
+        self.index = Index_
         self.index.create_table()
     
     def index_set(self,obj):

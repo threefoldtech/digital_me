@@ -3,7 +3,6 @@ from Jumpscale import j
 
 
 SCHEMA="""
-
 @url = threefold.grid.threebot
 botid = 0 (I)                     #official id on the blockchain for thos bot
 botnames = "" (LS)                #botnames list of bot names's $min5char.$min5char e.g. kristof.ibiza
@@ -18,6 +17,7 @@ reputation* = ""                  #OK, DENY  (to know which ones we want to work
 
 
 
+
 """
 from peewee import *
 db = j.data.bcdb.bcdb_instances["default"].sqlitedb
@@ -26,7 +26,7 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_threefold_grid_threebot(BaseModel):
+class Index_(BaseModel):
     id = IntegerField(unique=True)
     email = TextField(index=True)
     reputation = TextField(index=True)
@@ -34,10 +34,10 @@ class Index_threefold_grid_threebot(BaseModel):
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
-    def __init__(self, bcdb):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.threebot")
+    def __init__(self, bcdb, zdbclient):
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.threebot", zdbclient=zdbclient)
         self.url = "threefold.grid.threebot"
-        self.index = Index_threefold_grid_threebot
+        self.index = Index_
         self.index.create_table()
     
     def index_set(self,obj):

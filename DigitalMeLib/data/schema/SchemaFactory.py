@@ -115,7 +115,9 @@ class SchemaFactory(JSBASE):
         if md5 in self._md5_schema:
             return True,self._md5_schema[md5]
 
-        return False,self._add2(schema_text)
+        res = self._add2(schema_text)
+        self._md5_schema[md5] = res
+        return False, res
 
 
     def _add2(self, txt,dbclient=None):
