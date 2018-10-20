@@ -24,10 +24,10 @@ class BCDBFactory(JSBASE):
         self.logger_enable()
 
 
-    def get(self, name, zdbclient=None,cache=True):
+    def get(self, name, zdbclient=None, cache=True):
         if zdbclient is None:
             #now a generic client on zdb, but needs to become a sqlite version
-            zdbclient = j.clients.zdb.client_get(nsname="test", addr="localhost",port=9900,secret="1234",mode="seq")
+            zdbclient = j.clients.zdb.client_get(nsname="test", addr="localhost",port=9900,secret="123456",mode="seq")
         if not name in self.bcdb_instances or cache==False:
             if j.data.types.string.check(zdbclient):
                 raise RuntimeError("zdbclient cannot be str")
@@ -43,7 +43,7 @@ class BCDBFactory(JSBASE):
                                    zdbclient_addr="localhost",
                                    zdbclient_port=9900,
                                    zdbclient_namespace="test",
-                                   zdbclient_secret="1234",
+                                   zdbclient_secret="123456",
                                    zdbclient_mode="seq",
                                    ):
         """
@@ -134,7 +134,7 @@ class BCDBFactory(JSBASE):
             self.logger.debug("start bcdb in tmux")
             server_db = j.servers.zdb.start_test_instance(reset=reset)
             zdbclient_admin = j.servers.zdb.client_admin_get()
-            zdbclient = zdbclient_admin.namespace_new("test",secret="1234")
+            zdbclient = zdbclient_admin.namespace_new("test",secret="123456")
             bcdb = j.data.bcdb.get(name="test",zdbclient=zdbclient)
             schemaobj=j.data.schema.get(schema)
             bcdb.model_add_from_schema(schemaobj,zdbclient=zdbclient) #model has now been added to the DB
@@ -144,7 +144,7 @@ class BCDBFactory(JSBASE):
         bcdb.models = {} #just to make sure all is empty, good to test
 
         self.logger.debug("bcdb already exists")
-        zdbclient = j.servers.zdb.client_get("test",secret="1234")
+        zdbclient = j.servers.zdb.client_get("test",secret="123456")
         res = bcdb.load(zdbclient)
         model = bcdb.model_get("despiegk.test")
 

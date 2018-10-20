@@ -34,7 +34,7 @@ payments = (LO) !threefold.grid.payment
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["default"].sqlitedb
+db = j.data.bcdb.bcdb_instances["test"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
@@ -55,6 +55,9 @@ class Model(MODEL_CLASS):
         MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.reservation", zdbclient=zdbclient)
         self.url = "threefold.grid.reservation"
         self.index = Index_
+        with open('/tmp/log.log', 'a') as f:
+            f.write("creating table %s\n" % "threefold.grid.reservation")
+            f.write("\tfields:%s\n" % "[indexfield:threebot_id:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f987cdf2710>, indexfield:date_start:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x7f987a56c470>, indexfield:date_end:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x7f987a56c3c8>, indexfield:state:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f987cdf2710>, indexfield:node_id:IntegerField:<Jumpscale.data.types.PrimitiveTypes.Integer object at 0x7f987a56c128>]")
         self.index.create_table()
     
     def index_set(self,obj):

@@ -11,7 +11,7 @@ class Farmer(JSBASE):
 
     def __init__(self):
         JSBASE.__init__(self)
-        j.tools.threefold_farmer.zdb = j.clients.zdb.testdb_server_start_client_get(reset=False)
+        j.tools.threefold_farmer.zdb = j.clients.zdb.testdb_server_start_client_get(reset=False, secret="123456")
         self._bcdb = j.tools.threefold_farmer.bcdb
         self._farmer_model = None
         self._node_model = None

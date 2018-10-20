@@ -105,7 +105,7 @@ class GedisFactory(JSConfigBase):
             cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
 
         gedis = self.configure(instance="test", port=8888, host="localhost", ssl=False,
-                               adminsecret="1234", interactive=False)
+                               adminsecret="123456", interactive=False)
 
         print("START GEDIS IN TMUX")
         cmd = "js_shell 'j.servers.gedis.test_server_start()'"
@@ -157,7 +157,7 @@ class GedisFactory(JSConfigBase):
         assert res.custom == "custom"
         print("[4] Done")
 
-        s = j.clients.gedis.configure("system", port=cl.config.data["port"], namespace="system", secret="1234")
+        s = j.clients.gedis.configure("system", port=cl.config.data["port"], namespace="system", secret="123456")
 
         assert s.system.ping().lower() == b"pong"
 

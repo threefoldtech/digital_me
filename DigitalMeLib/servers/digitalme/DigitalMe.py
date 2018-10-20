@@ -46,7 +46,7 @@ class DigitalMe(JSBASE):
         if p.name not in self.packages:
             self.packages[p.name]=p
 
-    def start(self,path="",name="test",zdbclients={},adminsecret="1234",nssecret="1234"):
+    def start(self,path="", name="test", zdbclients={}, adminsecret="123456", nssecret="123456"):
         """
         examples:
 
@@ -67,9 +67,9 @@ class DigitalMe(JSBASE):
             install_zrobot()
 
         if zdbclients == {}:
-            zdb_admin_client = j.clients.zdb.testdb_server_start_client_get()
+            zdb_admin_client = j.clients.zdb.testdb_server_start_client_get(secret=adminsecret)
             zdb_admin_client.namespace_new("digitalme", secret=nssecret)
-            zdbclients["default"] = j.clients.zdb.client_get(nsname='digitalme')
+            zdbclients["default"] = j.clients.zdb.client_get(nsname='digitalme', secret=nssecret)
 
         if path is not "":
             if not j.sal.fs.exists(path):
