@@ -167,7 +167,7 @@ class BCDBFactory(JSBASE):
         self.test1()
         self.test2()
         # self.test3()
-        # self.test4()
+        self.test4()
         print ("ALL TESTS DONE OK FOR BCDB")
 
     def test1(self):

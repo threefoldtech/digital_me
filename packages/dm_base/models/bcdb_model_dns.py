@@ -3,10 +3,10 @@ from Jumpscale import j
 
 
 SCHEMA="""
-# Sell Order
 @url = digitalme.dnsrecord
 type = "" (S)   # A, AAAA, NS, MX, CNAME, TXT, PTR
 val = "" (S)
+
 
 
 """
@@ -17,16 +17,16 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_digitalme_dnsrecord(BaseModel):
+class Index_(BaseModel):
     id = IntegerField(unique=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
-    def __init__(self, bcdb):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="digitalme.dnsrecord")
+    def __init__(self, bcdb, zdbclient):
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="digitalme.dnsrecord", zdbclient=zdbclient)
         self.url = "digitalme.dnsrecord"
-        self.index = Index_digitalme_dnsrecord
+        self.index = Index_
         self.index.create_table()
     
     def index_set(self,obj):

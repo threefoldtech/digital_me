@@ -21,9 +21,8 @@ class FarmerFactory(JSBASE):
 
         self.capacity_planner = CapacityPlanner()
 
-        self.zdb = None
         self._models = None
-        self._bcdb = None
+        self.bcdb = j.data.bcdb.bcdb_instances["default"]
 
     @property
     def zerotier_client(self):
@@ -49,14 +48,6 @@ class FarmerFactory(JSBASE):
         if not self._jwt:
             self._jwt = self.iyo.jwt_get(refreshable=True, scope='user:memberof:threefold.sysadmin')
         return self._jwt
-
-    @property
-    def bcdb(self):
-        if self.zdb is None:
-            raise RuntimeError("you need to set self.zdb with a zerodb connection")
-        if self._bcdb is None:
-            self._bcdb = j.data.bcdb.get(self.zdb)
-        return self._bcdb
 
     @property
     def models(self):
@@ -347,10 +338,10 @@ class FarmerFactory(JSBASE):
 
             self.node_check(node, reset=reset)
 
-    def _fail_save(self):
-        if not self._bcdb:
-            self.zdb = j.clients.zdb.testdb_server_start_client_get(reset=False)
-            self._bcdb = j.data.bcdb.get(self.zdb, reset=False)
+    # def _fail_save(self):
+    #     if not self._bcdb:
+    #         self.zdb = j.clients.zdb.testdb_server_start_client_get(reset=False)
+    #         self._bcdb = j.data.bcdb.get(self.zdb, reset=False)
 
     def load(self, reset=False):
         """

@@ -3,8 +3,6 @@ from Jumpscale import j
 
 
 SCHEMA="""
-
-
 @url = digitalme.circle
 #unique global name
 name = "" (S) 
@@ -26,6 +24,7 @@ otp = "" (S)
 
 
 
+
 """
 from peewee import *
 db = j.data.bcdb.bcdb_instances["base"].sqlitedb
@@ -34,16 +33,16 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_digitalme_circle(BaseModel):
+class Index_(BaseModel):
     id = IntegerField(unique=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
-    def __init__(self, bcdb):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="digitalme.circle")
+    def __init__(self, bcdb, zdbclient):
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="digitalme.circle", zdbclient=zdbclient)
         self.url = "digitalme.circle"
-        self.index = Index_digitalme_circle
+        self.index = Index_
         self.index.create_table()
     
     def index_set(self,obj):

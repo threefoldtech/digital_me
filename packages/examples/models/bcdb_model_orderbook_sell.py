@@ -3,7 +3,6 @@ from Jumpscale import j
 
 
 SCHEMA="""
-# Sell Order
 @url = jumpscale.example.order.sell
 comment = ""
 currency_to_sell* = "" (S)   # currency types BTC/ETH/XRP/TFT
@@ -17,15 +16,16 @@ approved* = (B)              # if True, object will be scheduled for matching, f
 owner_email_addr = (S)      # email addr used through IYO when order was created
 wallet_addr* = (S)           # Wallet address
 
+
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["test"].sqlitedb
+db = j.data.bcdb.bcdb_instances["examples"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_jumpscale_example_order_sell(BaseModel):
+class Index_(BaseModel):
     id = IntegerField(unique=True)
     currency_to_sell = TextField(index=True)
     price_min = FloatField(index=True)
@@ -37,10 +37,10 @@ class Index_jumpscale_example_order_sell(BaseModel):
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
-    def __init__(self, bcdb):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="jumpscale.example.order.sell")
+    def __init__(self, bcdb, zdbclient):
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="jumpscale.example.order.sell", zdbclient=zdbclient)
         self.url = "jumpscale.example.order.sell"
-        self.index = Index_jumpscale_example_order_sell
+        self.index = Index_
         self.index.create_table()
     
     def index_set(self,obj):

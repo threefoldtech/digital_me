@@ -3,7 +3,7 @@ from Jumpscale import j
 p = j.tools.prefab.local
 p.runtimes.pip.install("dnslib,nameparser,gevent,unidecode")
 
-# j.servers.zdb.build()
+j.servers.zdb.build()
 
 j.clients.zdb.test()
 
