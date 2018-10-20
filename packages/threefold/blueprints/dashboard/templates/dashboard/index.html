@@ -4,9 +4,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <link rel="stylesheet" href="/dashboard/static/assets/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/dashboard/static/css/fontawesome.min.css">
+  <link rel="stylesheet" href="/dashboard/static/css/themify-icons.css">
+  <link rel="stylesheet" href="/dashboard/static/assets/perfect-scrollbar/css/perfect-scrollbar.css">
+  <link rel="stylesheet" href="/dashboard/static/assets/jvectormap/jquery-jvectormap.css">
+  <link rel="stylesheet" href="/dashboard/static/assets/datatables/media/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="/dashboard/static/assets/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
+  <link rel="stylesheet" href="/dashboard/static/css/style.css">
   <title>Dashboard</title>
   <style>
-  #loader{
+    #loader{
     transition:all .3s ease-in-out;
     opacity:1;
     visibility:visible;
@@ -89,7 +97,6 @@
       "update": "2018/10/15 13:20:11"
     }
   </script>
-  <link href="/dashboard/static/css/style.css" rel="stylesheet">
 </head>
 
 <body class="app">
@@ -530,7 +537,7 @@
                           </tr>
                         </thead>
                         <tbody>
-                          {% for country in  countries%}
+                          {% for country in countries%}
                           <tr>
                             <td class="fw-600">Item #1 Name</td>
                             <td><span class="badge bgc-red-50 c-red-700 p-10 lh-0 tt-c badge-pill">Unavailable</span></td>
@@ -582,7 +589,7 @@
                 <div class="ta-c bdT w-100 p-20"><a href="#">Check all the sales</a></div>
               </div>
             </div>
-            <div class="masonry-item col-md-6">
+            <!-- <div class="masonry-item col-md-6">
               <div class="bd bgc-white p-20">
                 <div class="layers">
                   <div class="layer w-100 mB-20">
@@ -634,7 +641,7 @@
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> -->
                   <div class="layer w-100">
                     <div class="peers peers-greed ai-fs ta-c">
                       <div class="peer">
@@ -664,7 +671,7 @@
                 </div>
               </div>
             </div>
-            <div class="masonry-item col-md-6">
+            <!-- <div class="masonry-item col-md-6">
               <div class="bd bgc-white">
                 <div class="layers">
                   <div class="layer w-100 p-20">
@@ -726,7 +733,7 @@
                   </div>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
       </main>
@@ -734,8 +741,21 @@
             target="_blank" title="Colorlib">Colorlib</a>. All rights reserved.</span></footer>
     </div>
   </div>
-  <script type="text/javascript" src="/dashboard/static/js/vendor.js"></script>
-  <script type="text/javascript" src="/dashboard/static/js/bundle.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/jquery/dist/jquery.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/js/fontawesome.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/masonry-layout/dist/masonry.pkgd.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/chart.js/dist/Chart.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/js/colors.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/easy-pie-chart/dist/jquery.easypiechart.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/jquery-sparkline/jquery.sparkline.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/lodash.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/perfect-scrollbar/dist/perfect-scrollbar.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/jvectormap/jquery-jvectormap.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/jvectormap/jquery-jvectormap-world-mill.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/datatables/media/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/js/custom.js"></script>
 </body>
 
 </html>
