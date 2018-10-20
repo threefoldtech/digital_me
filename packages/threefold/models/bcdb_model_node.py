@@ -3,6 +3,7 @@ from Jumpscale import j
 
 
 SCHEMA="""
+
 @url = threefold.grid.node
 
 node_zos_id* = ""               #zero os id of the host
@@ -43,6 +44,32 @@ capacity_total = (O) !threefold.grid.capacity.total
 location = (O) !threefold.grid.capacity.location
 
 
+@url = threefold.grid.capacity.reserved
+mru = 0 (F)            #nr of units reserved
+cru = 0 (F)
+hru = 0 (F)
+sru = 0 (F)
+
+@url = threefold.grid.capacity.used
+mru = 0 (F)            #nr of units used in the box
+cru = 0 (F)
+hru = 0 (F)
+sru = 0 (F)
+
+@url = threefold.grid.capacity.total
+mru = 0 (F)            #nr of units total in the box
+cru = 0 (F)
+hru = 0 (F)
+sru = 0 (F)
+
+
+@url = threefold.grid.capacity.location
+country = ""
+city = ""
+continent = ""
+latitude = (F)
+longitude = (F)
+
 
 """
 from peewee import *
@@ -52,7 +79,7 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_(BaseModel):
+class Index_threefold_grid_node(BaseModel):
     id = IntegerField(unique=True)
     node_zos_id = TextField(index=True)
     node_zerotier_id = TextField(index=True)
@@ -76,10 +103,10 @@ class Index_(BaseModel):
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
-    def __init__(self, bcdb, zdbclient):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.node", zdbclient=zdbclient)
+    def __init__(self, bcdb):
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.node")
         self.url = "threefold.grid.node"
-        self.index = Index_
+        self.index = Index_threefold_grid_node
         self.index.create_table()
     
     def index_set(self,obj):

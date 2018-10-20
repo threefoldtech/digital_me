@@ -3,6 +3,7 @@ from Jumpscale import j
 
 
 SCHEMA="""
+
 @url = threefold.grid.webgateway
 name* = ""
 description = ""
@@ -16,7 +17,6 @@ farmer_id = (I)
 pubip4 = [] (LS)
 pubip6 = [] (LS)
 
-
 """
 from peewee import *
 db = j.data.bcdb.bcdb_instances["default"].sqlitedb
@@ -25,17 +25,17 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_(BaseModel):
+class Index_threefold_grid_webgateway(BaseModel):
     id = IntegerField(unique=True)
     name = TextField(index=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
-    def __init__(self, bcdb, zdbclient):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.webgateway", zdbclient=zdbclient)
+    def __init__(self, bcdb):
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.webgateway")
         self.url = "threefold.grid.webgateway"
-        self.index = Index_
+        self.index = Index_threefold_grid_webgateway
         self.index.create_table()
     
     def index_set(self,obj):

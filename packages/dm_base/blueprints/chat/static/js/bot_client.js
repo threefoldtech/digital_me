@@ -7,6 +7,14 @@ var stringContentGenerate = function (message){
     </div>`
 }
 
+var passwordContentGenerate = function (message){
+    return `
+    <h4>${message}</h4>
+    <div class="form-group">
+		<input type="password" class="form-control" id="value">
+    </div>`
+}
+
 var textContentGenerate = function (message){
     return `
     <h4>${message}</h4>
@@ -118,6 +126,9 @@ var generateSlide = function(res) {
         case "string_ask":
             contents = stringContentGenerate(res['msg']);
             break;
+        case "password_ask":
+            contents = passwordContentGenerate(res['msg']);
+            break;
         case "text_ask":
             contents = textContentGenerate(res['msg']);
             break;
@@ -152,7 +163,7 @@ var generateSlide = function(res) {
         ev.preventDefault();
         $(this).attr("disabled", "disabled");
 		let value="";
-		if (["string_ask", "int_ask", "text_ask", "drop_down_choice"].includes(res['cat'])) {
+		if (["string_ask", "int_ask", "text_ask", "password_ask", "drop_down_choice"].includes(res['cat'])) {
 			value = $("#value").val();
         } else if (res['cat'] === "single_choice"){
             value = $("input[name='value']:checked").val();

@@ -3,6 +3,8 @@ from Jumpscale import j
 
 
 SCHEMA="""
+
+# Wallet
 @url = jumpscale.example.wallet
 jwt = "" (S)                # JWT Token
 addr* = ""                   # Address
@@ -10,26 +12,25 @@ ipaddr = (ipaddr)           # IP Address
 email = "" (S)              # Email address
 username = "" (S)           # User name
 
-
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["examples"].sqlitedb
+db = j.data.bcdb.bcdb_instances["test"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
         database = db
 
-class Index_(BaseModel):
+class Index_jumpscale_example_wallet(BaseModel):
     id = IntegerField(unique=True)
     addr = TextField(index=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
 class Model(MODEL_CLASS):
-    def __init__(self, bcdb, zdbclient):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="jumpscale.example.wallet", zdbclient=zdbclient)
+    def __init__(self, bcdb):
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="jumpscale.example.wallet")
         self.url = "jumpscale.example.wallet"
-        self.index = Index_
+        self.index = Index_jumpscale_example_wallet
         self.index.create_table()
     
     def index_set(self,obj):

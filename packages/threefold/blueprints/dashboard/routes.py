@@ -1,5 +1,5 @@
 from flask import render_template, redirect, request, make_response
-from blueprints.farmercharts import *
+from blueprints.dashboard import *
 from Jumpscale import j
 from collections import Counter
 
@@ -30,7 +30,7 @@ def route_default():
     # farmers = j.tools.threefold_farmer.bcdb.model_get('threefold.grid.farmer').get_all()
     farmers = client.farmer.farmers_get().res
     countries = {node.location.country for node in nodes}
-    return render_template("node/index.html", nodes=nodes, heatmap_data=heatmap_data, max_count=max_count, farmers=farmers,
+    return render_template("dashboard/index.html", nodes=nodes, heatmap_data=heatmap_data, max_count=max_count, farmers=farmers,
                            countries=countries)
 
 
