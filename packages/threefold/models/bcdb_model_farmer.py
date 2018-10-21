@@ -37,7 +37,12 @@ class Model(MODEL_CLASS):
         self.index = Index_
         with open('/tmp/log.log', 'a') as f:
             f.write("creating table %s\n" % "threefold.grid.farmer")
-            f.write("\tfields:%s\n" % "[indexfield:name:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f987cdf2710>, indexfield:iyo_org:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f987cdf2710>]")
+            f.write("\tfields:%s\n" % "[indexfield:name:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f52ac389588>, indexfield:iyo_org:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f52ac389588>]")
+            f.write('\ttable: %s\n\n' % 'indexmodel:\s - indexfield:name:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f52ac389588>
+ - indexfield:iyo_org:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f52ac389588>
+')
+
+            
         self.index.create_table()
     
     def index_set(self,obj):

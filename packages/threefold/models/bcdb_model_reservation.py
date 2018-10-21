@@ -57,8 +57,11 @@ class Model(MODEL_CLASS):
         self.index = Index_
         with open('/tmp/log.log', 'a') as f:
             f.write("creating table %s\n" % "threefold.grid.reservation")
-            f.write("\tfields:%s\n" % "[indexfield:threebot_id:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f987cdf2710>, indexfield:date_start:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x7f987a56c470>, indexfield:date_end:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x7f987a56c3c8>, indexfield:state:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f987cdf2710>, indexfield:node_id:IntegerField:<Jumpscale.data.types.PrimitiveTypes.Integer object at 0x7f987a56c128>]")
-        self.index.create_table()
+            f.write("\tfields:%s\n" % "[indexfield:threebot_id:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>, indexfield:date_start:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x7fb9e7340438>, indexfield:date_end:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x7fb9e73404a8>, indexfield:state:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>, indexfield:node_id:IntegerField:<Jumpscale.data.types.PrimitiveTypes.Integer object at 0x7fb9e7340710>]")
+
+
+            output = self.index.create_table()
+            f.write('\t output: %s' % output)
     
     def index_set(self,obj):
         idict={}

@@ -40,8 +40,11 @@ class Model(MODEL_CLASS):
         self.index = Index_
         with open('/tmp/log.log', 'a') as f:
             f.write("creating table %s\n" % "threefold.grid.threebot")
-            f.write("\tfields:%s\n" % "[indexfield:email:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f987cdf2710>, indexfield:reputation:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f987cdf2710>]")
-        self.index.create_table()
+            f.write("\tfields:%s\n" % "[indexfield:email:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>, indexfield:reputation:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>]")
+
+
+            output = self.index.create_table()
+            f.write('\t output: %s' % output)
     
     def index_set(self,obj):
         idict={}

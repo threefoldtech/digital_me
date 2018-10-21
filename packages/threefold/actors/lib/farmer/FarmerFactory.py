@@ -249,7 +249,6 @@ class FarmerFactory(JSBASE):
         return robot
 
     def farmer_get_from_dir(self, name, return_none_if_not_exist=False):
-        import ipdb; ipdb.set_trace()
         res = self.models.farmers.index.select().where(self.models.farmers.index.name == name).execute()
         if len(res) > 0:
             o = self.models.farmers.get(res[0].id)

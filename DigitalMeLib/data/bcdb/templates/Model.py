@@ -36,6 +36,9 @@ class Model(MODEL_CLASS):
         with open('/tmp/log.log', 'a') as f:
             f.write("creating table %s\n" % "{{schema.url}}")
             f.write("\tfields:%s\n" % "{{index.fields}}")
+            f.write('\ttable: %s\n\n' % '{{index}}')
+
+            
         self.index.create_table()
 
         {%- endif %}
