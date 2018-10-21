@@ -22,7 +22,9 @@ class FarmerFactory(JSBASE):
         self.capacity_planner = CapacityPlanner()
 
         self._models = None
-        self.bcdb = j.data.bcdb.bcdb_instances["default"]
+        self.bcdb = j.data.bcdb.bcdb_instances.get('test', None)
+        if not self.bcdb:
+            self.bcdb = j.data.bcdb.get('test')
 
     @property
     def zerotier_client(self):
@@ -55,7 +57,7 @@ class FarmerFactory(JSBASE):
             raise RuntimeError("you need to set self.zdb with a zerodb connection")
         if self._models is None:
             models_path = j.clients.git.getContentPathFromURLorPath(
-                "https://github.com/threefoldtech/digital_me/tree/development_simple/packages/threefold/models")
+                "https://github.com/threefoldtech/digital_me/tree/development_simple_redisbcdb/packages/threefold/models")
             self.bcdb.models_add(models_path, overwrite=True)
             self._models = Models()
             self._models.nodes = self.bcdb.model_get("threefold.grid.node")
@@ -353,7 +355,7 @@ class FarmerFactory(JSBASE):
         :return:
         """
         self.zdb = j.clients.zdb.testdb_server_start_client_get(reset=reset)
-        self._bcdb = j.data.bcdb.get(self.zdb, reset=reset)  # to make sure we reset the index
+        self._bcdb = j.data.bcdb.get('test', zdbclient=self.zdb, cache= not reset)  # to make sure we reset the index
         self.farmers_load()
         self.zerotier_scan(reset=reset)
         # self.tf_dir_scan(reset=reset)

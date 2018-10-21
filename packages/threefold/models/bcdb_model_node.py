@@ -46,7 +46,7 @@ location = (O) !threefold.grid.capacity.location
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["default"].sqlitedb
+db = j.data.bcdb.bcdb_instances["test"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
@@ -80,7 +80,13 @@ class Model(MODEL_CLASS):
         MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.node", zdbclient=zdbclient)
         self.url = "threefold.grid.node"
         self.index = Index_
-        self.index.create_table()
+        with open('/tmp/log.log', 'a') as f:
+            f.write("creating table %s\n" % "threefold.grid.node")
+            f.write("\tfields:%s\n" % "[indexfield:node_zos_id:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>, indexfield:node_zerotier_id:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>, indexfield:noderobot:BooleanField:<Jumpscale.data.types.PrimitiveTypes.Boolean object at 0x7fb9ec0dd668>, indexfield:noderobot_up_last:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x7fb9ec0dd5c0>, indexfield:noderobot_ipaddr:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>, indexfield:sysadmin:BooleanField:<Jumpscale.data.types.PrimitiveTypes.Boolean object at 0x7fb9ec0dd4a8>, indexfield:sysadmin_up_ping:BooleanField:<Jumpscale.data.types.PrimitiveTypes.Boolean object at 0x7fb9ec0dd390>, indexfield:sysadmin_up_zos:BooleanField:<Jumpscale.data.types.PrimitiveTypes.Boolean object at 0x7fb9ec0dd358>, indexfield:sysadmin_up_last:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x7fb9ec0dd320>, indexfield:sysadmin_ipaddr:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>, indexfield:tfdir_found:BooleanField:<Jumpscale.data.types.PrimitiveTypes.Boolean object at 0x7fb9ec0ddd68>, indexfield:tfdir_up_last:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x7fb9ec0dd198>, indexfield:tfgrid_up_ping:BooleanField:<Jumpscale.data.types.PrimitiveTypes.Boolean object at 0x7fb9ec0dd0f0>, indexfield:tfgrid_up_last:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x7fb9ec0dd048>, indexfield:state:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>, indexfield:farmer_id:IntegerField:<Jumpscale.data.types.PrimitiveTypes.Integer object at 0x7fb9ec0ddcc0>, indexfield:farmer:BooleanField:<Jumpscale.data.types.PrimitiveTypes.Boolean object at 0x7fb9ec0e61d0>, indexfield:update:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x7fb9ec0e6278>]")
+
+
+            output = self.index.create_table()
+            f.write('\t output: %s' % output)
     
     def index_set(self,obj):
         idict={}

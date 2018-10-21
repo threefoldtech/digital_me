@@ -17,7 +17,7 @@ pubkeys = "" (S)
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["default"].sqlitedb
+db = j.data.bcdb.bcdb_instances["test"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
@@ -35,6 +35,14 @@ class Model(MODEL_CLASS):
         MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.farmer", zdbclient=zdbclient)
         self.url = "threefold.grid.farmer"
         self.index = Index_
+        with open('/tmp/log.log', 'a') as f:
+            f.write("creating table %s\n" % "threefold.grid.farmer")
+            f.write("\tfields:%s\n" % "[indexfield:name:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f52ac389588>, indexfield:iyo_org:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f52ac389588>]")
+            f.write('\ttable: %s\n\n' % 'indexmodel:\s - indexfield:name:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f52ac389588>
+ - indexfield:iyo_org:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7f52ac389588>
+')
+
+            
         self.index.create_table()
     
     def index_set(self,obj):
