@@ -57,7 +57,6 @@ js_shell "j.clients.zdb.testdb_server_start_client_get() "
 js_shell "j.tools.tmux.execute('js_shell \'j.servers.digitalme.start()\'')"
 
 echo "Waiting digitalme to launch on 8000..."
-
 while ! nc -z localhost 8000; do   
   sleep 10 # wait for 10 seconds before check again
 done
