@@ -1,6 +1,7 @@
-from blueprints.wiki import blueprint
+# from blueprints.wiki import blueprint
 from flask import render_template, send_file, request
 from flask import abort, redirect, url_for
+from . import name as bp_name, blueprint
 
 import io
 
@@ -15,10 +16,10 @@ from Jumpscale import j
 def index():
     return redirect("wiki/foundation")
 
-
-@blueprint.route('')
-def index_sub(sub):
-    return render_template('index_docsify.html')
+#
+# @blueprint.route('')
+# def index_sub(sub):
+#     return render_template('index_docsify.html',name=bp_name)
 
 
 @blueprint.route('/<path:subpath>')
@@ -30,8 +31,9 @@ def wiki_route(subpath, methods=['GET', 'POST']):
     parts = subpath.split("/")
 
     if len(parts)==1: #"readme" in parts[0].lower() or "index" in parts[0].lower()
-        #means we are in root of a wiki, need to load the html 
-        return render_template('index_docsify.html')
+        #means we are in root of a wiki, need to load the html
+        wikicat = parts[0].lower().strip()
+        return render_template('index_docsify.html',name=wikicat)
 
     if len(parts)<2:
         return render_template('error_notfound.html',url=subpath)

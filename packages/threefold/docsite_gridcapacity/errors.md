@@ -536,3 +536,47 @@ link is empty, but url is:[...]()
 
 
 ```
+```
+## ERROR: _sidebar
+
+- in doc: doc:_sidebar:/Users/despiegk/code/github/threefoldtech/digital_me/packages/threefold/docsite_gridcapacity/_sidebar.md
+
+**ERROR:** problem with link:[...]()
+link is empty, but url is:[...]()
+
+
+
+```
+```
+## ERROR: _sidebar
+
+- in doc: doc:_sidebar:/Users/despiegk/code/github/threefoldtech/digital_me/packages/threefold/docsite_gridcapacity/_sidebar.md
+
+**ERROR:** problem with link:[...]()
+link is empty, but url is:[...]()
+
+
+
+```
+```
+## ERROR: _sidebar
+
+- in doc: doc:_sidebar:/Users/despiegk/code/github/threefoldtech/digital_me/packages/threefold/docsite_gridcapacity/_sidebar.md
+
+**ERROR:** problem with link:[...]()
+link is empty, but url is:[...]()
+
+
+
+```
+```
+## ERROR: _sidebar
+
+- in doc: doc:_sidebar:/Users/despiegk/code/github/threefoldtech/digital_me/packages/threefold/docsite_gridcapacity/_sidebar.md
+
+**ERROR:** problem with link:[...]()
+link is empty, but url is:[...]()
+
+
+
+```

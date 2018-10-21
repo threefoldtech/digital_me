@@ -30,7 +30,7 @@
 </head>
 
 <body>
-  <div id="app">
+  <div id="app_{{name}}">
   </div>
 
   <!-- <script>
@@ -52,17 +52,24 @@
   <script>
     mermaid.initialize({ startOnLoad: false });
   </script>
+
+
+
   <script>
     window.$docsify = {
       coverpage: false,
-      name: 'ThreeFold Foundation',
+      basePath: '/wiki/{{name}}/',
+      name: 'ThreeFold Foundation {{name}}',
+      el: '#app_{{name}}',
       disqus: '//tf-foundation.disqus.com/embed.js',
       repo: 'https://github.com/threefoldfoundation/wiki_{{name}}',
       loadSidebar: true,
       markdown: {
         renderer: {
-          code: function (code, lang) {
-            if (lang === "mermaid") {
+          code: function (code, lang)
+          {
+            if (lang === "mermaid")
+            {
               return (
                 '<div class="mermaid">' + mermaid.render(lang, code) + "</div>"
               );
@@ -71,25 +78,30 @@
           }
         }
       },
-			themeable : { 
+      search : {
+          maxAge: 3600000, // Expiration time 1h = 3600000
+      },
+	  themeable : {
 				// readyTransition : false, 
 				// responsiveTables: false 
 			}      
-    };
+      };
 
   </script>
 
-<script src= "{{ url_for('static', filename='docsify/docsify.min.js')}}"></script>
-<script src= "{{ url_for('static', filename='docsify/search.min.js')}}"></script>
-<script src= "{{ url_for('static', filename='docsify/prism-bash.min.js')}}"></script>
-<script src= "{{ url_for('static', filename='docsify/prism-python.min.js')}}"></script>
-<script src= "{{ url_for('static', filename='docsify/echarts.min.js')}}"></script>
-<script src= "{{ url_for('static', filename='docsify/index.min.js')}}"></script>
-<script src= "{{ url_for('static', filename='docsify/docsify-plantuml.min.js')}}"></script>
-<script src= "{{ url_for('static', filename='disqus/disqus.min.js')}}"></script>
-<script src= "{{ url_for('static', filename='docsify/docsify-themeable')}}"></script>
-<script src= "{{ url_for('static', filename='vue/vue.min.js')}}"></script>
-<script src= "{{ url_for('static', filename='vue/vuep.min.js')}}"></script>
+  <script src= "{{ url_for('static', filename='docsify/docsify.min.js')}}"></script>
+  <script src= "{{ url_for('static', filename='docsify/search.min.js')}}"></script>
+  <script src= "{{ url_for('static', filename='docsify/prism-bash.min.js')}}"></script>
+  <script src= "{{ url_for('static', filename='docsify/prism-python.min.js')}}"></script>
+  <script src= "{{ url_for('static', filename='docsify/echarts.min.js')}}"></script>
+  <script src= "{{ url_for('static', filename='docsify/index.min.js')}}"></script>
+  <script src= "{{ url_for('static', filename='docsify/docsify-plantuml.min.js')}}"></script>
+  <script src= "{{ url_for('static', filename='disqus/disqus.min.js')}}"></script>
+  <script src= "{{ url_for('static', filename='docsify/docsify-themeable')}}"></script>
+  <script src= "{{ url_for('static', filename='vue/vue.min.js')}}"></script>
+  <script src= "{{ url_for('static', filename='vue/vuep.min.js')}}"></script>
+
+
 
 </body>
 
