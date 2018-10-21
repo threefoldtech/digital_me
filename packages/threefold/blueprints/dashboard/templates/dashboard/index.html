@@ -4,15 +4,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
-  <link rel="stylesheet" href="/dashboard/static/assets/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/dashboard/static/assets/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="/dashboard/static/css/fontawesome.min.css">
   <link rel="stylesheet" href="/dashboard/static/css/themify-icons.css">
   <link rel="stylesheet" href="/dashboard/static/assets/perfect-scrollbar/css/perfect-scrollbar.css">
   <link rel="stylesheet" href="/dashboard/static/assets/jvectormap/jquery-jvectormap.css">
   <link rel="stylesheet" href="/dashboard/static/assets/datatables/media/css/jquery.dataTables.min.css">
-  <link rel="stylesheet" href="/dashboard/static/assets/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
+  <link rel="stylesheet" href="/dashboard/static/assets/bootstrap-datepicker/bootstrap-datepicker.min.css">
   <link rel="stylesheet" href="/dashboard/static/css/style.css">
-  <title>Dashboard</title>
+  <title>Farmer Dashboard</title>
   <style>
     #loader{
     transition:all .3s ease-in-out;
@@ -44,7 +44,22 @@
       -webkit-transform:scale(0)
     }
     100%{
-      -webkit-transform:scale(1);opacity:0}}@keyframes sk-scaleout{0%{-webkit-transform:scale(0);transform:scale(0)}100%{-webkit-transform:scale(1);transform:scale(1);opacity:0}}</style>
+      -webkit-transform:scale(1);
+      opacity:0
+    }
+  }
+  @keyframes sk-scaleout{
+    0%{
+      -webkit-transform:scale(0);
+      transform:scale(0)
+    }
+    100%{
+      -webkit-transform:scale(1);
+      transform:scale(1);
+      opacity:0
+    }
+  }
+  </style>
   <script>
     var data ={
       "capacity_reserved": {
@@ -127,10 +142,22 @@
           </div>
         </div>
         <ul class="sidebar-menu scrollable pos-r">
-          <li class="nav-item mT-30 active"><a class="sidebar-link" href="index.html"><span class="icon-holder"><i
-                  class="c-blue-500 ti-home"></i> </span><span class="title">Dashboard</span></a></li>
-          <li class="nav-item"><a class="sidebar-link" href="email.html"><span class="icon-holder"><i class="c-brown-500 ti-email"></i>
-              </span><span class="title">Email</span></a></li>
+          <li class="nav-item mT-30 active">
+            <a class="sidebar-link" href="index.html">
+              <span class="icon-holder">
+                <i class="c-blue-500 ti-home"></i> 
+              </span>
+              <span class="title">Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="sidebar-link" href="email.html">
+              <span class="icon-holder">
+                <i class="c-brown-500 ti-email"></i>
+              </span>
+              <span class="title">Email</span>
+            </a>
+          </li>
           <li class="nav-item"><a class="sidebar-link" href="compose.html"><span class="icon-holder"><i class="c-blue-500 ti-share"></i>
               </span><span class="title">Compose</span></a></li>
           <li class="nav-item"><a class="sidebar-link" href="calendar.html"><span class="icon-holder"><i class="c-deep-orange-500 ti-calendar"></i>
@@ -642,36 +669,36 @@
                       </div>
                     </div>
                   </div> -->
-                  <div class="layer w-100">
-                    <div class="peers peers-greed ai-fs ta-c">
-                      <div class="peer">
-                        <h6 class="mB-10">MON</h6><canvas class="sleet" width="30" height="30"></canvas><span class="d-b fw-600">32<sup>°F</sup></span>
-                      </div>
-                      <div class="peer">
-                        <h6 class="mB-10">TUE</h6><canvas class="clear-day" width="30" height="30"></canvas><span class="d-b fw-600">30<sup>°F</sup></span>
-                      </div>
-                      <div class="peer">
-                        <h6 class="mB-10">WED</h6><canvas class="partly-cloudy-day" width="30" height="30"></canvas><span
-                          class="d-b fw-600">28<sup>°F</sup></span>
-                      </div>
-                      <div class="peer">
-                        <h6 class="mB-10">THR</h6><canvas class="cloudy" width="30" height="30"></canvas><span class="d-b fw-600">32<sup>°F</sup></span>
-                      </div>
-                      <div class="peer">
-                        <h6 class="mB-10">FRI</h6><canvas class="snow" width="30" height="30"></canvas><span class="d-b fw-600">24<sup>°F</sup></span>
-                      </div>
-                      <div class="peer">
-                        <h6 class="mB-10">SAT</h6><canvas class="wind" width="30" height="30"></canvas><span class="d-b fw-600">28<sup>°F</sup></span>
-                      </div>
-                      <div class="peer">
-                        <h6 class="mB-10">SUN</h6><canvas class="sleet" width="30" height="30"></canvas><span class="d-b fw-600">32<sup>°F</sup></span>
-                      </div>
-                    </div>
-                  </div>
+            <div class="layer w-100">
+              <div class="peers peers-greed ai-fs ta-c">
+                <div class="peer">
+                  <h6 class="mB-10">MON</h6><canvas class="sleet" width="30" height="30"></canvas><span class="d-b fw-600">32<sup>°F</sup></span>
+                </div>
+                <div class="peer">
+                  <h6 class="mB-10">TUE</h6><canvas class="clear-day" width="30" height="30"></canvas><span class="d-b fw-600">30<sup>°F</sup></span>
+                </div>
+                <div class="peer">
+                  <h6 class="mB-10">WED</h6><canvas class="partly-cloudy-day" width="30" height="30"></canvas><span
+                    class="d-b fw-600">28<sup>°F</sup></span>
+                </div>
+                <div class="peer">
+                  <h6 class="mB-10">THR</h6><canvas class="cloudy" width="30" height="30"></canvas><span class="d-b fw-600">32<sup>°F</sup></span>
+                </div>
+                <div class="peer">
+                  <h6 class="mB-10">FRI</h6><canvas class="snow" width="30" height="30"></canvas><span class="d-b fw-600">24<sup>°F</sup></span>
+                </div>
+                <div class="peer">
+                  <h6 class="mB-10">SAT</h6><canvas class="wind" width="30" height="30"></canvas><span class="d-b fw-600">28<sup>°F</sup></span>
+                </div>
+                <div class="peer">
+                  <h6 class="mB-10">SUN</h6><canvas class="sleet" width="30" height="30"></canvas><span class="d-b fw-600">32<sup>°F</sup></span>
                 </div>
               </div>
             </div>
-            <!-- <div class="masonry-item col-md-6">
+          </div>
+        </div>
+    </div>
+    <!-- <div class="masonry-item col-md-6">
               <div class="bd bgc-white">
                 <div class="layers">
                   <div class="layer w-100 p-20">
@@ -734,27 +761,27 @@
                 </div>
               </div>
             </div> -->
-          </div>
-        </div>
-      </main>
-      <footer class="bdT ta-c p-30 lh-0 fsz-sm c-grey-600"><span>Copyright © 2017 Designed by <a href="https://colorlib.com"
-            target="_blank" title="Colorlib">Colorlib</a>. All rights reserved.</span></footer>
-    </div>
   </div>
-  <script type="text/javascript" src="/dashboard/static/assets/jquery/dist/jquery.min.js"></script>
-  <script type="text/javascript" src="/dashboard/static/assets/bootstrap/dist/js/bootstrap.min.js"></script>
+  </div>
+  </main>
+  <footer class="bdT ta-c p-30 lh-0 fsz-sm c-grey-600"><span>Copyright © 2017 Designed by <a href="https://colorlib.com"
+        target="_blank" title="Colorlib">Colorlib</a>. All rights reserved.</span></footer>
+  </div>
+  </div>
+  <script type="text/javascript" src="/dashboard/static/assets/jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/bootstrap/bootstrap.min.js"></script>
   <script type="text/javascript" src="/dashboard/static/js/fontawesome.min.js"></script>
-  <script type="text/javascript" src="/dashboard/static/assets/masonry-layout/dist/masonry.pkgd.min.js"></script>
-  <script type="text/javascript" src="/dashboard/static/assets/chart.js/dist/Chart.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/masonry-layout/masonry.pkgd.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/chart.js/Chart.min.js"></script>
   <script type="text/javascript" src="/dashboard/static/js/colors.js"></script>
-  <script type="text/javascript" src="/dashboard/static/assets/easy-pie-chart/dist/jquery.easypiechart.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/easy-pie-chart/jquery.easypiechart.min.js"></script>
   <script type="text/javascript" src="/dashboard/static/assets/jquery-sparkline/jquery.sparkline.min.js"></script>
   <script type="text/javascript" src="/dashboard/static/assets/lodash.js"></script>
-  <script type="text/javascript" src="/dashboard/static/assets/perfect-scrollbar/dist/perfect-scrollbar.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/perfect-scrollbar/perfect-scrollbar.min.js"></script>
   <script type="text/javascript" src="/dashboard/static/assets/jvectormap/jquery-jvectormap.min.js"></script>
   <script type="text/javascript" src="/dashboard/static/assets/jvectormap/jquery-jvectormap-world-mill.js"></script>
   <script type="text/javascript" src="/dashboard/static/assets/datatables/media/js/jquery.dataTables.min.js"></script>
-  <script type="text/javascript" src="/dashboard/static/assets/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+  <script type="text/javascript" src="/dashboard/static/assets/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
   <script type="text/javascript" src="/dashboard/static/js/custom.js"></script>
 </body>
 
