@@ -2,6 +2,7 @@ from flask import render_template, redirect, request, make_response
 from blueprints.dashboard import *
 from Jumpscale import j
 from collections import Counter
+import json
 
 
 # j.tools.threefold_farmer.load(reset=False)
@@ -14,13 +15,13 @@ def route_node(node_id):
     node = j.tools.threefold_farmer.bcdb.model_get('threefold.grid.node').get(int(node_id))
     return render_template("node/node.html", node=node)
 
-
 @blueprint.route('/', methods=['GET'])
 def route_default():
     print(request.args.to_dict())
     search_input = request.args.to_dict()
     # j.shell()
     nodes = client.farmer.node_find(**search_input).res
+    capacity_totals = calculate_capacities(nodes)
     # j.shell()
     heatmap_data = Counter((node.location.latitude, node.location.longitude) for node in nodes if node.location.latitude
                            and node.location.longitude)
@@ -32,7 +33,39 @@ def route_default():
     farmers = client.farmer.farmers_get().res
     countries = {node.location.country for node in nodes}
     return render_template("dashboard/index.html", nodes=nodes, heatmap_data=heatmap_data, max_count=max_count, farmers=farmers,
-                           countries=countries)
+                           countries=countries,totals = capacity_totals)
+
+def calculate_capacities(nodes):
+    totals = {'nodes_up':0,'nodes_down':0,'total_capacities':{'cru':0,'hru':0,'mru':0,'sru':0},'reserved_capacities':{'cru':0,'hru':0,'mru':0,'sru':0},'used_capacities':{'cru':0,'hru':0,'mru':0,'sru':0}}
+    for node in nodes:
+        totals['total_capacities']['cru'] += node.capacity_total.cru
+        totals['total_capacities']['hru'] += node.capacity_total.hru
+        totals['total_capacities']['mru'] += node.capacity_total.mru
+        totals['total_capacities']['sru'] += node.capacity_total.sru
+
+        totals['reserved_capacities']['cru'] += node.capacity_reserved.cru
+        totals['reserved_capacities']['hru'] += node.capacity_reserved.hru
+        totals['reserved_capacities']['mru'] += node.capacity_reserved.mru
+        totals['reserved_capacities']['sru'] += node.capacity_reserved.sru
+
+        totals['used_capacities']['cru'] += node.capacity_used.cru
+        totals['used_capacities']['hru'] += node.capacity_used.hru
+        totals['used_capacities']['mru'] += node.capacity_used.mru
+        totals['used_capacities']['sru'] += node.capacity_used.sru
+    
+        if node.state == 'up':
+            totals['nodes_up'] += 1
+        else: 
+            totals['nodes_down'] += 1
+        
+    return totals
+
+
+@blueprint.route('/node_data')
+def node_data():
+    nodes = client.farmer.node_find().res
+    print(json.dumps(nodes))
+    return json.dumps(nodes)
 
 
 @blueprint.route('/jsclient.js')

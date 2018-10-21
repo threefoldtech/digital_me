@@ -409,55 +409,68 @@
                     <div class="layers">
                       <div class="layer w-100">
                         <div class="layers">
+                          {% set percentage_mru = (totals.used_capacities.mru/totals.total_capacities.mru)*100 if totals.total_capacities.mru != 0 else 0 %}
                           <div class="layer w-100">
-                            <h5 class="mB-5">100k</h5><small class="fw-600 c-grey-700">Visitors From USA</small> <span
-                              class="pull-right c-grey-600 fsz-sm">50%</span>
+                            <h5 class="mB-5">MRU</h5><small class="fw-600 c-grey-700">Used from total</small> <span
+                              class="pull-right c-grey-600 fsz-sm">{{percentage_mru  |round(2, 'floor')}}%</span>
                             <div class="progress mT-10">
                               <div class="progress-bar bgc-deep-purple-500" role="progressbar" aria-valuenow="50"
-                                aria-valuemin="0" aria-valuemax="100" style="width:50%"><span class="sr-only">50%
+                                aria-valuemin="0" aria-valuemax="100" style="width:{{percentage_mru |round(3, 'floor')}}%"><span class="sr-only">50%
                                   Complete</span></div>
                             </div>
                           </div>
+                          {% set percentage_cru = totals.used_capacities.cru/totals.total_capacities.cru if totals.total_capacities.cru != 0 else 0 %}
                           <div class="layer w-100 mT-15">
-                            <h5 class="mB-5">1M</h5><small class="fw-600 c-grey-700">Visitors From Europe</small> <span
-                              class="pull-right c-grey-600 fsz-sm">80%</span>
+                            <h5 class="mB-5">CRU</h5><small class="fw-600 c-grey-700">Used from total</small> <span
+                              class="pull-right c-grey-600 fsz-sm">{{percentage_cru |round(3, 'floor')}}%</span>
                             <div class="progress mT-10">
                               <div class="progress-bar bgc-green-500" role="progressbar" aria-valuenow="50"
-                                aria-valuemin="0" aria-valuemax="100" style="width:80%"><span class="sr-only">80%
+                                aria-valuemin="0" aria-valuemax="100" style="width:{{percentage_cru |round(3, 'floor')}}%"><span class="sr-only">80%
                                   Complete</span></div>
                             </div>
                           </div>
+                          {% set percentage_hru = totals.used_capacities.hru/totals.total_capacities.hru if totals.total_capacities.hru != 0 else 0 %}
                           <div class="layer w-100 mT-15">
-                            <h5 class="mB-5">450k</h5><small class="fw-600 c-grey-700">Visitors From Australia</small>
-                            <span class="pull-right c-grey-600 fsz-sm">40%</span>
+                            {% set percentage_hru = totals.used_capacities.hru/totals.total_capacities.hru%}
+                            <h5 class="mB-5">HRU</h5><small class="fw-600 c-grey-700">Used from total</small>
+                            <span class="pull-right c-grey-600 fsz-sm">{{percentage_hru |round(3, 'floor')}}%</span>
                             <div class="progress mT-10">
                               <div class="progress-bar bgc-light-blue-500" role="progressbar" aria-valuenow="50"
-                                aria-valuemin="0" aria-valuemax="100" style="width:40%"><span class="sr-only">40%
+                                aria-valuemin="0" aria-valuemax="100" style="width:{{percentage_hru |round(3, 'floor')}}%"><span class="sr-only">40%
                                   Complete</span></div>
                             </div>
                           </div>
+                          {% set percentage_sru = totals.used_capacities.sru/totals.total_capacities.sru if totals.total_capacities.sru != 0 else 0 %}
                           <div class="layer w-100 mT-15">
-                            <h5 class="mB-5">1B</h5><small class="fw-600 c-grey-700">Visitors From India</small> <span
-                              class="pull-right c-grey-600 fsz-sm">90%</span>
+                            <h5 class="mB-5">SRU</h5><small class="fw-600 c-grey-700">Used from total</small> <span
+                              class="pull-right c-grey-600 fsz-sm">{{percentage_sru |round(3, 'floor')}}%</span>
                             <div class="progress mT-10">
                               <div class="progress-bar bgc-blue-grey-500" role="progressbar" aria-valuenow="50"
-                                aria-valuemin="0" aria-valuemax="100" style="width:90%"><span class="sr-only">90%
+                                aria-valuemin="0" aria-valuemax="100" style="width:{{percentage_sru |round(3, 'floor')}}%"><span class="sr-only">90%
                                   Complete</span></div>
                             </div>
                           </div>
                         </div>
                         <div class="peers pT-20 mT-20 bdT fxw-nw@lg+ jc-sb ta-c gap-10">
-                          <div class="peer">
-                            <div class="easy-pie-chart" data-size="80" data-percent="75" data-bar-color="#f44336"><span></span></div>
-                            <h6 class="fsz-sm">New Users</h6>
+                            {% set percentage_mru = totals.reserved_capacities.mru/totals.total_capacities.mru if totals.total_capacities.mru != 0 else 0 %}
+                            <div class="peer">
+                            <div class="easy-pie-chart" data-size="80" data-percent="{{percentage_mru |round(3, 'floor')}}" data-bar-color="#f44336"><span></span></div>
+                            <h6 class="fsz-sm">MRU</h6>
                           </div>
+                          {% set percentage_cru = totals.reserved_capacities.cru/totals.total_capacities.cru if totals.total_capacities.cru != 0 else 0 %}
                           <div class="peer">
-                            <div class="easy-pie-chart" data-size="80" data-percent="50" data-bar-color="#2196f3"><span></span></div>
-                            <h6 class="fsz-sm">New Purchases</h6>
+                            <div class="easy-pie-chart" data-size="80" data-percent="{{percentage_cru |round(3, 'floor')}}" data-bar-color="#2196f3"><span></span></div>
+                            <h6 class="fsz-sm">CRU</h6>
                           </div>
+                          {% set percentage_hru = totals.used_capacities.hru/totals.total_capacities.hru if totals.total_capacities.hru != 0 else 0 %}
                           <div class="peer">
-                            <div class="easy-pie-chart" data-size="80" data-percent="90" data-bar-color="#ff9800"><span></span></div>
-                            <h6 class="fsz-sm">Bounce Rate</h6>
+                            <div class="easy-pie-chart" data-size="80" data-percent="{{percentage_hru |round(3, 'floor')}}" data-bar-color="#ff9800"><span></span></div>
+                            <h6 class="fsz-sm">HRU</h6>
+                          </div>
+                          {% set percentage_sru = totals.reserved_capacities.sru/totals.total_capacities.sru if totals.total_capacities.sru != 0 else 0 %}
+                          <div class="peer">
+                              <div class="easy-pie-chart" data-size="80" data-percent="{{percentage_sru |round(3, 'floor')}}" data-bar-color="#ff9800"><span></span></div>
+                              <h6 class="fsz-sm">SRU</h6>
                           </div>
                         </div>
                       </div>
@@ -497,38 +510,16 @@
                   <div class="layer w-100">
                     <ul class="list-task list-group" data-role="tasklist">
                       <li class="list-group-item bdw-0" data-role="task">
-                        <div class="checkbox checkbox-circle checkbox-info peers ai-c"><input type="checkbox" id="inputCall1"
-                            name="inputCheckboxesCall" class="peer"> <label for="inputCall1" class="peers peer-greed js-sb ai-c"><span
-                              class="peer peer-greed">Call John for Dinner</span></label></div>
+                        <div class="peers ai-c">
+                          <label for="inputCall2" class="peers peer-greed js-sb ai-c">
+                            <span class="peer peer-greed">{{totals.nodes_up}} nodes</span> 
+                            <span class="peer"><span class="badge badge-pill fl-r badge-success lh-0 p-10">Up</span></span></label></div>
                       </li>
                       <li class="list-group-item bdw-0" data-role="task">
-                        <div class="checkbox checkbox-circle checkbox-info peers ai-c"><input type="checkbox" id="inputCall2"
-                            name="inputCheckboxesCall" class="peer"> <label for="inputCall2" class="peers peer-greed js-sb ai-c"><span
-                              class="peer peer-greed">Book Boss Flight</span> <span class="peer"><span class="badge badge-pill fl-r badge-success lh-0 p-10">2
-                                Days</span></span></label></div>
-                      </li>
-                      <li class="list-group-item bdw-0" data-role="task">
-                        <div class="checkbox checkbox-circle checkbox-info peers ai-c"><input type="checkbox" id="inputCall3"
-                            name="inputCheckboxesCall" class="peer"> <label for="inputCall3" class="peers peer-greed js-sb ai-c"><span
-                              class="peer peer-greed">Hit the Gym</span> <span class="peer"><span class="badge badge-pill fl-r badge-danger lh-0 p-10">3
-                                Minutes</span></span></label></div>
-                      </li>
-                      <li class="list-group-item bdw-0" data-role="task">
-                        <div class="checkbox checkbox-circle checkbox-info peers ai-c"><input type="checkbox" id="inputCall4"
-                            name="inputCheckboxesCall" class="peer"> <label for="inputCall4" class="peers peer-greed js-sb ai-c"><span
-                              class="peer peer-greed">Give Purchase Report</span> <span class="peer"><span class="badge badge-pill fl-r badge-warning lh-0 p-10">not
-                                important</span></span></label></div>
-                      </li>
-                      <li class="list-group-item bdw-0" data-role="task">
-                        <div class="checkbox checkbox-circle checkbox-info peers ai-c"><input type="checkbox" id="inputCall5"
-                            name="inputCheckboxesCall" class="peer"> <label for="inputCall5" class="peers peer-greed js-sb ai-c"><span
-                              class="peer peer-greed">Watch Game of Thrones Episode</span> <span class="peer"><span
-                                class="badge badge-pill fl-r badge-info lh-0 p-10">Tomorrow</span></span></label></div>
-                      </li>
-                      <li class="list-group-item bdw-0" data-role="task">
-                        <div class="checkbox checkbox-circle checkbox-info peers ai-c"><input type="checkbox" id="inputCall6"
-                            name="inputCheckboxesCall" class="peer"> <label for="inputCall6" class="peers peer-greed js-sb ai-c"><span
-                              class="peer peer-greed">Give Purchase report</span> <span class="peer"><span class="badge badge-pill fl-r badge-success lh-0 p-10">Done</span></span></label></div>
+                        <div class="peers ai-c">
+                           <label for="inputCall3" class="peers peer-greed js-sb ai-c">
+                             <span class="peer peer-greed">{{totals.nodes_down}} nodes</span>
+                              <span class="peer"><span class="badge badge-pill fl-r badge-danger lh-0 p-10">Down</span></span></label></div>
                       </li>
                     </ul>
                   </div>
