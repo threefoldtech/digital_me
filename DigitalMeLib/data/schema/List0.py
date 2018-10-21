@@ -95,7 +95,7 @@ class List0(collections.MutableSequence):
 
     def __repr__(self):
         out=""
-        for item in self.pylist():
+        for item in self.pylist(subobj_format="D"):
             out+="- %s\n"%item
         if out.strip()=="":
             return "[]"

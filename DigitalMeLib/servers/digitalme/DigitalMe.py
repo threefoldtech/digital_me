@@ -46,7 +46,7 @@ class DigitalMe(JSBASE):
         if p.name not in self.packages:
             self.packages[p.name]=p
 
-    def start(self,path="", name="test", zdbclients={}, adminsecret="123456", nssecret="123456"):
+    def start(self,path="", name="test", zdbclients={}, adminsecret="123456", nssecret="1234"):
         """
         examples:
 
