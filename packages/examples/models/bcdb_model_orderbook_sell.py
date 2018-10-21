@@ -41,6 +41,7 @@ class Model(MODEL_CLASS):
         MODEL_CLASS.__init__(self, bcdb=bcdb, url="jumpscale.example.order.sell", zdbclient=zdbclient)
         self.url = "jumpscale.example.order.sell"
         self.index = Index_
+            
         self.index.create_table()
     
     def index_set(self,obj):

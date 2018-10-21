@@ -103,7 +103,7 @@ class BCDBModel(JSBASE):
         self.zdbclient = j.clients.zdb.client_get(nsname=self.zdbclient.nsname,
                                                   addr=self.zdbclient.addr,
                                                   port=self.zdbclient.port,
-                                                  secret=self.zdbclient.secret,
+                                                  ns_secret=self.zdbclient.ns_secret,
                                                   mode="seq")
 
         self.zdbclient.meta._data=data

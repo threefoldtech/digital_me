@@ -19,7 +19,7 @@ pubip6 = [] (LS)
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["test"].sqlitedb
+db = j.data.bcdb.bcdb_instances["default"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
@@ -36,13 +36,8 @@ class Model(MODEL_CLASS):
         MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.webgateway", zdbclient=zdbclient)
         self.url = "threefold.grid.webgateway"
         self.index = Index_
-        with open('/tmp/log.log', 'a') as f:
-            f.write("creating table %s\n" % "threefold.grid.webgateway")
-            f.write("\tfields:%s\n" % "[indexfield:name:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>]")
-
-
-            output = self.index.create_table()
-            f.write('\t output: %s' % output)
+            
+        self.index.create_table()
     
     def index_set(self,obj):
         idict={}
