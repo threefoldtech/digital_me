@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -ex
 
 # make output directory
@@ -7,7 +6,7 @@ ARCHIVE=/tmp/archives
 FLIST=/tmp/flist
 mkdir -p $ARCHIVE
 
-# install system deps (done)
+# install system deps
 apt-get update
 apt-get install -y locales git wget netcat tar sudo tmux ssh python3-pip redis-server libffi-dev python3-dev libssl-dev libpython3-dev libssh-dev libsnappy-dev build-essential pkg-config libvirt-dev libsqlite3-dev -y
 
