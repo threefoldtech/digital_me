@@ -40,6 +40,7 @@ for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
 
 done
 
+#ssh generate
 ssh-keygen -f ~/.ssh/id_rsa -P ''
 eval `ssh-agent -s`
 ssh-add ~/.ssh/id_rsa
