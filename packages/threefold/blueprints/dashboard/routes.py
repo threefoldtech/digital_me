@@ -2,8 +2,7 @@ from flask import render_template, redirect, request, make_response
 from blueprints.dashboard import *
 from Jumpscale import j
 from collections import Counter
-import json
-
+import pycountry
 
 # j.tools.threefold_farmer.load(reset=False)
 client = j.servers.gedis.latest.client_get()
@@ -17,22 +16,24 @@ def route_node(node_id):
 
 @blueprint.route('/', methods=['GET'])
 def route_default():
-    print(request.args.to_dict())
     search_input = request.args.to_dict()
     # j.shell()
     nodes = client.farmer.node_find(**search_input).res
     capacity_totals = calculate_capacities(nodes)
     # j.shell()
-    heatmap_data = Counter((node.location.latitude, node.location.longitude) for node in nodes if node.location.latitude
+    heatmap_data = list({'latLng':[node.location.latitude, node.location.longitude],'name':node.location.country} for node in nodes if node.location.latitude
                            and node.location.longitude)
-    if heatmap_data:
-        max_count = max(heatmap_data.values())
-    else:
-        max_count = 0
-    # farmers = j.tools.threefold_farmer.bcdb.model_get('threefold.grid.farmer').get_all()
+    
+    # if heatmap_data:
+    #     max_count = max(heatmap_data.values())
+    # else:
+    #     max_count = 0
+    max_count = 0
+    heatmap_data = j.data.serializers.json.dumps(heatmap_data)
+    country_codes = list(pycountry.countries.get(name=node.location.country).alpha_2 for node in nodes if node.location.latitude and node.location.longitude)
     farmers = client.farmer.farmers_get().res
     countries = {node.location.country for node in nodes}
-    return render_template("dashboard/index.html", nodes=nodes, heatmap_data=heatmap_data, max_count=max_count, farmers=farmers,
+    return render_template("dashboard/index.html", nodes=nodes, heatmap_data=heatmap_data, country_codes = country_codes, max_count=max_count, farmers=farmers,
                            countries=countries,totals = capacity_totals)
 
 def calculate_capacities(nodes):
@@ -59,13 +60,6 @@ def calculate_capacities(nodes):
             totals['nodes_down'] += 1
         
     return totals
-
-
-@blueprint.route('/node_data')
-def node_data():
-    nodes = client.farmer.node_find().res
-    print(json.dumps(nodes))
-    return json.dumps(nodes)
 
 
 @blueprint.route('/jsclient.js')
