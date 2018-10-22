@@ -330,7 +330,7 @@ class Farmer(JSBASE):
         self.farmer_model.set(new_farmer)
         return
 
-    def web_gateway_register(self, jwttoken, etcd_host, etcd_port, etcd_secret, farmer_id, name,
+    def web_gateway_register(self, jwttoken, etcd_host, etcd_port, etcd_secret, farmer_name, name,
                              pubip4, pubip6, country, location, description, schema_out):
         """
         ```in
@@ -338,7 +338,7 @@ class Farmer(JSBASE):
         etcd_host = (S)
         etcd_port = (S)
         etcd_secret = (S)
-        farmer_id = (I)
+        farmer_name = (S)
         name = "" (S)
         country = "" (S)
         location = "" (S)
@@ -355,7 +355,7 @@ class Farmer(JSBASE):
         :param etcd_host: the etcd host which allows this bot to configure the required forwards
         :param etcd_port: the etcd server port
         :param etcd_secret is the secret for the etcd connection
-        :param farmer_id: the owner farmer of this gateway
+        :param farmer_name: the owner farmer of this gateway
         :param pubip4: comma separated list of public ip addr, ip v4
         :param pubip6: comma separated list of public ip addr, ip v6
         :param name: chosen name for the webgateway
@@ -371,7 +371,9 @@ class Farmer(JSBASE):
         new_gateway.etcd_secret = etcd_secret
         new_gateway.country = country
         new_gateway.location = location
-        new_gateway.farmer_id = farmer_id
+        for farmer in self.farmer_model.get_all():
+            if farmer.name == farmer_name:
+                new_gateway.farmer_id = farmer.id
         new_gateway.pubip4 = pubip4
         new_gateway.pubip6 = pubip6
         new_gateway.description = description
