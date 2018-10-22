@@ -18,28 +18,28 @@
                             <span class="badge badge-pill badge-primary">
                                 <output id="formCRUValue">0</output> CPU</span>
                         </label>
-                        <input type="range" class="custom-range" value="0" step="1" id="formCRU" oninput="formCRUValue.value = formCRU.value">
+                        <input type="range" class="custom-range" value="0" step="1" id="formCRU" name="cores_min_nr" oninput="formCRUValue.value = formCRU.value">
                     </div>
                     <div class="form-group">
                         <label for="formMRU">Minimum <abbr title="Memory resource unit">MRU</abbr> :
                             <span class="badge badge-pill badge-primary">
                                 <output id="formMRUValue">0</output> GiB</span>
                         </label>
-                        <input type="range" class="custom-range" value="0" step="1" id="formMRU" oninput="formMRUValue.value = formMRU.value">
+                        <input type="range" class="custom-range" value="0" step="1" id="formMRU" name="mem_min_mb" oninput="formMRUValue.value = formMRU.value">
                     </div>
                     <div class="form-group">
                         <label for="formHRU">minimum <abbr title="HDD resource unit">HRU</abbr> :
                             <span class="badge badge-pill badge-primary">
                                 <output id="formHRUValue">0</output> GiB</span>
                         </label>
-                        <input type="range" class="custom-range" value="0" step="1" max="5000" id="formHRU" oninput="formHRUValue.value = formHRU.value">
+                        <input type="range" class="custom-range" value="0" step="1" max="5000" id="formHRU" name="hd_min_gb" oninput="formHRUValue.value = formHRU.value">
                     </div>
                     <div class="form-group">
                         <label for="formSRU">minimum <abbr title="SSD resource unit">SRU</abbr> :
                             <span class="badge badge-pill badge-primary">
                                 <output id="formSRUValue">0</output> GiB</span>
                         </label>
-                        <input type="range" class="custom-range" value="0" step="1" max="1000" id="formSRU" oninput="formSRUValue.value = formSRU.value">
+                        <input type="range" class="custom-range" value="0" step="1" max="1000" id="formSRU" name="ssd_min_gb" oninput="formSRUValue.value = formSRU.value">
                     </div>
                     <div class="row">
                         <div class="form-group col-6">
@@ -49,18 +49,19 @@
                             <datalist id="formCountry">
                                 {% for country in countries%}
                                 <option value="{{country}}">
-                                    {% endfor %}
+                                {% endfor %}
                             </datalist>
 
                         </div>
                         <div class="form-group col-6">
                             <label for="formFarmer">filter by farmer :</label>
                             <input class="form-control" list="formFarmer">
-                            <datalist id="formCountry">
+                            <datalist id="formFarmer">
                                 {% for farmer in farmers%}
                                 <option value="{{farmer.name}}">
-                                    {% endfor %}
+                                {% endfor %}
                             </datalist>
+
                         </div>
                     </div>
                     <div class="form-group">

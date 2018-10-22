@@ -126,66 +126,66 @@ if (scatterChartBox) {
                 borderColor: COLORS['red-500'],
                 backgroundColor: COLORS['red-500'],
                 data: [{
-                        x: 10,
-                        y: 20
-                    },
-                    {
-                        x: 30,
-                        y: 40
-                    },
-                    {
-                        x: 50,
-                        y: 60
-                    },
-                    {
-                        x: 70,
-                        y: 80
-                    },
-                    {
-                        x: 90,
-                        y: 100
-                    },
-                    {
-                        x: 110,
-                        y: 120
-                    },
-                    {
-                        x: 130,
-                        y: 140
-                    },
+                    x: 10,
+                    y: 20
+                },
+                {
+                    x: 30,
+                    y: 40
+                },
+                {
+                    x: 50,
+                    y: 60
+                },
+                {
+                    x: 70,
+                    y: 80
+                },
+                {
+                    x: 90,
+                    y: 100
+                },
+                {
+                    x: 110,
+                    y: 120
+                },
+                {
+                    x: 130,
+                    y: 140
+                },
                 ],
             }, {
                 label: 'My Second dataset',
                 borderColor: COLORS['green-500'],
                 backgroundColor: COLORS['green-500'],
                 data: [{
-                        x: 150,
-                        y: 160
-                    },
-                    {
-                        x: 170,
-                        y: 180
-                    },
-                    {
-                        x: 190,
-                        y: 200
-                    },
-                    {
-                        x: 210,
-                        y: 220
-                    },
-                    {
-                        x: 230,
-                        y: 240
-                    },
-                    {
-                        x: 250,
-                        y: 260
-                    },
-                    {
-                        x: 270,
-                        y: 280
-                    },
+                    x: 150,
+                    y: 160
+                },
+                {
+                    x: 170,
+                    y: 180
+                },
+                {
+                    x: 190,
+                    y: 200
+                },
+                {
+                    x: 210,
+                    y: 220
+                },
+                {
+                    x: 230,
+                    y: 240
+                },
+                {
+                    x: 250,
+                    y: 260
+                },
+                {
+                    x: 270,
+                    y: 280
+                },
                 ],
             }],
         },
@@ -539,11 +539,11 @@ $('#sidebar-toggle').click(e => {
 
 // VectorMap
 
-const vectorMapInit = () => {
+const vectorMapInit = (data, countryCodes) => {
     if ($('#world-map-marker').length > 0) {
         // This is a hack, as the .empty() did not do the work
         $('#vmap').remove();
-
+        console.log(data)
         // we recreate (after removing it) the container div, to reset all the data of the map
         $('#world-map-marker').append(`
         <div
@@ -569,6 +569,9 @@ const vectorMapInit = () => {
                 initial: {
                     fill: '#e4ecef',
                 },
+                selected: {
+                    fill: 'blue'
+                },
             },
 
             markerStyle: {
@@ -582,32 +585,12 @@ const vectorMapInit = () => {
                 },
             },
 
-            markers: [{
-                latLng: [21.00, 78.00],
-                name: 'INDIA : 350',
-            }, {
-                latLng: [-33.00, 151.00],
-                name: 'Australia : 250',
-            }, {
-                latLng: [36.77, -119.41],
-                name: 'USA : 250',
-            }, {
-                latLng: [55.37, -3.41],
-                name: 'UK   : 250',
-            }, {
-                latLng: [25.20, 55.27],
-                name: 'UAE : 250',
-            }],
+            markers: data,
+            
             series: {
                 regions: [{
-                    values: {
-                        'US': 298,
-                        'SA': 200,
-                        'AU': 760,
-                        'IN': 200,
-                        'GB': 120,
-                    },
-                    scale: ['#03a9f3', '#02a7f1'],
+                    values: countryCodes,
+                    scale: ['#ff0000', '#0000ff'],
                     normalizeFunction: 'polynomial',
                 }],
             },
@@ -615,15 +598,16 @@ const vectorMapInit = () => {
             normalizeFunction: 'linear',
             zoomOnScroll: false,
             scaleColors: ['#b6d6ff', '#005ace'],
-            selectedColor: '#c9dfaf',
-            selectedRegions: [],
+            selectedColor: '#000000',
+            selectedRegions: countryCodes,
             enableZoom: false,
             hoverColor: '#fff',
         });
+
     }
 };
 
-vectorMapInit();
+// vectorMapInit();
 // $(window).resize(debounce(vectorMapInit, 150));
 
 // Datatable

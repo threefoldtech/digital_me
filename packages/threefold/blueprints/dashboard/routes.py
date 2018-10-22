@@ -62,6 +62,14 @@ def calculate_capacities(nodes):
     return totals
 
 
+@blueprint.route('/nodes', methods=['GET'])
+def nodes_route():
+    search_input = request.args.to_dict()
+    nodes = client.farmer.node_find(**search_input).res
+    farmers = client.farmer.farmers_get().res
+    countries = {node.location.country for node in nodes}
+    return render_template("dashboard/nodes.html", nodes=nodes,farmers=farmers,countries=countries)
+
 @blueprint.route('/jsclient.js')
 def load_js_client():
     scheme = "ws"
