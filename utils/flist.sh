@@ -29,7 +29,6 @@ done
 pushd $HOME/code/github/threefoldtech
 
 # cloning source code
-
 for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me jumpscale_weblibs; do
     git clone https://github.com/threefoldtech/${target}
 done
