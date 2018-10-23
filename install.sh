@@ -1,6 +1,7 @@
 set -ex
 
 pip3 install cython 
+pip3 install pycountry
 
 if [ "$(uname)" == "Darwin" ]; then
     echo 'darwin'

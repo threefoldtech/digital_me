@@ -331,3 +331,13 @@ only screen and (                min-resolution: 2dppx) {
 	color: #fff;
 	background-color: #5bc0de;
   }
+
+table {
+    width: 100%;
+}
+
+table, th, td{
+    border: 1px solid black;
+}
+
+tr:nth-child(even) {background-color: #f2f2f2;}
