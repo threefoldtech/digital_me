@@ -1,4 +1,5 @@
 from Jumpscale import j
+from jose import jwt
 
 JSBASE = j.application.JSBaseClass
 
@@ -16,6 +17,7 @@ class Farmer(JSBASE):
         self._farmer_model = None
         self._node_model = None
         self._wgw_model = None
+        self._wgw_rule_model = None
         self.capacity_planner = j.tools.threefold_farmer.capacity_planner
 
     @property
@@ -29,6 +31,12 @@ class Farmer(JSBASE):
         if not self._node_model:
             self._node_model = self._bcdb.model_get('threefold.grid.node')
         return self._node_model
+
+    @property
+    def wgw_rule_model(self):
+        if not self._wgw_rule_model:
+            self._wgw_rule_model = self._bcdb.model_get('threefold.grid.webgateway_rule')
+        return self._wgw_rule_model
 
     @property
     def wgw_model(self):
@@ -289,7 +297,38 @@ class Farmer(JSBASE):
         :param domains: list of domains we need to register e.g. ["threefold.io", "www.threefold.io"]
         :param backends: list of backends that the domains will point to e.g. ['10.10.100.10:80', '10.10.100.11:80']
         """
-        return self.capacity_planner.web_gateway_add_host(web_gateway, rule_name, domains, backends)
+        # self.capacity_planner.web_gateway_add_host(web_gateway, rule_name, domains, backends)
+        rule = self.wgw_rule_model.new()
+        rule.rule_name = rule_name
+        rule.domains = domains
+        rule.backends = backends
+        rule.webgateway_name = web_gateway["name"]
+
+        user = jwt.get_unverified_claims(jwttoken)['username']
+        rule.user = user
+        self.wgw_rule_model.set(rule)
+        return
+
+    def web_gateway_list_hosts(self, jwttoken, schema_out):
+        """
+        ```in
+        jwttoken = ""
+        ```
+        ```out
+        res = (LO) !threefold.grid.webgateway_rule
+        ```
+
+        :param jwttoken:
+        :param schema_out:
+        :return:
+        """
+        user = jwt.get_unverified_claims(jwttoken)['username']
+        res = self.wgw_rule_model.index.select().where(self.wgw_rule_model.index.user == user).execute()
+        out = schema_out.new()
+        out.res = [self.wgw_rule_model.get(rule.id) for rule in res]
+        return out
+
+
 
     def web_gateway_remove_host(self, jwttoken, web_gateway, rule_name):
         """

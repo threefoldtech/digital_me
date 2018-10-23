@@ -32,7 +32,7 @@ var intContentGenerate = function (message){
 }
 
 var mdContentGenerate = function (message){
-    let converter = new showdown.Converter();
+    let converter = new showdown.Converter({tables: true, tablesHeaderId: "table"});
     const htmlContents = converter.makeHtml(message);
     return `${htmlContents}`;
 }

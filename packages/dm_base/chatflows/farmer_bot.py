@@ -120,7 +120,18 @@ def chat(bot):
         backends = [backend.strip() for backend in backends.split(",")]
         gedis_client.farmer.web_gateway_add_host(jwttoken, web_gateway=web_gateway, rule_name=rule_name,
                                                  domains=domains, backends=backends)
-
+    def web_gateway_list_hosts():
+        jwttoken = bot.string_ask("Please enter your JWT, "
+                                  "(click <a target='_blank' href='/client'>here</a> to get one)")
+        res = gedis_client.farmer.web_gateway_list_hosts(jwttoken).res
+        report = """| Rule Name    |                Domains                       |             Backends                  |   Gateway    | 
+|:-------------:|:---------------------------------------:|:--------------------------------------------:|:-----------------------------:|  
+"""
+        for rule in res:
+            report += """|{rule_name}|{domains}|{backends}|{webgateway_name}| 
+""".format(rule_name=rule.rule_name, domains=[domain for domain in rule.domains],
+           backends=[backend for backend in rule.backends], webgateway_name=rule.webgateway_name)
+        bot.md_show(report)
     def web_gateway_register():
         jwttoken = bot.string_ask("Please enter your JWT, "
                                   "(click <a target='_blank' href='/client'>here</a> to get one)")
@@ -219,6 +230,7 @@ def chat(bot):
             # "Find a node": node_find,
             "Reserve vm": reserve_vm,
             "Register Domain": web_gateway_http_proxy_set,
+            "List Domains": web_gateway_list_hosts,
             "Delete Domain": web_gateway_http_proxy_delete,
             "Register web gateway": web_gateway_register,
             # "Reserve ZDB vm": zdb_reserve,
