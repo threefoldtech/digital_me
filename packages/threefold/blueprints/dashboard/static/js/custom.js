@@ -126,66 +126,66 @@ if (scatterChartBox) {
                 borderColor: COLORS['red-500'],
                 backgroundColor: COLORS['red-500'],
                 data: [{
-                    x: 10,
-                    y: 20
-                },
-                {
-                    x: 30,
-                    y: 40
-                },
-                {
-                    x: 50,
-                    y: 60
-                },
-                {
-                    x: 70,
-                    y: 80
-                },
-                {
-                    x: 90,
-                    y: 100
-                },
-                {
-                    x: 110,
-                    y: 120
-                },
-                {
-                    x: 130,
-                    y: 140
-                },
+                        x: 10,
+                        y: 20
+                    },
+                    {
+                        x: 30,
+                        y: 40
+                    },
+                    {
+                        x: 50,
+                        y: 60
+                    },
+                    {
+                        x: 70,
+                        y: 80
+                    },
+                    {
+                        x: 90,
+                        y: 100
+                    },
+                    {
+                        x: 110,
+                        y: 120
+                    },
+                    {
+                        x: 130,
+                        y: 140
+                    },
                 ],
             }, {
                 label: 'My Second dataset',
                 borderColor: COLORS['green-500'],
                 backgroundColor: COLORS['green-500'],
                 data: [{
-                    x: 150,
-                    y: 160
-                },
-                {
-                    x: 170,
-                    y: 180
-                },
-                {
-                    x: 190,
-                    y: 200
-                },
-                {
-                    x: 210,
-                    y: 220
-                },
-                {
-                    x: 230,
-                    y: 240
-                },
-                {
-                    x: 250,
-                    y: 260
-                },
-                {
-                    x: 270,
-                    y: 280
-                },
+                        x: 150,
+                        y: 160
+                    },
+                    {
+                        x: 170,
+                        y: 180
+                    },
+                    {
+                        x: 190,
+                        y: 200
+                    },
+                    {
+                        x: 210,
+                        y: 220
+                    },
+                    {
+                        x: 230,
+                        y: 240
+                    },
+                    {
+                        x: 250,
+                        y: 260
+                    },
+                    {
+                        x: 270,
+                        y: 280
+                    },
                 ],
             }],
         },
@@ -586,7 +586,7 @@ const vectorMapInit = (data, countryCodes) => {
             },
 
             markers: data,
-            
+
             series: {
                 regions: [{
                     values: countryCodes,
@@ -667,3 +667,7 @@ $('a')
 document.addEventListener('click', () => {
     window.dispatchEvent(window.EVENT);
 });
+
+function select_node(id) {
+    location.href = "node/" + id
+}

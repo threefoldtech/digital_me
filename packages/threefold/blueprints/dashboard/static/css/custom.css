@@ -1,0 +1,20 @@
+.main-content {
+    padding: 60px 20px 20px;
+}
+
+.main-content h1 {
+    display: inline-block
+}
+
+.main-content h3,
+.main-content small {
+    float: right;
+}
+
+.badge {
+    padding: .25em .4em;
+}
+
+.main-content small {
+    margin: 17px;
+}
