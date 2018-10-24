@@ -28,14 +28,14 @@
                         <input type="range" class="custom-range" value="0" step="1" id="formMRU" name="mem_min_mb" oninput="formMRUValue.value = formMRU.value">
                     </div>
                     <div class="form-group">
-                        <label for="formHRU">minimum <abbr title="HDD resource unit">HRU</abbr> :
+                        <label for="formHRU">Minimum <abbr title="HDD resource unit">HRU</abbr> :
                             <span class="badge badge-pill badge-primary">
                                 <output id="formHRUValue">0</output> GiB</span>
                         </label>
                         <input type="range" class="custom-range" value="0" step="1" max="5000" id="formHRU" name="hd_min_gb" oninput="formHRUValue.value = formHRU.value">
                     </div>
                     <div class="form-group">
-                        <label for="formSRU">minimum <abbr title="SSD resource unit">SRU</abbr> :
+                        <label for="formSRU">Minimum <abbr title="SSD resource unit">SRU</abbr> :
                             <span class="badge badge-pill badge-primary">
                                 <output id="formSRUValue">0</output> GiB</span>
                         </label>
@@ -43,25 +43,22 @@
                     </div>
                     <div class="row">
                         <div class="form-group col-6">
-                            <label for="formCountry">filter by country :</label>
-                            <input class="form-control" list="formCountry">
-
+                            <label for="formCountry">Filter by country :</label>
+                            <input class="form-control" name="country" list="formCountry">
                             <datalist id="formCountry">
                                 {% for country in countries%}
                                 <option value="{{country}}">
                                 {% endfor %}
                             </datalist>
-
                         </div>
                         <div class="form-group col-6">
-                            <label for="formFarmer">filter by farmer :</label>
-                            <input class="form-control" list="formFarmer">
+                            <label for="formFarmer">Filter by farmer :</label>
+                            <input class="form-control" name="farmer_name" list="formFarmer">
                             <datalist id="formFarmer">
-                                {% for farmer in farmers%}
+                                {% for farmer in farmers.values()%}
                                 <option value="{{farmer.name}}">
                                 {% endfor %}
                             </datalist>
-
                         </div>
                     </div>
                     <div class="form-group">
@@ -88,6 +85,7 @@
                         <tr>
                             <th>Node ID</th>
                             <th>Location</th>
+                            <th>State</th>
                             <th>Farmer</th>
                         </tr>
                     </thead>
@@ -95,15 +93,17 @@
                         <tr>
                             <th>Node ID</th>
                             <th>Location</th>
+                            <th>State</th>
                             <th>Farmer</th>
                         </tr>
                     </tfoot>
                     <tbody>
                         {% for node in nodes %}
-                        <tr onclick="select_node({{node.id}})">
+                        <tr onclick="select_node({{node.node_zos_id}})">
                             <td>{{node.node_zos_id}}</td>
-                            <td>{{node.location.continent}} > {{node.location.country}} > {{node.location.city}}</td>
-                            <td>{{node.farmer_id}}</td>
+                            <td>{{node.location.continent}}, {{node.location.country}}, {{node.location.city}}</td>
+                            <td>{{node.state if node.state == "up" else "down"}}</td>
+                            <td>{{farmers.get(node.farmer_id).name if node.farmer_id in farmers else "NONE"}}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

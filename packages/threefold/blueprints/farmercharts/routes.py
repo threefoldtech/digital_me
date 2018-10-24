@@ -11,7 +11,7 @@ node_model = j.tools.threefold_farmer.bcdb.model_get('threefold.grid.node')
 
 @blueprint.route('/node/<node_id>')
 def route_node(node_id):
-    node = j.tools.threefold_farmer.bcdb.model_get('threefold.grid.node').get(int(node_id))
+    node = j.tools.threefold_farmer.bcdb.model_get('threefold.grid.node').get(node_id)
     return render_template("node/node.html", node=node)
 
 @blueprint.route('/',methods = ['GET'])

@@ -30,35 +30,35 @@
 </head>
 
 <body>
-<script>
-window.onload = function(){
-var ctx = document.getElementById('radar').getContext('2d')
-var data = {
-    labels: ['CRU', 'HRU', 'MRU', 'SRU'],
-    datasets: [{
-        label: "reserved",
-        borderColor: "green",
-        data: [{{node["capacity_reserved"]["cru"]}}, {{node["capacity_reserved"]["hru"]}}, {{node["capacity_reserved"]["mru"]}}, {{node["capacity_reserved"]["sru"]}}]
-    },
-    {
-        label: "used",
-        borderColor: "blue",
-        data: [{{node["capacity_used"]["cru"]}}, {{node["capacity_used"]["hru"]}}, {{node["capacity_used"]["mru"]}}, {{node["capacity_used"]["sru"]}}]
-    },
-    {
-        label: "total",
-        borderColor: "black",
-        data: [{{node["capacity_total"]["cru"]}}, {{node["capacity_total"]["hru"]}}, {{node["capacity_total"]["mru"]}}, {{node["capacity_total"]["sru"]}}]
-    }]
-}
-
-var radar = new Chart(ctx,{
-    type: 'radar',
-    data: data
-});
-generateUpdateMap({{node["location"]["latitude"]}}, {{node["location"]["longitude"]}})
-}
-</script>
+    <script>
+            window.onload = function(){
+            var ctx = document.getElementById('radar').getContext('2d')
+            var data = {
+                labels: ['CRU', 'HRU', 'MRU', 'SRU'],
+                datasets: [{
+                    label: "reserved",
+                    borderColor: "green",
+                    data: [{{node["capacity_reserved"]["cru"]}}, {{node["capacity_reserved"]["hru"]}}, {{node["capacity_reserved"]["mru"]}}, {{node["capacity_reserved"]["sru"]}}]
+                },
+                {
+                    label: "used",
+                    borderColor: "blue",
+                    data: [{{node["capacity_used"]["cru"]}}, {{node["capacity_used"]["hru"]}}, {{node["capacity_used"]["mru"]}}, {{node["capacity_used"]["sru"]}}]
+                },
+                {
+                    label: "total",
+                    borderColor: "black",
+                    data: [{{node["capacity_total"]["cru"]}}, {{node["capacity_total"]["hru"]}}, {{node["capacity_total"]["mru"]}}, {{node["capacity_total"]["sru"]}}]
+                }]
+            }
+            
+            var radar = new Chart(ctx,{
+                type: 'radar',
+                data: data
+            });
+            generateUpdateMap({{node["location"]["latitude"]}}, {{node["location"]["longitude"]}})
+            }
+    </script>
 <div class="row">
     <div class="col-md-12">
         <span style="display: inline-block;"><H1>Node {{node["id"]}}</H1></span>

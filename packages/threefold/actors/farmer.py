@@ -73,7 +73,7 @@ class Farmer(JSBASE):
         out.res = list({n.location.country for n in nodes if n.location.country})
         return out
 
-    def node_find(self, country, farmer_name, cores_min_nr, mem_min_mb, ssd_min_gb, hd_min_gb, nr_max, schema_out):
+    def node_find(self, country, farmer_name, cores_min_nr, mem_min_mb, ssd_min_gb, hd_min_gb, nr_max,node_zos_id, schema_out):
         """
         ```in
         country = "" (S)
@@ -83,6 +83,7 @@ class Farmer(JSBASE):
         ssd_min_gb = 0 (I)
         hd_min_gb = 0 (I)
         nr_max = 10 (I)
+        node_zos_id = "" (S)
         ```
 
         ```out
@@ -98,6 +99,7 @@ class Farmer(JSBASE):
         :param ssd_min_gb:
         :param hd_min_gb:
         :param nr_max: max nr of records to return
+        :param node_zos_id:
 
         :return: [node_objects]
 
@@ -123,6 +125,8 @@ class Farmer(JSBASE):
             if ssd_min_gb and ssd_min_gb > (node.capacity_total.sru - node.capacity_used.sru):
                 continue
             if hd_min_gb and hd_min_gb > (node.capacity_total.hru - node.capacity_used.hru):
+                continue
+            if node_zos_id and node_zos_id != node.node_zos_id:
                 continue
             nodes.append(node)
         nodes = nodes[:nr_max]
