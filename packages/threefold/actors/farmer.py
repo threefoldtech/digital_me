@@ -328,9 +328,7 @@ class Farmer(JSBASE):
         out.res = [self.wgw_rule_model.get(rule.id) for rule in res]
         return out
 
-
-
-    def web_gateway_remove_host(self, jwttoken, web_gateway, rule_name):
+    def web_gateway_delete_host(self, jwttoken, web_gateway, rule_name):
         """
         ```in
         jwttoken = (S)
