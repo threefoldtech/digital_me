@@ -12,5 +12,5 @@ export LC_ALL=en_US.UTF-8
 
 redis-server --daemonize yes
 js_shell \"j.clients.zdb.testdb_server_start_client_get()\"
-js_shell \"j.tools.tmux.execute('js_shell \'j.servers.digitalme.start()\'')\"
+exec js_shell \"j.servers.digitalme.start()\"
 """
