@@ -17,6 +17,7 @@ if ! grep -q ^en_US /etc/locale.gen; then
     echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc
     echo "export LANG=en_US.UTF-8" >> /root/.bashrc
     echo "export LANGUAGE=en_US.UTF-8" >> /root/.bashrc
+    echo " export HOME=/root" >> /root/.bashrc
     export LC_ALL=en_US.UTF-8
     export LANG=en_US.UTF-8
     export LANGUAGE=en_US.UTF-8
