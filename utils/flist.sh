@@ -14,11 +14,11 @@ apt-get install -y locales git wget netcat tar sudo tmux ssh python3-pip redis-s
 if ! grep -q ^en_US /etc/locale.gen; then
     echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
     locale-gen en_US.UTF-8
-    export LC_ALL=en_US.UTF-8
-    export LANG=en_US.UTF-8
-    export LANGUAGE=en_US.UTF-8
-
+    echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc
+    echo "export LANG=en_US.UTF-8" >> /root/.bashrc
+    echo "export LANGUAGE=en_US.UTF-8" >> /root/.bashrc
 fi
+source /root/.bashrc
 
 for target in /usr/local $HOME/opt $HOME/.ssh $HOME/opt/cfg $HOME/opt/bin $HOME/code $HOME/code/github $HOME/code/github/threefoldtech $HOME/code/github/threefoldtech/jumpscale_weblibs $HOME/opt/var/capnp $HOME/opt/var/log $HOME/jumpscale/cfg; do
     mkdir -p $target
