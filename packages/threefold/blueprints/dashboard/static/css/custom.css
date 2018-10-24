@@ -18,3 +18,7 @@
 .main-content small {
     margin: 17px;
 }
+
+.data tbody tr {
+    cursor: pointer;
+} 
