@@ -6,10 +6,11 @@ protected = true #set protected to true to respawn the container if it crashed
 script = """
 sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     locale-gen
-export LANG="en_US.UTF-8"  
-export LANGUAGE="en_US.UTF-8"
-export LC_ALL="en_US.UTF-8"
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
 redis-server --daemonize yes
-js_shell "j.clients.zdb.testdb_server_start_client_get() "
-js_shell "j.tools.tmux.execute('js_shell \'j.servers.digitalme.start()\'')"
+js_shell \"j.clients.zdb.testdb_server_start_client_get()\"
+js_shell \"j.tools.tmux.execute('js_shell \'j.servers.digitalme.start()\'')\"
 """
