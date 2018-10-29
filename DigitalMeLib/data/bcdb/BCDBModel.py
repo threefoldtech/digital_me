@@ -77,10 +77,9 @@ class BCDBModel(JSBASE):
         return True
 
     @queue_method
-<<<<<<< HEAD
     def index_rebuild(self):
         self.bcdb.index_rebuild()
-=======
+
     def index_load(self):
         self.index_delete()
         j.shell()  # TODO:*1
@@ -127,8 +126,6 @@ class BCDBModel(JSBASE):
         self.zdbclient.meta.save()
 
         assert self.zdbclient.get(1) == None
-
->>>>>>> 51f222e977cee2e015c43dab8c71c43f5c844777
 
     @queue_method
     def delete(self, obj_id):
