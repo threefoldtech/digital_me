@@ -54,7 +54,7 @@ class DigitalMe(JSBASE):
 
         path can be git url or path
 
-        @PARAM if zdbclients is {} then will use j.clients.zdb.testdb_server_start_client_get()
+        @PARAM if zdbclients is {} then will use j.clients.zdb.testdb_server_start_client_admin_get()
                 is dict with key = namespace, default will be used for each one where namespace not defined
         """
 
@@ -67,9 +67,9 @@ class DigitalMe(JSBASE):
             install_zrobot()
 
         if zdbclients == {}:
-            zdb_admin_client = j.clients.zdb.testdb_server_start_client_get(secret=adminsecret)
+            zdb_admin_client = j.clients.zdb.testdb_server_start_client_admin_get(secret=adminsecret)
             zdb_admin_client.namespace_new("digitalme", secret=nssecret)
-            zdbclients["default"] = j.clients.zdb.client_get(nsname='digitalme', secret=nssecret)
+            zdbclients["default"] = j.clients.zdb.client_get(nsname='digitalme', ns_secret=nssecret)
 
         if path is not "":
             if not j.sal.fs.exists(path):
@@ -110,7 +110,7 @@ class DigitalMe(JSBASE):
         """
 
         if zdb_start:
-            cl = j.clients.zdb.testdb_server_start_client_get(start=True)  # starts & resets a zdb in seq mode with name test
+            cl = j.clients.zdb.testdb_server_start(start=True)  # starts & resets a zdb in seq mode with name test
 
         cmd = "js_shell 'j.servers.digitalme.start()'"
         j.tools.tmux.execute(

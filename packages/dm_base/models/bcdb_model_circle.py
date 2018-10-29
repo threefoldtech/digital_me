@@ -43,6 +43,7 @@ class Model(MODEL_CLASS):
         MODEL_CLASS.__init__(self, bcdb=bcdb, url="digitalme.circle", zdbclient=zdbclient)
         self.url = "digitalme.circle"
         self.index = Index_
+            
         self.index.create_table()
     
     def index_set(self,obj):

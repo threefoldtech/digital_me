@@ -342,7 +342,7 @@ class FarmerFactory(JSBASE):
 
     # def _fail_save(self):
     #     if not self._bcdb:
-    #         self.zdb = j.clients.zdb.testdb_server_start_client_get(reset=False)
+    #         self.zdb = j.clients.zdb.testdb_server_start_client_admin_get(reset=False)
     #         self._bcdb = j.data.bcdb.get(self.zdb, reset=False)
 
     def load(self, reset=False):
@@ -354,7 +354,7 @@ class FarmerFactory(JSBASE):
         :param reset:
         :return:
         """
-        self.zdb = j.clients.zdb.testdb_server_start_client_get(reset=reset)
+        self.zdb = j.clients.zdb.testdb_server_start_client_admin_get(reset=reset)
         self._bcdb = j.data.bcdb.get('test', zdbclient=self.zdb, cache= not reset)  # to make sure we reset the index
         self.farmers_load()
         self.zerotier_scan(reset=reset)

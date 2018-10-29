@@ -20,7 +20,7 @@ reputation* = ""                  #OK, DENY  (to know which ones we want to work
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["test"].sqlitedb
+db = j.data.bcdb.bcdb_instances["default"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
@@ -38,13 +38,8 @@ class Model(MODEL_CLASS):
         MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.threebot", zdbclient=zdbclient)
         self.url = "threefold.grid.threebot"
         self.index = Index_
-        with open('/tmp/log.log', 'a') as f:
-            f.write("creating table %s\n" % "threefold.grid.threebot")
-            f.write("\tfields:%s\n" % "[indexfield:email:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>, indexfield:reputation:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x7fb9eeb1a470>]")
-
-
-            output = self.index.create_table()
-            f.write('\t output: %s' % output)
+            
+        self.index.create_table()
     
     def index_set(self,obj):
         idict={}

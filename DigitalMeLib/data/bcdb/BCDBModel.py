@@ -77,8 +77,58 @@ class BCDBModel(JSBASE):
         return True
 
     @queue_method
+<<<<<<< HEAD
     def index_rebuild(self):
         self.bcdb.index_rebuild()
+=======
+    def index_load(self):
+        self.index_delete()
+        j.shell()  # TODO:*1
+        pass
+
+    @queue_method
+    def reset_data(self, zdbclient_admin,die=True,force=False):
+        """
+        delete the index and all the items from the model
+
+
+        :raises RuntimeError: raised when the database type is not implemented/supported yet
+        :return: return the number of item deleted
+        :rtype: int
+        """
+        self.logger.debug("reset data for model:%s"%self.url)
+        self.index_delete(noqueue=True)
+
+        if not force:
+            # need to check this database namespace is not used in other models.
+            for key, bcdbmodel in self.bcdb.models.items():
+                if bcdbmodel.key == self.key:
+                    # myself, go out
+                    continue
+                if bcdbmodel.zdbclient.nsname == self.zdbclient.nsname:
+                    msg = "CANNOT DELETE THE NAMESPACE BECAUSE USED BY OTHER BCDBMODELS"
+                    if die:
+                        raise RuntimeError(msg)
+                    else:
+                        print(msg)
+                        return
+        # now I am sure I can remove it
+        data = self.zdbclient.meta._data
+        zdbclient_admin.namespace_delete(self.zdbclient.nsname)
+        zdbclient_admin.namespace_new(self.zdbclient.nsname)
+        #lets renew it
+        self.zdbclient = j.clients.zdb.client_get(nsname=self.zdbclient.nsname,
+                                                  addr=self.zdbclient.addr,
+                                                  port=self.zdbclient.port,
+                                                  ns_secret=self.zdbclient.ns_secret,
+                                                  mode="seq")
+
+        self.zdbclient.meta._data=data
+        self.zdbclient.meta.save()
+
+        assert self.zdbclient.get(1) == None
+
+>>>>>>> 51f222e977cee2e015c43dab8c71c43f5c844777
 
     @queue_method
     def delete(self, obj_id):

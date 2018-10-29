@@ -27,6 +27,7 @@ class Model(MODEL_CLASS):
         MODEL_CLASS.__init__(self, bcdb=bcdb, url="digitalme.dnsrecord", zdbclient=zdbclient)
         self.url = "digitalme.dnsrecord"
         self.index = Index_
+            
         self.index.create_table()
     
     def index_set(self,obj):

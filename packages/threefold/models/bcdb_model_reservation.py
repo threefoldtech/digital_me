@@ -34,7 +34,7 @@ payments = (LO) !threefold.grid.payment
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["test"].sqlitedb
+db = j.data.bcdb.bcdb_instances["default"].sqlitedb
 
 class BaseModel(Model):
     class Meta:
@@ -55,16 +55,6 @@ class Model(MODEL_CLASS):
         MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.reservation", zdbclient=zdbclient)
         self.url = "threefold.grid.reservation"
         self.index = Index_
-        with open('/tmp/log.log', 'a') as f:
-            f.write("creating table %s\n" % "threefold.grid.reservation")
-            f.write("\tfields:%s\n" % "[indexfield:threebot_id:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x105b7f908>, indexfield:date_start:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x1173e0588>, indexfield:date_end:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x1173e05f8>, indexfield:state:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x105b7f908>, indexfield:node_id:IntegerField:<Jumpscale.data.types.PrimitiveTypes.Integer object at 0x1173e0860>]")
-            f.write('\ttable: %s\n\n' % 'indexmodel:\s - indexfield:threebot_id:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x105b7f908>
- - indexfield:date_start:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x1173e0588>
- - indexfield:date_end:IntegerField:<Jumpscale.data.types.CustomTypes.Date object at 0x1173e05f8>
- - indexfield:state:TextField:<Jumpscale.data.types.PrimitiveTypes.String object at 0x105b7f908>
- - indexfield:node_id:IntegerField:<Jumpscale.data.types.PrimitiveTypes.Integer object at 0x1173e0860>
-')
-
             
         self.index.create_table()
     

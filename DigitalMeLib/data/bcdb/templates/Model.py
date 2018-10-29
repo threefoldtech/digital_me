@@ -23,12 +23,18 @@ class BCDBModel2(MODEL_CLASS):
     def _init(self):
         pass #to make sure works if no index
         {%- if index.enable %}
+<<<<<<< HEAD
 
         db = self.bcdb.sqlitedb
 
         class BaseModel(Model):
             class Meta:
                 database = db
+=======
+        self.index = Index_{{schema.key}}
+            
+        self.index.create_table()
+>>>>>>> 51f222e977cee2e015c43dab8c71c43f5c844777
 
         class Index_{{schema.key}}(BaseModel):
             id = IntegerField(unique=True)
