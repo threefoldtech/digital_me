@@ -98,7 +98,7 @@ class BCDBFactory(JSBASE):
 
         else:
             zdbclient = j.clients.zdb.client_get(nsname=zdbclient_namespace, addr=zdbclient_addr, port=zdbclient_port,
-                                                 ns_secret=zdbclient_secret, mode=zdbclient_mode, admin_secret=secret)
+                                                 secret=zdbclient_secret, mode=zdbclient_mode)
             bcdb=self.get(name,zdbclient=zdbclient)
             bcdb.load(zdbclient)
             bcdb.redis_server_start(port=port)
