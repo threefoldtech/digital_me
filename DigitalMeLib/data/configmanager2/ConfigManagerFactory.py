@@ -39,7 +39,7 @@ class ConfigManagerFactory(JSBASE):
         if not cache or not key in self.config_instances:
             #make sure model is known
             if not url in self.config_models:
-                self.config_models[url]=self.bcdb.model_add_from_schema(url, namespace="config", reload=False)
+                self.config_models[url]=self.bcdb.model_get_from_schema(url, namespace="config", reload=False)
             model = self.config_models[url]
 
             q = model.index.select().where(model.index.instance == instance)

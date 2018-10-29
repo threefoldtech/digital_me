@@ -6,42 +6,39 @@ SCHEMA="""
 {{schema_text}}
 """
 {%- endif %}
+
 {%- if index.enable %}
 from peewee import *
-db = j.data.bcdb.bcdb_instances["{{bcdb.name}}"].sqlitedb
-
-class BaseModel(Model):
-    class Meta:
-        database = db
-
-class Index_{{schema.key}}(BaseModel):
-    id = IntegerField(unique=True)
-    {%- for field in index.fields %}
-    {{field.name}} = {{field.type}}(index=True)
-    {%- endfor %}
 {%- endif %}
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
-class Model(MODEL_CLASS):
-    def __init__(self, bcdb, zdbclient):
-        {%- if include_schema %}
-        MODEL_CLASS.__init__(self,bcdb=bcdb,schema=SCHEMA,zdbclient=zdbclient)
-        {%- else %}
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="{{schema.url}}", zdbclient=zdbclient)
-        {%- endif %}
+class BCDBModel2(MODEL_CLASS):
+    def __init__(self, bcdb):
+
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="{{schema.url}}")
         self.url = "{{schema.url}}"
+        self._init()
+
+    def _init(self):
+        pass #to make sure works if no index
         {%- if index.enable %}
+
+        db = self.bcdb.sqlitedb
+
+        class BaseModel(Model):
+            class Meta:
+                database = db
+
+        class Index_{{schema.key}}(BaseModel):
+            id = IntegerField(unique=True)
+            {%- for field in index.fields %}
+            {{field.name}} = {{field.type}}(index=True)
+            {%- endfor %}
         self.index = Index_{{schema.key}}
-        # with open('/tmp/log.log', 'a') as f:
-        #     f.write("creating table %s\n" % "{{schema.url}}")
-        #     f.write("\tfields:%s\n" % "{{index.fields}}")
-        #     f.write('\ttable: %s\n\n' % '{{index}}')
-
-            
         self.index.create_table()
-
         {%- endif %}
+
     {% if index.enable %}
     def index_set(self,obj):
         idict={}

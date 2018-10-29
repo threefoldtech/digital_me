@@ -200,7 +200,7 @@ class RedisServer(JSBASE):
 
         if cat == "schemas":
             s = j.data.schema.get(val)
-            self.bcdb.model_add_from_schema(s,zdbclient=self.bcdb.zdbclient)
+            self.bcdb.model_get_from_schema(s,zdbclient=self.bcdb.zdbclient)
             response.encode("OK")
             return
 

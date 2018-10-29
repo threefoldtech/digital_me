@@ -14,7 +14,7 @@ from JumpscaleLib.clients.zdb.ZDBClientBase import ZDBClientBase
 
 
 class BCDBModel(JSBASE):
-    def __init__(self, bcdb, url, zdbclient, index_enable=True):
+    def __init__(self, bcdb, url, index_enable=True, cache_expiration=3600):
         """
         for query example see http://docs.peewee-orm.com/en/latest/peewee/query_examples.html
 
@@ -31,29 +31,42 @@ class BCDBModel(JSBASE):
         if bcdb is None:
             raise RuntimeError("bcdb should be set")
         self.bcdb = bcdb
-        self.schema = j.data.schema.get(url=url)
+        if url in self.bcdb.zdbclient.meta.url2schema:
+            sid, schema = self.bcdb.zdbclient.meta.schema_get_url(url=url)
+        else:
+            #means we don't have it in the zdbclient yet, needs to be added
+            schema = j.data.schema.get(url=url)
+            sid,schema = self.bcdb.zdbclient.meta.schema_set(schema)
+
+        assert self.bcdb.zdbclient.get(0) != None #just test that the metadata has been filled in
+
+        self.schema = schema
+        self.schema_id = sid
+
         self.url = url
 
         self.is_config = False  # when used for config management
 
-        if not isinstance(zdbclient, ZDBClientBase):
-            raise RuntimeError("zdbclient needs to be type: JumpscaleLib.clients.zdb.ZDBClientBase")
-
-        self.zdbclient = zdbclient
-        self.zdbclient.meta
+        self.zdbclient = bcdb.zdbclient
 
         self.index_enable = index_enable
         self.autosave = False  # if set it will make sure data is automatically set from object
 
         self.objects_in_queue = {}
 
-        self.key = "%s_%s"%(zdbclient.nsname,self.url)  #is unique id for a bcdbmodel (unique per zdbclient !)
+        self.key = "%s_%s"%(self.zdbclient.nsname,self.url)  #is unique id for a bcdbmodel (unique per zdbclient !)
 
         self.logger_enable()
 
-    @queue_method
-    def index_delete(self):
-        self.index.delete().execute()
+        if cache_expiration>0:
+            self.obj_cache = {}
+        else:
+            self.obj_cache = None
+        self.cache_expiration=cache_expiration
+
+    def cache_reset(self):
+        self.obj_cache = {}
+
 
     @queue_method
     def index_ready(self):
@@ -64,59 +77,16 @@ class BCDBModel(JSBASE):
         return True
 
     @queue_method
-    def index_load(self):
-        self.index_delete()
-        j.shell()  # TODO:*1
-        pass
-
-    @queue_method
-    def reset_data(self, zdbclient_admin,die=True,force=False):
-        """
-        delete the index and all the items from the model
-
-
-        :raises RuntimeError: raised when the database type is not implemented/supported yet
-        :return: return the number of item deleted
-        :rtype: int
-        """
-        self.logger.debug("reset data for model:%s"%self.url)
-        self.index_delete(noqueue=True)
-
-        if not force:
-            # need to check this database namespace is not used in other models.
-            for key, bcdbmodel in self.bcdb.models.items():
-                if bcdbmodel.key == self.key:
-                    # myself, go out
-                    continue
-                if bcdbmodel.zdbclient.nsname == self.zdbclient.nsname:
-                    msg = "CANNOT DELETE THE NAMESPACE BECAUSE USED BY OTHER BCDBMODELS"
-                    if die:
-                        raise RuntimeError(msg)
-                    else:
-                        print(msg)
-                        return
-        # now I am sure I can remove it
-        data = self.zdbclient.meta._data
-        zdbclient_admin.namespace_delete(self.zdbclient.nsname)
-        zdbclient_admin.namespace_new(self.zdbclient.nsname)
-        #lets renew it
-        self.zdbclient = j.clients.zdb.client_get(nsname=self.zdbclient.nsname,
-                                                  addr=self.zdbclient.addr,
-                                                  port=self.zdbclient.port,
-                                                  secret=self.zdbclient.secret,
-                                                  mode="seq")
-
-        self.zdbclient.meta._data=data
-        self.zdbclient.meta.save()
-
-        assert self.zdbclient.get(1) == None
-
+    def index_rebuild(self):
+        self.bcdb.index_rebuild()
 
     @queue_method
     def delete(self, obj_id):
         if hasattr(obj_id, "_JSOBJ"):
             obj_id = obj_id.id
         self.zdbclient.delete(obj_id)
+        if obj_id in self.obj_cache:
+            self.obj_cache.pop(obj_id)
 
     def check(self, obj):
         if not hasattr(obj, "_JSOBJ"):
@@ -152,8 +122,8 @@ class BCDBModel(JSBASE):
         obj.id = obj_id  # do not forget
         return self.set(obj)
 
-    @queue_method_results
-    def set(self, obj, index=True):
+
+    def _set(self, obj, index=True):
         """
         :param obj
         :return: obj
@@ -161,16 +131,45 @@ class BCDBModel(JSBASE):
         self.check(obj)
 
         # prepare
-        obj = self.set_pre(obj)
+        store,obj = self._set_pre(obj)
+
+        if store:
+
+            # later:
+            if obj.acl_id is None:
+                obj.acl_id = 0
+
+            if obj._acl is not None:
+                if obj.acl.id is None:
+                    #need to save the acl
+                    obj.acl.save()
+                else:
+                    acl2 = obj.model.bcdb.acl.get(obj.acl.id)
+                    if acl2 is None:
+                        #means is not in db
+                        obj.acl.save()
+                    else:
+                        if obj.acl.hash != acl2.hash:
+                            obj.acl.save() #means there is acl but not same as in DB, need to save
+                obj.acl_id = obj.acl.id
+
+
+            obj.id = self._set2(obj)
+
+            if self.obj_cache is not None:
+                self.obj_cache[obj.id]=(j.data.time.epoch,obj)
+
+
+        return obj
+
+
+    @queue_method_results
+    def _set2(self,obj,index=True):
 
         bdata = obj._data
+        bdata_encrypted = j.data.nacl.default.encryptSymmetric(bdata)
 
-        # later:
-        acl = b""
-        crc = b""
-        signature = b""
-
-        l = [acl, crc, signature, bdata]
+        l = [self.schema_id, obj.acl_id, bdata_encrypted]
         data = msgpack.packb(l)
 
         if obj.id is None:
@@ -187,21 +186,47 @@ class BCDBModel(JSBASE):
         if index:
             self.index_set(obj)
 
-        return obj
+        return obj.id
+
+    def _dict_process_out(self,ddict):
+        """
+        whenever dict is needed this method will be called before returning
+        :param ddict:
+        :return:
+        """
+        return ddict
+
+    def _dict_process_in(self,ddict):
+        """
+        when data is inserted back into object
+        :param ddict:
+        :return:
+        """
+        return ddict
+
 
     def new(self):
         obj = self.schema.new()
         obj.model = self
+        obj = self._methods_add(obj)
         return obj
 
-    def set_pre(self, obj):
+    def _methods_add(self,obj):
         return obj
+
+    def _set_pre(self, obj):
+        """
+
+        :param obj:
+        :return: True,obj when want to store
+        """
+        return True,obj
 
     def index_set(self, obj):
         pass
 
     @queue_method_results
-    def get(self, id, return_as_capnp=False):
+    def get(self, id, return_as_capnp=False,usecache=True):
         """
         @PARAM id is an int or a key
         @PARAM capnp if true will return data as capnp binary object,
@@ -209,52 +234,30 @@ class BCDBModel(JSBASE):
         @RETURN obj    (.index is in obj)
         """
 
-        if id == None:
-            raise RuntimeError("id cannot be None")
 
-        # obj_in_queue = self.objects_in_queue.get(id, None)
-        # if obj_in_queue is not None:
-        #     obj = self.objects_in_queue[id]
-        #     if return_as_capnp:
-        #         return obj._data
-        #     return obj
+        if id in [None,0,'0',b'0']:
+            raise RuntimeError("id cannot be None or 0")
 
+        if self.obj_cache is not None and usecache:
+            if id in self.obj_cache:
+                epoch,obj = self.obj_cache[id]
+                if j.data.time.epoch>self.cache_expiration+epoch:
+                     self.obj_cache.pop(id)
+                else:
+                    print("cache hit")
+                    return obj
         data = self.zdbclient.get(id)
 
         if not data:
             return None
 
-        return self._unserialize(id, data, return_as_capnp=return_as_capnp)
+        return self.bcdb._unserialize(id, data, return_as_capnp=return_as_capnp,model=self)
 
-    def _unserialize(self, id, data, return_as_capnp=False, model=None):
 
-        # if self.json_serialize:
-        #     res = j.data.serializers.json.loads(data)
-        #     obj = self.schema.get(data=res)
-        #     obj.id = id
-        #     if return_as_capnp:
-        #         return obj._data
-        #     return obj
-        #
-        # else:
-        res = msgpack.unpackb(data)
-
-        if len(res) == 4:
-            acr, crc, signature, bdata = res
-        else:
-            raise RuntimeError("not supported format in table yet")
-
-        if return_as_capnp:
-            return bdata
-        else:
-            obj = self.schema.get(capnpbin=bdata)
-            obj.id = id
-            obj.model = self
-            return obj
 
     def iterate(self, key_start=None, reverse=False, keyonly=False):
         """
-        walk over all the namespace and yield each object in the database
+        walk over objects which are of type of this model
 
         :param key_start: if specified start to walk from that key instead of the first one, defaults to None
         :param key_start: str, optional
@@ -268,11 +271,8 @@ class BCDBModel(JSBASE):
         :raises e: [description]
         """
         self.index_ready()
-        for key, data in self.zdbclient.iterate(key_start=key_start, reverse=reverse, keyonly=keyonly):
-            if key == 0:  # skip first metadata entry
-                continue
-            obj = self._unserialize(id, data)
-            yield obj
+        for item in self.index.select():
+            yield self.get(item.id)
 
     def get_all(self):
         return [obj for obj in self.iterate()]

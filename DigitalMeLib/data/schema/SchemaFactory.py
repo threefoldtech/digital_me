@@ -37,100 +37,45 @@ class SchemaFactory(JSBASE):
     def reset(self):
         self.schemas = {}
 
-    def _key(self,url,dbclient=None):
-        url = url.lower().strip()
-        if dbclient is None:
-            key=url
-        else:
-            key="%s_%s"%(dbclient.key,url)
-        return url,key
+    def get(self, schema_text_path="", url=None, die=True):
 
-    def get(self, schema_text_path="", id=None, md5=None, url=None, dbclient=None, die=True):
         if schema_text_path != "":
-            incache, schema = self._add(schema_text_path,dbclient)
-            if incache:
-                return schema
-
-            #now we have the schema if dbclient exists we need to remember it in the db
-            if dbclient:
-                self.dbclient.meta.schema_set(schema)
-
-            return schema
-
+            if j.data.types.string.check(schema_text_path):
+                return self._add(schema_text_path)
+            else:
+                raise RuntimeError("need to be text ")
         else:
             #check is in cash based on url & dbclient
             if url is not None:
-                url,key=self._key(url,dbclient)
-                if key in self.schemas:
-                    return self.schemas[key]
+                if url in self.schemas:
+                    return self.schemas[url]
+            raise RuntimeError("could not find schema '%s'"%url)
 
-            if dbclient is None:
-                raise RuntimeError("need to specify dbclient")
-                #because now data needs to come out of metadata of table
-            if md5:
-                schemadata = self.dbclient.meta.schema_get(md5=self.md5)
-            elif id:
-                schemadata = self.dbclient.meta.schema_get(id=id)
-            elif url:
-                schemadata = self.dbclient.meta.schema_get(url=self.url)
-
-            if schemadata==None:
-                raise RuntimeError("could not find schema based on params: id:%s, md5:%s, url:%s, make sure schema has been added to DB"%(id,md5,url))
-
-            url = schemadata["url"]
-            url,key=self._key(url,dbclient)
-            #can check cash again
-            if key in self.schemas:
-                return self.schemas[key]
-            md5 = schemadata["md5"]
-            #can check if md5 is in cache
-            if md5 in self._md5_schema:
-                return self._md5_schema[md5]
-
-            #not found in cache need to add
-            incache,schema = self.add(schema_text_path=schemadata["schema"],dbclient=dbclient)
-
-            return schema
-
+    def _md5(self,text):
+        #make sure the md5 is always the same
+        t = text.replace(" ","").replace("\n","")
+        tt = j.core.text.strip_to_ascii_dense(t)
+        return j.data.hash.md5_string(tt)
 
     def exists(self,url):
         return self.get(url=url, die=False) is not None
 
-    def _add(self, schema_text_path=None, dbclient=None):
+    def _add(self, schema_text_path):
         """
 
         :param schema_text or schema_path
         :return: incache,schema  (incache is bool, when True means was in cache)
         """
-        if j.data.types.string.check(schema_text_path):
-            if "\n" not in schema_text_path and j.sal.fs.exists(schema_text_path):
-                schema_text = j.sal.fs.fileGetContents(schema_text_path)
-            else:
-                schema_text = schema_text_path
+
+
+        if "\n" not in schema_text_path and j.sal.fs.exists(schema_text_path):
+            schema_text = j.sal.fs.fileGetContents(schema_text_path)
         else:
-            raise RuntimeError("schema needs to be of type: text")
+            schema_text = schema_text_path
 
-        md5 = j.data.hash.md5_string(j.core.text.strip(schema_text))
-
-        if md5 in self._md5_schema:
-            return True,self._md5_schema[md5]
-
-        res = self._add2(schema_text)
-        self._md5_schema[md5] = res
-        return False, res
-
-
-    def _add2(self, txt,dbclient=None):
-        """
-        add schema text (can be multile blocks starting with @) to this class
-        result schema's can be found from self.schema_from_url(...)
-
-        only the first one will be returned
-
-        """
         block = ""
         blocks=[]
-        txt=j.core.text.strip(txt)
+        txt=j.core.text.strip(schema_text)
         for line in txt.split("\n"):
 
             l=line.lower().strip()
@@ -153,15 +98,21 @@ class SchemaFactory(JSBASE):
 
         res=[]
         for block in blocks:
-            s = Schema(text=block,dbclient=dbclient)
-            url,key=self._key(s.url,dbclient)
-            self.schemas[key] = s
-            self._md5_schema[s.md5] = s
-            res.append(s)
+            md5=self._md5(block)
+            if md5 in self._md5_schema:
+                res.append(self._md5_schema[md5])
+            else:
+                s = Schema(text=block)
+                if s.md5 in self._md5_schema:
+                    raise RuntimeError("should not be there")
+                else:
+                    res.append(s)
+                    self.schemas[s.url]=s
 
         if len(res)==0:
             j.shell()
             raise RuntimeError("did not find schema in txt")
+
         return res[0]
 
     def list_base_class_get(self):

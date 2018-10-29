@@ -2,16 +2,16 @@ from importlib import import_module
 from Jumpscale import j
 import sys
 from peewee import *
-import os
 JSBASE = j.application.JSBaseClass
-from redis import StrictRedis
 from .BCDBIndexModel import BCDBIndexModel
 from .RedisServer import RedisServer
-import gevent
-from gevent.event import Event
 from .BCDBDecorator import *
 from gevent import queue
 from JumpscaleLib.clients.zdb.ZDBClientBase import ZDBClientBase
+import msgpack
+
+
+
 import gevent
 
 class BCDB(JSBASE):
@@ -31,21 +31,34 @@ class BCDB(JSBASE):
             raise RuntimeError("name needs to be string")
 
         self.zdbclient = zdbclient
-        self.zdbclient.meta  # make sure record 0 has been set
+        self.meta = self.zdbclient.meta  # make sure record 0 has been set
 
         self.models = {}
 
         self._sqlitedb = None
         self._data_dir = j.sal.fs.joinPaths(j.dirs.VARDIR, "bcdb")
 
-        self._models_add_cache = {}
+        self._models_classes_cache = {}
 
         self.logger_enable()
 
-        self.zdbclient.meta.schemas_load()
+        self.zdbclient.meta._models_load(self)
 
+        #needed for async processing
         self.results={}
         self.results_id = 0
+
+        j.data.bcdb.latest = self
+
+
+        from .ACL import ACL
+        from .USER import USER
+        from .GROUP import GROUP
+
+
+        self.acl = self.model_add(ACL(self))
+        self.user = self.model_add(USER(self))
+        self.group = self.model_add(GROUP(self))
 
         self.dataprocessor_greenlet = None
         self.dataprocessor_start()
@@ -83,48 +96,34 @@ class BCDB(JSBASE):
             self.dataprocessor_greenlet = gevent.spawn(self._data_process)
             self.dataprocessor_state = "RUNNING"
 
-    # def dataprocessor_stop(self):
-    #     """
-    #     means we stop using the data processor, if you want to pause use self.dataprocessor_pause
-    #     :return:
-    #     """
-    #     if self.dataprocessor_state in ["RUNNING"]:
-    #         evt = Event()
-    #         self.queue.put(("STOP",evt))
-    #         self.logger.debug("wait dataprocessor stop")
-    #         evt.wait()
-
-
-    # def dataqueue_waitempty(self):
-    #     """
-    #     do not forget to call this before doing a search on index
-    #     this will make sure the index is fully populated
-    #     will wait till all objects are processed by indexer (the greenlet which processes the data, only 1 per bcdb)
-    #     :return: True when empty
-    #     """
-    #     if self.dataprocessor_data_processing:
-    #         counter = 1
-    #         while len(self.objects_in_queue) > 0:
-    #             gevent.sleep(0.001)
-    #             counter += 1
-    #             if counter == 10000:
-    #                 raise RuntimeError("should never take this long to index, something went wrong")
-    #     return True
-
 
     @queue_method
     def reset(self):
         self.stop()
         j.shell()
 
-    # @queue_method
-    # def stop(self):
-    #     self._sqlitedb.close()
-    #     if self.name in j.data.bcdb.bcdb_instances:
-    #         j.data.bcdb.bcdb_instances.pop(self.name)
-    #     # for model in self.models.values():
-    #     #     j.shell()
-    #     self.dataprocessor_stop()
+    def index_rebuild(self):
+        self.logger.warning("index and DB out of sync, need to rebuild all")
+        if self._sqlitedb is not None:
+            self.sqlitedb.close()
+        j.sal.fs.remove(j.sal.fs.joinPaths(self._data_dir, self.name + ".db"))
+        self._sqlitedb = None
+
+        self.cache_flush()
+
+        for obj in self.iterate():
+            obj.model.index_set(obj) #is not scheduled
+
+
+    def cache_flush(self):
+        #put all caches on zero
+        for model in self.models.values():
+            if model.cache_expiration>0:
+                model.obj_cache = {}
+            else:
+                model.obj_cache = None
+            model._init()
+
 
     @property
     def sqlitedb(self):
@@ -138,22 +137,17 @@ class BCDB(JSBASE):
                 j.shell()
         return self._sqlitedb
 
-    def reset_index(self):
-        for model in self.models.values():
-            model.index_delete()
-        # self._sqlitedb=None
-        # j.sal.fs.remove(self._data_dir)
 
-    def reset_data(self,zdbclient_admin):
+
+    def reset_data(self):
         """
         remove index, walk over all zdb's & remove data
         :param zdbclient_admin:
         :return:
         """
         self.logger.info("reset data")
-        for model in self.models.values():
-            model.reset_data(zdbclient_admin=zdbclient_admin,force=True) #need to always remove
-
+        self.zdbclient.flush()  #new flush command
+        self.index_rebuild() #will make index empty
 
     def model_get(self, url):
         if url in self.models:
@@ -168,46 +162,66 @@ class BCDB(JSBASE):
         """
         if isinstance(model, j.data.bcdb.MODEL_CLASS):
             self.models[model.schema.url] = model
+        return self.models[model.schema.url]
 
-    def model_add_from_schema(self, schema, zdbclient, reload=False, dest=None, overwrite=True):
+    def model_get_from_schema(self, schema, reload=False, dest=None, overwrite=True):
         """
-
-        :param schema: is schema object j.data.schema...
+        :param schema: is schema object j.data.schema... or text
         :param namespace, std is the url of the schema
         :return:
         """
+        if j.data.types.str.check(schema):
+            schema = j.data.schema.get(schema)
 
-        if not isinstance(schema, j.data.schema.SCHEMA_CLASS):
+        elif not isinstance(schema, j.data.schema.SCHEMA_CLASS):
             raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
 
-        if schema.md5 in self._models_add_cache and reload is False:
-            return self._models_add_cache[schema.md5]
+        if schema.key not in self.models:
+            cl = self.model_class_get_from_schema(schema=schema, reload=reload, dest=dest, overwrite=overwrite)
+            model = cl(bcdb=self)
+            self.models[schema.key] = model
+            self.zdbclient.meta.schema_set(schema)  # should always be the first record !
+        return self.models[schema.key]
 
-        imodel = BCDBIndexModel(schema=schema)  # model with info to generate
-        imodel.enable = True
-        imodel.include_schema = True
-        tpath = "%s/templates/Model.py" % j.data.bcdb._path
 
-        key = j.core.text.strip_to_ascii_dense(schema.url).replace(".", "_")
-        if dest == None:
-            dest = "%s/model_%s.py" % (j.data.bcdb.code_generation_dir, key)
+    def model_class_get_from_schema(self,schema, reload=False, dest=None, overwrite=True):
+        """
 
-        if overwrite or not j.sal.fs.exists(dest):
-            self.logger.debug("render model:%s" % dest)
-            if dest is None:
-                raise RuntimeError("cannot be None")
-            j.tools.jinja2.file_render(tpath, write=True, dest=dest, schema=schema,
-                                       schema_text=schema.text, bcdb=self, index=imodel)
+        :param schema: is schema object j.data.schema... or text
+        :return: class of the model
+        """
 
-        m = self.model_add_from_file(dest, zdbclient=zdbclient)
+        if j.data.types.str.check(schema):
+            schema = j.data.schema.get(schema)
 
-        self._models_add_cache[schema.md5] = m
+        elif not isinstance(schema, j.data.schema.SCHEMA_CLASS):
+            raise RuntimeError("schema needs to be of type: j.data.schema.SCHEMA_CLASS")
 
-        m.zdbclient.meta.schema_set(schema)  # should always be the first record !
+        if reload or schema.key not in self._models_classes_cache:
 
-        return m
+            imodel = BCDBIndexModel(schema=schema)  # model with info to generate
+            imodel.enable = True
+            imodel.include_schema = True
+            tpath = "%s/templates/Model.py" % j.data.bcdb._path
 
-    def model_add_from_file(self, path, zdbclient):
+            key = j.core.text.strip_to_ascii_dense(schema.url).replace(".", "_")
+            if dest == None:
+                dest = "%s/model_%s.py" % (j.data.bcdb.code_generation_dir, key)
+
+            if overwrite or not j.sal.fs.exists(dest):
+                self.logger.debug("render model:%s" % dest)
+                if dest is None:
+                    raise RuntimeError("cannot be None")
+                j.tools.jinja2.file_render(tpath, write=True, dest=dest, schema=schema,
+                                           schema_text=schema.text, bcdb=self, index=imodel)
+
+            model_class = self.model_class_get_from_file(dest)
+
+            self._models_classes_cache[schema.key] = model_class
+
+        return self._models_classes_cache[schema.key]
+
+    def model_class_get_from_file(self, path):
         """
         add model to BCDB
         is path to python file
@@ -235,13 +249,24 @@ class BCDB(JSBASE):
             # j.shell()
             raise RuntimeError("could not import module:%s in classpath:%s" % (modulename, path), e)
 
-        model = model_module.Model(bcdb=self, zdbclient=zdbclient)
+        model_class = model_module.BCDBModel2
 
+        return model_class
+
+    def model_get_from_file(self, path):
+        """
+        add model to BCDB
+        is path to python file
+
+        :param namespace, std is the url of the schema
+
+        """
+        cl = self.model_class_get_from_file(path)
+        model = cl(bcdb=self)
         self.models[model.schema.url] = model
-
         return model
 
-    def models_add(self, path, namespace=None, overwrite=True):
+    def models_add(self, path, overwrite=True):
         """
         will walk over directory and each class needs to be a model
         when overwrite used it will overwrite the generated models (careful)
@@ -253,11 +278,71 @@ class BCDB(JSBASE):
         for schemapath in tocheck:
             dest = "%s/bcdb_model_%s.py" % (j.sal.fs.getDirName(schemapath), j.sal.fs.getBaseName(schemapath, True))
             schema = j.data.schema.get(schemapath)
-            self.model_add_from_schema(schema=schema, zdbclient=self.zdbclient, reload=False, dest=dest, overwrite=overwrite)
+            self.model_get_from_schema(schema=schema, reload=False, dest=dest, overwrite=overwrite)
 
         tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="*.py", followSymlinks=True)
         for classpath in tocheck:
-            self.model_add_from_file(classpath,zdbclient=self.zdbclient)
+            self.model_get_from_file(classpath)
 
     def load(self,zdbclient):
         return zdbclient.meta.models_load(self)
+
+
+
+    def _unserialize(self, id, data, return_as_capnp=False, model=None):
+
+        res = msgpack.unpackb(data)
+
+        if len(res) == 3:
+            schema_id, acl_id, bdata_encrypted = res
+            if model:
+                if schema_id != model.schema_id:
+                    j.shell()
+                    raise RuntimeError("this id: %s is not of right type"%(id))
+            else:
+                model =self.zdbclient.meta.model_get_id(schema_id,bcdb=self)
+        else:
+            raise RuntimeError("not supported format in table yet")
+
+        bdata = j.data.nacl.default.decryptSymmetric(bdata_encrypted)
+
+        if return_as_capnp:
+            return bdata
+        else:
+            obj = model.schema.get(capnpbin=bdata)
+            obj.id = id
+            obj.acl_id = acl_id
+            obj.model = model
+            return obj
+
+    def obj_get(self,id):
+
+        data = self.zdbclient.get(id)
+        if data is  None:
+            return None
+        return self._unserialize(id, data)
+
+
+    def iterate(self, key_start=None, reverse=False, keyonly=False):
+        """
+        walk over all the namespace and yield each object in the database
+
+        :param key_start: if specified start to walk from that key instead of the first one, defaults to None
+        :param key_start: str, optional
+        :param reverse: decide how to walk the namespace
+                if False, walk from older to newer keys
+                if True walk from newer to older keys
+                defaults to False
+        :param reverse: bool, optional
+        :param keyonly: [description], defaults to False
+        :param keyonly: bool, optional
+        :raises e: [description]
+        """
+        for key, data in self.zdbclient.iterate(key_start=key_start, reverse=reverse, keyonly=keyonly):
+            if key == 0:  # skip first metadata entry
+                continue
+            obj = self._unserialize(key, data)
+            yield obj
+
+    def get_all(self):
+        return [obj for obj in self.iterate()]

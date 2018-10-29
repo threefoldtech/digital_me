@@ -8,7 +8,7 @@ import copy
 import os
 
 class Schema(JSBASE):
-    def __init__(self, text, dbclient=None):
+    def __init__(self, text):
         JSBASE.__init__(self)
         self.properties = []
         self.lists = []
@@ -18,9 +18,14 @@ class Schema(JSBASE):
         self._capnp = None
         self._index_list = None
         self._SCHEMA = True
-        self.dbclient = dbclient
         self.url = ""
         self._schema_from_text(text)
+        self.key = j.core.text.strip_to_ascii_dense(self.url).replace(".","_")
+
+
+    @property
+    def md5(self):
+        return self._md5
 
 
     @property
@@ -84,7 +89,7 @@ class Schema(JSBASE):
 
         self.text = j.core.text.strip(text)
 
-        self.md5 = j.data.hash.md5_string(j.core.text.strip(text))
+        self._md5 = j.data.schema._md5(text)
 
         systemprops = {}
         self.properties = []

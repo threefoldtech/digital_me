@@ -27,11 +27,23 @@ class ModelOBJ():
         self._JSOBJ = True
 
         self.id = None
+        self.acl_id = 0
+        self._acl = None
 
         if not j.data.types.dict.check(data):
             raise RuntimeError("data needs to be of type dict, now:%s"%data)
         for key,val in data.items():
             setattr(self, key, val)
+
+
+    @property
+    def acl(self):
+        if self._acl is None:
+            if self.acl_id ==0:
+                self._acl = self.model.bcdb.acl.new()
+            else:
+                j.shell()
+        return self._acl
 
     def _defaults_set(self):
         pass
@@ -140,8 +152,10 @@ class ModelOBJ():
 
     def save(self):
         if self.model:
-            o=self.model.set(self)
+            o=self.model._set(self)
             self.id = o.id
+            return o
+        raise RuntimeError("cannot save, model not known")
 
     def _check(self):
         #checks are done while creating ddict, so can reuse that
@@ -219,9 +233,9 @@ class ModelOBJ():
         """
         update internal data object from ddict
         """
+        if self.model is not None:
+            ddict=self.model._dict_process_in(ddict)
         self._cobj_.from_dict(ddict)
-
-
 
 
     @property
@@ -240,6 +254,9 @@ class ModelOBJ():
         {% endfor %}
         if self.id is not None:
             d["id"]=self.id
+
+        if self.model is not None:
+            d=self.model._dict_process_out(d)
         return d
 
     @property
@@ -260,6 +277,8 @@ class ModelOBJ():
         {% endfor %}
         if self.id is not None:
             d["id"]=self.id
+        if self.model is not None:
+            d=self.model._dict_process_out(d)
         return d
 
     @property
@@ -280,7 +299,10 @@ class ModelOBJ():
         {% endfor %}
         if self.id is not None:
             d["id"]=self.id
+        if self.model is not None:
+            d=self.model._dict_process_out(d)
         return d
+
 
 
     def _ddict_hr_get(self,exclude=[],maxsize=100):
@@ -314,9 +336,10 @@ class ModelOBJ():
             out += "%-20s: %s\n" % (key, item)
         return out
 
+
     @property
     def _json(self):
-        return j.data.serializers.json.dumps(self._ddict_json)
+        return j.data.serializers.json.dumps(self._ddict_json,True,True)
 
     @property
     def _msgpack(self):

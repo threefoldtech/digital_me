@@ -2,11 +2,8 @@ from Jumpscale import j
 
 from .BCDB import BCDB
 from .BCDBModel import BCDBModel
-# from peewee import Model
-import gevent
 import os
 import sys
-import time
 import redis
 
 JSBASE = j.application.JSBaseClass
@@ -32,7 +29,7 @@ class BCDBFactory(JSBASE):
             if j.data.types.string.check(zdbclient):
                 raise RuntimeError("zdbclient cannot be str")
             self.bcdb_instances[name] = BCDB(zdbclient=zdbclient,name=name)
-            self.latest = self.bcdb_instances[name]
+
         return self.bcdb_instances[name]
 
     def redis_server_start(self,   name="test",
@@ -148,9 +145,11 @@ class BCDBFactory(JSBASE):
             server_db = j.servers.zdb.start_test_instance(reset=reset)
             zdbclient_admin = j.servers.zdb.client_admin_get()
             zdbclient = zdbclient_admin.namespace_new("test",secret="1234")
+            if reset:
+                zdbclient.flush() #empty
             bcdb = j.data.bcdb.get(name="test",zdbclient=zdbclient)
             schemaobj=j.data.schema.get(schema)
-            bcdb.model_add_from_schema(schemaobj,zdbclient=zdbclient) #model has now been added to the DB
+            bcdb.model_get_from_schema(schemaobj)
         else:
             bcdb = self.bcdb_instances["test"]
 
@@ -577,6 +576,121 @@ class BCDBFactory(JSBASE):
             # print(i)
             o = get_obj(i)
             id = r.hset("objects:another.test","new",o._json)
+
+
+    def test6(self):
+        """
+        js_shell 'j.data.bcdb.test6()'
+
+        tests around ACL's
+
+        """
+
+
+        S = """
+        @url = despiegk.test5.acl
+        name = "" 
+        an_id = 0
+        """
+
+        zdbclient_admin = j.servers.zdb.client_admin_get()
+        zdbclient = zdbclient_admin.namespace_new("test",secret="1234")
+        zdbclient.flush() #empty
+        bcdb = j.data.bcdb.get(name="test",zdbclient=zdbclient)
+        m=bcdb.model_get_from_schema(S) #model has now been added to the DB
+
+        self.logger.info("POPULATE DATA")
+
+        for i in range(10):
+            u=bcdb.user.new()
+            u.name="ikke_%s"%i
+            u.email="user%s@me.com"%i
+            u.dm_id = "user%s.ibiza"%i
+            u.save()
+
+        for i in range(10):
+            g=bcdb.group.new()
+            g.name="gr_%s"%i
+            g.email="group%s@me.com"%i
+            g.dm_id = "group%s.ibiza"%i
+            g.group_members = [x for x in range(i+1)]
+            g.user_members = [x for x in range(i+1)]
+            g.save()
+
+        self.logger.info("ALL DATA INSERTED (DONE)")
+
+        self.logger.info("walk over all data")
+        l = bcdb.get_all()
+
+        self.logger.info("walked over all data (DONE)")
+
+        assert len(l)==20
+        u0=l[0]
+        g0=l[10]
+
+
+        self.logger.info("ACL TESTS PART1")
+
+        a=bcdb.acl.new()
+        user = a.users.new()
+        user.rights="wrwd"
+        user.uid = 1
+        group = a.groups.new()
+        group.rights="wwd"
+        group.uid = 2
+        group = a.groups.new()
+        group.rights="e"
+        group.uid = 3
+
+
+        a=a.save()
+
+        j.shell()
+
+        assert a.hash == '5719df13fa127f1c46544250abba0d61'
+
+        assert len(bcdb.get_all())==21
+
+        index = bcdb.acl.index
+
+        a_id2 = index.select().where(index.hash == a.hash).first().id
+
+        assert a.id==a_id2
+
+        #new model new
+
+        a= m.new()
+        a.name = "aname"
+
+        a.acl.user_rights_set(1,"rw")
+        a.acl.group_rights_set(2,"r")
+
+        a.save()
+
+        j.shell()
+
+        assert len(bcdb.acl.get_all())==2
+
+        assert a.acl.hash == 'a290ac015471235029e31d55e0294807'
+
+        assert a.acl.user_right_check(1,"r") == True
+        assert a.acl.user_right_check(1,"d") == True
+        assert a.acl.user_right_check(1,"w") == False
+        assert a.acl.user_right_check(0,"w") == False
+
+        a.acl.user_rights_set(1,"r")
+        a.save()
+
+        assert a.acl.user_right_check(1,"r") == True
+        assert a.acl.user_right_check(1,"d") == False
+        assert a.acl.user_right_check(1,"w") == False
+        assert a.acl.user_right_check(0,"w") == False
+
+        self.logger.info("ACL TESTS DONE")
+
+        j.shell()
+
+        self.logger.info("ACL TESTS ALL DONE")
 
 
 
