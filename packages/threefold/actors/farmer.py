@@ -301,7 +301,7 @@ class Farmer(JSBASE):
         :param domains: list of domains we need to register e.g. ["threefold.io", "www.threefold.io"]
         :param backends: list of backends that the domains will point to e.g. ['10.10.100.10:80', '10.10.100.11:80']
         """
-        # self.capacity_planner.web_gateway_add_host(web_gateway, rule_name, domains, backends)
+        self.capacity_planner.web_gateway_add_host(web_gateway, rule_name, domains, backends)
         rule = self.wgw_rule_model.new()
         rule.rule_name = rule_name
         rule.domains = domains
