@@ -285,7 +285,7 @@ class BCDB(JSBASE):
             self.model_get_from_file(classpath)
 
     def load(self,zdbclient):
-        return zdbclient.meta.models_load(self)
+        return zdbclient.meta._models_load(self)
 
 
 

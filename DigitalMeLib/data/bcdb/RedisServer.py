@@ -178,7 +178,7 @@ class RedisServer(JSBASE):
             cat = splitted[0]
             url = splitted[1]
             key = ""
-        elif len_splitted == 2:
+        elif len_splitted == 3:
             cat = splitted[0]
             url = splitted[1]
             key = splitted[2]
@@ -200,7 +200,7 @@ class RedisServer(JSBASE):
 
         if cat == "schemas":
             s = j.data.schema.get(val)
-            self.bcdb.model_get_from_schema(s,zdbclient=self.bcdb.zdbclient)
+            self.bcdb.model_get_from_schema(s)
             response.encode("OK")
             return
 
@@ -271,6 +271,7 @@ class RedisServer(JSBASE):
 
     def hset(self, response, key, id, val):
         cat, url, _, model = self._split(key)
+        model = self.bcdb.models[url.replace('.', '_')]
         if cat != 'objects':
             response.error("category %s not valid" % cat)
             return
@@ -280,7 +281,6 @@ class RedisServer(JSBASE):
         if key == "":
             response.error("key needs to be known, e.g. objects:despiegk.test:new or in stead of new e.g. 101 (id)")
             return
-
         if id == "new":
             o = model.set_dynamic(val)
         else:

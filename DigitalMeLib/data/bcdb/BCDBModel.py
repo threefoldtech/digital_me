@@ -121,7 +121,7 @@ class BCDBModel(JSBASE):
         else:
             raise RuntimeError("Cannot find data type, str,bin,obj or ddict is only supported")
         obj.id = obj_id  # do not forget
-        return self.set(obj)
+        return self._set(obj)
 
 
     def _set(self, obj, index=True):
