@@ -313,6 +313,8 @@ class BCDB(JSBASE):
             obj.id = id
             obj.acl_id = acl_id
             obj.model = model
+            if model.write_once:
+                obj.readonly = True #means we fetched from DB, we need to make sure cannot be changed
             return obj
 
     def obj_get(self,id):

@@ -646,8 +646,6 @@ class BCDBFactory(JSBASE):
 
         a=a.save()
 
-        j.shell()
-
         assert a.hash == '5719df13fa127f1c46544250abba0d61'
 
         assert len(bcdb.get_all())==21
@@ -657,39 +655,48 @@ class BCDBFactory(JSBASE):
         a_id2 = index.select().where(index.hash == a.hash).first().id
 
         assert a.id==a_id2
+        assert a.readonly == True
 
         #new model new
 
         a= m.new()
         a.name = "aname"
 
-        a.acl.user_rights_set(1,"rw")
-        a.acl.group_rights_set(2,"r")
+        change = a.acl.rights_set(userids=[1],groupids=[2,3],rights="rw")
+        assert change == True
 
+        assert a.acl.readonly==False
         a.save()
-
-        j.shell()
+        assert a.acl.readonly
 
         assert len(bcdb.acl.get_all())==2
+        assert a.acl.hash == 'fa53cc2c53702aef90db0026b4e023f4'
 
-        assert a.acl.hash == 'a290ac015471235029e31d55e0294807'
+        self.logger.debug("MODIFY RIGHTS")
+        a.acl.rights_set(userids=[1],rights="r")
+        a.save()
+        assert a.acl.readonly
+        acl_old_id=a.acl.id+0
 
-        assert a.acl.user_right_check(1,"r") == True
-        assert a.acl.user_right_check(1,"d") == True
-        assert a.acl.user_right_check(1,"w") == False
-        assert a.acl.user_right_check(0,"w") == False
+        assert len(bcdb.acl.get_all())==3 #there needs to be a new acl
 
-        a.acl.user_rights_set(1,"r")
+        assert a.acl.hash == '240481437f4c67f40c2683883b755ac3'
+
+
+        assert a.acl.rights_check(1,"r") == True
+        assert a.acl.rights_check(1,"d") == False
+
+        a.acl.rights_set([1],[],"rw")
+        assert a.acl.rights_check(1,"r") == True
+        assert a.acl.rights_check(1,"w") == True
+        assert a.acl.rights_check(1,"rw") == True
+        assert a.acl.rights_check(1,"rwd") == False
+        assert a.acl.rights_check(1,"d") == False
         a.save()
 
-        assert a.acl.user_right_check(1,"r") == True
-        assert a.acl.user_right_check(1,"d") == False
-        assert a.acl.user_right_check(1,"w") == False
-        assert a.acl.user_right_check(0,"w") == False
+        #NEED TO DO TESTS WITH GROUPS
 
         self.logger.info("ACL TESTS DONE")
-
-        j.shell()
 
         self.logger.info("ACL TESTS ALL DONE")
 

@@ -309,6 +309,8 @@ class SchemaFactory(JSBASE):
 
         tests an issue with lists, they were gone at one point after setting a value
 
+        test readonly behaviour
+
         """
 
         S0 = """
@@ -389,6 +391,17 @@ class SchemaFactory(JSBASE):
 
         assert o._ddict == o2._ddict
         assert o._data == o2._data
+
+        assert o.readonly==False
+        o.readonly = True
+
+        #test we cannot change a subobj
+        try:
+            o.category = "s"
+        except Exception as e:
+            assert str(e).find("object readonly, cannot set")!=-1
+
+        #THERE IS STILL ERROR, readonly does not work for subobjects, need to change template
 
 
         print ("TEST4 ok")

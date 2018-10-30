@@ -46,6 +46,7 @@ class BCDBModel(JSBASE):
         self.url = url
 
         self.is_config = False  # when used for config management
+        self.write_once = False
 
         self.zdbclient = bcdb.zdbclient
 
@@ -79,53 +80,6 @@ class BCDBModel(JSBASE):
     @queue_method
     def index_rebuild(self):
         self.bcdb.index_rebuild()
-
-    def index_load(self):
-        self.index_delete()
-        j.shell()  # TODO:*1
-        pass
-
-    @queue_method
-    def reset_data(self, zdbclient_admin,die=True,force=False):
-        """
-        delete the index and all the items from the model
-
-
-        :raises RuntimeError: raised when the database type is not implemented/supported yet
-        :return: return the number of item deleted
-        :rtype: int
-        """
-        self.logger.debug("reset data for model:%s"%self.url)
-        self.index_delete(noqueue=True)
-
-        if not force:
-            # need to check this database namespace is not used in other models.
-            for key, bcdbmodel in self.bcdb.models.items():
-                if bcdbmodel.key == self.key:
-                    # myself, go out
-                    continue
-                if bcdbmodel.zdbclient.nsname == self.zdbclient.nsname:
-                    msg = "CANNOT DELETE THE NAMESPACE BECAUSE USED BY OTHER BCDBMODELS"
-                    if die:
-                        raise RuntimeError(msg)
-                    else:
-                        print(msg)
-                        return
-        # now I am sure I can remove it
-        data = self.zdbclient.meta._data
-        zdbclient_admin.namespace_delete(self.zdbclient.nsname)
-        zdbclient_admin.namespace_new(self.zdbclient.nsname)
-        #lets renew it
-        self.zdbclient = j.clients.zdb.client_get(nsname=self.zdbclient.nsname,
-                                                  addr=self.zdbclient.addr,
-                                                  port=self.zdbclient.port,
-                                                  ns_secret=self.zdbclient.ns_secret,
-                                                  mode="seq")
-
-        self.zdbclient.meta._data=data
-        self.zdbclient.meta.save()
-
-        assert self.zdbclient.get(1) == None
 
     @queue_method
     def delete(self, obj_id):
@@ -197,7 +151,9 @@ class BCDBModel(JSBASE):
                         obj.acl.save()
                     else:
                         if obj.acl.hash != acl2.hash:
+                            obj.acl.id = None
                             obj.acl.save() #means there is acl but not same as in DB, need to save
+                            self.cache_reset()
                 obj.acl_id = obj.acl.id
 
 
@@ -222,6 +178,9 @@ class BCDBModel(JSBASE):
         if obj.id is None:
             # means a new one
             obj.id = self.zdbclient.set(data)
+            if self.write_once:
+                obj.readonly = True
+            self.logger.debug("NEW:\n%s"%obj)
         else:
             try:
                 self.zdbclient.set(data, key=obj.id)
@@ -252,8 +211,13 @@ class BCDBModel(JSBASE):
         return ddict
 
 
-    def new(self):
-        obj = self.schema.new()
+    def new(self,data=None, capnpbin=None):
+        if data:
+            data = self._dict_process_in(data)
+        if data or capnpbin:
+            obj = self.schema.get(data=data,capnpbin=capnpbin)
+        else:
+            obj = self.schema.new()
         obj.model = self
         obj = self._methods_add(obj)
         return obj

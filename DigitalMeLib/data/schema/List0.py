@@ -21,7 +21,11 @@ class List0(collections.MutableSequence):
         if self.schema_property.pointer_type is None:
             value = self.schema_property.jumpscaletype.SUBTYPE.clean(value)
         else:
-            if not "_JSOBJ" in value.__dict__:
+            if j.data.types.dict.check(value):
+                o=self.new()
+                o.load_from_data(data=value)
+                value = o
+            elif not "_JSOBJ" in value.__dict__:
                 raise RuntimeError("need to insert JSOBJ, use .new() on list before inserting.")
         self._inner_list.insert(index, value)
         self.changed = True

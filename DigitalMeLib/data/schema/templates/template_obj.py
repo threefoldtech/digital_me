@@ -4,14 +4,22 @@ List0=j.data.schema.list_base_class_get()
 
 class ModelOBJ():
     
-    def __init__(self,schema,data=None, capnpbin=None):
+    def __init__(self,schema,data=None, capnpbin=None, model=None):
 
         if data is None:
             data = {}
         self._schema = schema
         self._capnp_schema = schema.capnp_schema
-        self.model = None
+        self.model = model
         self.autosave = False
+        self.readonly = False
+        self._JSOBJ = True
+        self.load_from_data(data=data, capnpbin=capnpbin, keepid=False, keepacl=False)
+
+    def load_from_data(self,data=None, capnpbin=None, keepid=True, keepacl=True):
+
+        if self.readonly:
+            raise RuntimeError("cannot load from data, obj is readonly.\n%s"%self)
 
         if capnpbin != None:
             self._cobj_ = self._capnp_schema.from_bytes_packed(capnpbin)
@@ -24,17 +32,24 @@ class ModelOBJ():
         if set_default:
             self._defaults_set()
 
-        self._JSOBJ = True
-
-        self.id = None
-        self.acl_id = 0
-        self._acl = None
+        if not keepid:
+            #means we are overwriting id, need to remove from cache
+            if self.model is not None and self.model.obj_cache is not None:
+                if self.id in self.model.obj_cache:
+                    self.model.obj_cache.pop(self.id)
+            self.id = None
+        if not keepacl:
+            self.acl_id = 0
+            self._acl = None
 
         if not j.data.types.dict.check(data):
             raise RuntimeError("data needs to be of type dict, now:%s"%data)
-        for key,val in data.items():
-            setattr(self, key, val)
 
+        if data!=None and data!={}:
+            if self.model is not None:
+                data = self.model._dict_process_in(data)
+            for key,val in data.items():
+                setattr(self, key, val)
 
     @property
     def acl(self):
@@ -96,6 +111,8 @@ class ModelOBJ():
         
     @{{prop.alias}}.setter
     def {{prop.alias}}(self,val):
+        if self.readonly:
+            raise RuntimeError("object readonly, cannot set.\n%s"%self)
         {% if prop.jumpscaletype.NAME == "jsobject" %}
         self._changed_items["{{prop.name_camel}}"] = val
         {% else %} 
@@ -142,6 +159,8 @@ class ModelOBJ():
 
     @{{ll.alias}}.setter
     def {{ll.alias}}(self,val):
+        if self.readonly:
+            raise RuntimeError("object readonly, cannot set.\n%s"%self)
         self._{{ll.alias}}._inner_list=[]
         for item in val:
             self._{{ll.alias}}.append(item)
@@ -152,6 +171,8 @@ class ModelOBJ():
 
     def save(self):
         if self.model:
+            if self.readonly:
+                raise RuntimeError("object readonly, cannot be saved.\n%s"%self)
             o=self.model._set(self)
             self.id = o.id
             return o
@@ -229,13 +250,13 @@ class ModelOBJ():
             self._cobj_=self._cobj_.as_builder()
             return self._cobj.to_bytes_packed()
 
-    def _from_dict(self,ddict):
-        """
-        update internal data object from ddict
-        """
-        if self.model is not None:
-            ddict=self.model._dict_process_in(ddict)
-        self._cobj_.from_dict(ddict)
+    # def _from_dict(self,ddict):
+    #     """
+    #     update internal data object from ddict
+    #     """
+    #     if self.model is not None:
+    #         ddict=self.model._dict_process_in(ddict)
+    #     self._cobj_.from_dict(ddict)
 
 
     @property
