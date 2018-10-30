@@ -100,7 +100,6 @@ class BCDBFactory(JSBASE):
             zdbclient = j.clients.zdb.client_get(nsname=zdbclient_namespace, addr=zdbclient_addr, port=zdbclient_port,
                                                  secret=zdbclient_secret, mode=zdbclient_mode)
             bcdb=self.get(name,zdbclient=zdbclient)
-            bcdb.load(zdbclient)
             bcdb.redis_server_start(port=port)
 
 
@@ -158,7 +157,6 @@ class BCDBFactory(JSBASE):
 
         self.logger.debug("bcdb already exists")
         zdbclient = j.servers.zdb.client_get("test",secret="1234")
-        res = bcdb.load(zdbclient)
         model = bcdb.model_get("despiegk.test")
 
 
@@ -374,7 +372,7 @@ class BCDBFactory(JSBASE):
     #
     #     print ("TEST3 DONE, but is still minimal")
 
-    def test4(self,start=False):
+    def test4(self,start=True):
         """
         js_shell 'j.data.bcdb.test4(start=True)'
 
@@ -517,7 +515,7 @@ class BCDBFactory(JSBASE):
         self.logger.debug("TEST OK")
 
 
-    def test5_populate_data(self,start=False):
+    def _test4_populate_data(self,start=False):
         """
         js_shell 'j.data.bcdb.test5_populate_data(start=True)'
 

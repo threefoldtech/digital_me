@@ -63,6 +63,8 @@ class BCDB(JSBASE):
         self.dataprocessor_greenlet = None
         self.dataprocessor_start()
 
+        self._load()
+
         self.logger.info("BCDB INIT DONE:%s"%self.name)
 
     def redis_server_start(self,port=6380,secret="123456"):
@@ -284,10 +286,8 @@ class BCDB(JSBASE):
         for classpath in tocheck:
             self.model_get_from_file(classpath)
 
-    def load(self,zdbclient):
-        return zdbclient.meta._models_load(self)
-
-
+    def _load(self):
+        return self.zdbclient.meta._models_load(self)
 
     def _unserialize(self, id, data, return_as_capnp=False, model=None):
 

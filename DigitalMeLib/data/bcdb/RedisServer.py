@@ -20,10 +20,7 @@ class RedisServer(JSBASE):
         self.port = port  # 1 port higher than the std port
         self.secret = secret
         self.ssl = False
-        j.clients.redis.core_check()  #need to make sure we have a core redis
-
-        #temporarly solution
-        self.zdb_admin_hack = j.clients.zdb.client_admin_get(addr='localhost', port=9900, secret='123456', mode='seq')
+        # j.clients.redis.core_check()  #need to make sure we have a core redis
 
         self.init()
 
@@ -133,6 +130,7 @@ class RedisServer(JSBASE):
                 redis_cmd = request[0].decode().lower()
                 args = request[1:] if len(request) > 1 else []
                 args = [x.decode() for x in args]
+                self.logger.debug("cmd:%s args:%s"%(redis_cmd,args))
 
                 if redis_cmd == "del":
                     redis_cmd = "delete"
@@ -167,6 +165,8 @@ class RedisServer(JSBASE):
         :return: tuple of (category, url, key, model)
         :rtype: tuple
         """
+        if key.strip()=="":
+            raise RuntimeError("key cannot be empty")
         splitted = key.split(":")
         len_splitted = len(splitted)
         m = ""
@@ -201,6 +201,7 @@ class RedisServer(JSBASE):
         if cat == "schemas":
             s = j.data.schema.get(val)
             self.bcdb.model_get_from_schema(s)
+            j.shell()
             response.encode("OK")
             return
 
@@ -208,6 +209,9 @@ class RedisServer(JSBASE):
 
     def get(self, response, key):
         cat, url, key, model = self._split(key)
+        if model is "":
+            raise RuntimeError("did not find model from key, maybe models not loaded:%s"%key)
+
         if url == "":
             response.encode("ok")
             return
