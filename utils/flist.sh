@@ -37,7 +37,7 @@ done
 # install jumpscale
 for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
     cd $HOME/code/github/threefoldtech/${target}
-    git checkout development_simple
+    git checkout development_960
     pip3 install -e .
 
 done

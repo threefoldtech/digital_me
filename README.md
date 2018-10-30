@@ -22,6 +22,6 @@ js_shell 'j.servers.digitalme.start()'
 DigitalMe already have some basic packages like (orderbook, dm_base, ..etc). 
 DigitalMe package must contain `dm_config.toml` file which contains some info about the package and can be enabled from there.
 
-The [package loader](https://github.com/threefoldtech/digital_me/blob/development_simple/DigitalMeLib/servers/digitalme/Package.py)
+The [package loader](https://github.com/threefoldtech/digital_me/blob/development_960/DigitalMeLib/servers/digitalme/Package.py)
 tries to load from directories (gedis `actors`, flask `blueprints`, `chatflows`, zdb `models`, ....etc) 
 and use `dm_config.toml` also to load extra data.
