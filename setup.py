@@ -42,7 +42,7 @@ except ImportError:
 
 setup(
     name='DigitalMeLib',
-    version='9.5.1',
+    version='9.6.0',
     description='Framework behind digitalme',
     long_description=long_description,
     url='https://github.com/Jumpscale/lib',
