@@ -183,8 +183,9 @@ class RedisServer(JSBASE):
             url = splitted[1]
             key = splitted[2]
         if url != "":
-            if url in self.bcdb.models:
-                m = self.bcdb.model_get(url)
+            url_normalized = j.core.text.strip_to_ascii_dense(url).replace(".", "_")
+            if url_normalized in self.bcdb.models:
+                m = self.bcdb.model_get(url_normalized)
 
         return (cat, url, key, m)
 
@@ -201,7 +202,8 @@ class RedisServer(JSBASE):
         if cat == "schemas":
             s = j.data.schema.get(val)
             self.bcdb.model_get_from_schema(s)
-            j.shell()
+
+
             response.encode("OK")
             return
 

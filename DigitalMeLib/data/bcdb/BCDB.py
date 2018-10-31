@@ -152,6 +152,7 @@ class BCDB(JSBASE):
         self.index_rebuild() #will make index empty
 
     def model_get(self, url):
+        url = j.core.text.strip_to_ascii_dense(url).replace(".", "_")
         if url in self.models:
             return self.models[url]
         raise RuntimeError("could not find model for url:%s" % url)
