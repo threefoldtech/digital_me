@@ -30,14 +30,15 @@ class ZOSContainer(BASE):
 
     def __init__(self, zos,name):
         self.zos = zos
+        self.zosclient = zos.zosclient
         # self._node = node
         self._container = None
         self._node_connected = False
         self._schema = j.data.schema.get(schema)
+        self._redis_key="config:zos:container:%s"%name
 
-        BASE.__init__(self,zos.zosclient,name=name)
+        BASE.__init__(self,redis=zos._redis,name=name,schema=schema)
 
-        j.shell()
 
 
     @property
@@ -53,8 +54,11 @@ class ZOSContainer(BASE):
 
         :return:
         """
-        raise RuntimeError("need to implement to return in right way")
-
+        nics = []
+        for nic in self.model.nics:
+            d = {"type":nic.type}
+            nics.append(d)
+        return nics
 
     @property
     def zos_private_address(self):
@@ -63,9 +67,12 @@ class ZOSContainer(BASE):
 
     @property
     def name(self):
-        return self._node.name
+        return self.model.name
 
     def create(self):
+        return self.zos_container_obj
+
+    def _create(self):
         print('creating builder container...')
         self.model.progress=[] #make sure we don't remember old stuff
         self.model_save()
@@ -73,7 +80,7 @@ class ZOSContainer(BASE):
                                            hostname=self.name,
                                            flist=self.model.flist,
                                            nics=self.nics,
-                                           ports={self.model.port: 22})
+                                           ports={self.sshport: 22})
         info = self._container.info['container']
         while "pid" not in info:
             time.sleep(0.1)
@@ -95,7 +102,7 @@ class ZOSContainer(BASE):
         """
         if self._container is None:
             if not self.name in [item.name for item in self.zosclient.containers.list()]:
-                self._create()
+                self.create()
             self._container = self.zosclient.containers.get(self.name)
             assert self._container.is_running()
         return self._container
@@ -112,12 +119,12 @@ class ZOSContainer(BASE):
         if self._node_connected:
             return self._node
 
-        self.container #makes sure container has been created
+        self.zos_container_obj #makes sure container has been created
 
 
         if self.model.authorized is False:
 
-            sshclient = j.clients.ssh.new(addr=self.zos_private_address, port=self.model.port, instance=self.name,
+            sshclient = j.clients.ssh.new(addr=self.zos_private_address, port=self.sshport, instance=self.name,
                                           die=True, login="root",passwd='rooter',
                                           stdout=True, allow_agent=False, use_paramiko=True)
 
@@ -167,16 +174,18 @@ class ZOSContainer(BASE):
 
     @property
     def sshport(self):
-        raise RuntimeError("needed here? maybe other algoritm is for free ports for ssh connection")
 
         #CHECK IF VBZOS if yes use port per SSH connection because is same ip addr
         #CHECK IF ZOS direct (no VB), then is zerotier addr with std ssh port...
 
-        port = 4001
-        while j.sal.nettools.checkListenPort(port)==True:
-            self.logger.debug("check for free tcp port:%s"%port)
-            port+=1
-        return port
+        if self.model.sshport == 0:
+            if self.zos.model.sshport_last==0:
+               self.zos.model.sshport_last=6000
+            else:
+                self.zos.model.sshport_last+=1
+            self.model.sshport = self.zos.model.sshport_last
+
+        return self.model.sshport
 
     # def zero_os_private(self, node):
     #     self.logger.debug("resolving private virtualbox address")

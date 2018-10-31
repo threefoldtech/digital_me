@@ -4,31 +4,15 @@ from io import StringIO
 import os
 import locale
 
-from .BASE import BASE
-
-schema = """
-@url = zos.config
-date_start = 0 (D)
-description = ""
-progress = (LS)
-sshport_last = 4010
-redis_address = ""
-redis_port = 0
-
-"""
+from .ZOS import ZOS
 
 import time
 
-class ZOSVB(BASE):
+class ZOSVB(ZOS):
 
     def __init__(self, zosclient,name):
-
+        ZOS.__init__(self,zosclient=zosclient,name=name)
         self._zos_private_address = None
-        self._schema = j.data.schema.get(schema)
-        self._redis_key="config:zos"
-
-        BASE.__init__(self,zosclient=zosclient,name=name)
-
         self.zos_private_address #make sure we know the private addr
 
 
@@ -41,8 +25,8 @@ class ZOSVB(BASE):
         """
         if self._zos_private_address == None:
 
-            if self.model.redis_address != "":
-                self._zos_private_address = self.model.redis_address
+            if self.model.address_private != "":
+                self._zos_private_address = self.model.address_private
             else:
                 # assume vboxnet0 use an 192.168.0.0/16 address
                 for nic in self.zosclient.client.info.nic():
@@ -52,7 +36,7 @@ class ZOSVB(BASE):
                         self._zos_private_address = nic['addrs'][0]['addr'].split('/')[0]
                         if not j.sal.nettools.pingMachine(self._zos_private_address):
                             raise RuntimeError("could not reach private addr:%s of VB ZOS"%self._zos_private_address)
-                        self.model.redis_address = self._zos_private_address
+                        self.model.address_private = self._zos_private_address
                         self.model_save()
                         return self._zos_private_address
                 raise RuntimeError("could not find private addr of virtualbox for zos")
@@ -64,7 +48,6 @@ class ZOSVB(BASE):
             self.logger.debug("check for free tcp port:%s"%port)
             port+=1
         return port
-
 
     @property
     def vb_client(self):

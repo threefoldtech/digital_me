@@ -7,22 +7,20 @@ import time
 
 class BASE(JSBASE):
 
-    def __init__(self, zosclient, name):
+    def __init__(self, redis, name, schema):
         JSBASE.__init__(self)
-        self.zosclient = zosclient
-
-        if self._zos_redis.get(self._redis_key) is None:
+        self._redis = redis
+        self._schema = j.data.schema.get(schema)
+        if self._redis.get(self._redis_key) is None:
             #does not exist in redis yet
             self.model = self._schema.new()
             self.model.name = name
-            self.model.port = self._get_free_port()
             self.model_save()
         else:
-            json = self._zos_redis.get(self._redis_key).decode()
+            json = self._redis.get(self._redis_key).decode()
             self.model = self._schema.get(data=j.data.serializers.json.loads(json))
 
         self.model.name = name
-
 
         self.logger_enable()
 
@@ -30,28 +28,13 @@ class BASE(JSBASE):
     def name(self):
         return self.model.name
 
-
-
-    @property
-    def _zos_redis(self):
-        if self.zosclient.client._Client__redis is None:
-            self.zosclient.ping()  # otherwise the redis client does not work
-        return self.zosclient.client._Client__redis
-
-
-    def container_get(self,name="builder",flist=""):
-        from .ZOSContainer import ZOSContainer
-        zc = ZOSContainer(zos=self, name=name)
-        j.shell()
-
-
     def model_save(self):
         """
         register the model with the ZOS in the redis db
         :return:
         """
         json = self.model._json
-        return self._zos_redis.set(self._redis_key, json)
+        return self._redis.set(self._redis_key, json)
 
 
     def done_check(self,name):

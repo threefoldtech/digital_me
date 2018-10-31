@@ -11,9 +11,9 @@ schema = """
 date_start = 0 (D)
 description = ""
 progress = (LS)
+address_private = ""
 sshport_last = 4010
-redis_address = ""
-redis_port = 0
+
 """
 
 import time
@@ -21,14 +21,20 @@ import time
 class ZOS(BASE):
 
     def __init__(self, zosclient,name):
+        self.zosclient = zosclient
+        if zosclient.client._Client__redis is None:
+            zosclient.ping()  # otherwise the redis client does not work
+        self._redis_key="config:zos:%s"%name
+        BASE.__init__(self,redis=self.zosclient.client._Client__redis,name=name,schema=schema)
 
-        self._zos_private_address = None
-        self._schema = j.data.schema.get(schema)
-        self._redis_key="config:zos"
 
-        BASE.__init__(self,zosclient=zosclient,name=name)
-
-
+    def container_get(self,name="builder",flist=""):
+        from .ZOSContainer import ZOSContainer
+        zc = ZOSContainer(zos=self, name=name)
+        if flist is not "":
+            zc.model.flist = flist
+        zc.create()
+        return zc
 
     def __repr__(self):
         return "zos:%s" % self.name
