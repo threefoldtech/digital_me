@@ -20,10 +20,9 @@ login_manager = j.servers.web.latest.loader.login_manager
 
 
 
-@blueprint.route('/')
-def route_default():
-    j.shell()
-    return redirect(url_for('base_blueprint.login'))
+# @blueprint.route('/')
+# def route_default():
+#     return redirect(url_for('base_blueprint.login'))
 
 # @login_required
 @blueprint.route('/githook', methods=['POST'])

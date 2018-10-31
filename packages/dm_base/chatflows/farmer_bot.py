@@ -9,6 +9,7 @@ gedis_client = None
 countries = []
 farmers = []
 
+
 def chat(bot):
     """
     a chatbot to reserve zos vm
@@ -88,27 +89,71 @@ def chat(bot):
         bot.redirect("https://threefold.me")
 
     def web_gateway_http_proxy_delete():
-        bot.md_show("# NOT IMPLEMENTED YET")
+        web_gateways = gedis_client.farmer.web_gateways_get().res
+        jwttoken = bot.string_ask("Please enter your JWT, "
+                                  "(click <a target='_blank' href='/client'>here</a> to get one)")
+        web_gateway_name = bot.drop_down_choice("Choose the web gateway you need to delete your domain from: ",
+                                                [web_gateway.name for web_gateway in web_gateways])
+        web_gateway = {}
+        for gateway in web_gateways:
+            if gateway.name == web_gateway_name:
+                web_gateway = gateway
+        rule_name = bot.string_ask("Enter the forwarding rule name that you have configured:")
+        gedis_client.farmer.web_gateway_delete_host(jwttoken, web_gateway=web_gateway, rule_name=rule_name)
 
     def web_gateway_http_proxy_set():
-        bot.md_show("# NOT IMPLEMENTED YET")
+        web_gateways = gedis_client.farmer.web_gateways_get().res
+        jwttoken = bot.string_ask("Please enter your JWT, "
+                                  "(click <a target='_blank' href='/client'>here</a> to get one)")
+        web_gateway_name = bot.drop_down_choice("Choose the web gateway you need to add your domain to it: ",
+                                                [web_gateway.name for web_gateway in web_gateways])
+        web_gateway = {}
+        for gateway in web_gateways:
+            if gateway.name == web_gateway_name:
+                web_gateway = gateway
+        rule_name = bot.string_ask("Choose a forwarding rule name that you can refer to afterwards:")
+        domains = bot.string_ask("Enter comma separated domains to configure "
+                                 "i.e. www.test.com,test.com")
+        domains = [domain.strip() for domain in domains.split(",")]
+        backends = bot.string_ask("Enter comma separated backends you need to point to: "
+                                  "i.e. http://192.168.1.1:8000,http://192.168.1.2:5000")
+        backends = [backend.strip() for backend in backends.split(",")]
+        gedis_client.farmer.web_gateway_add_host(jwttoken, web_gateway=web_gateway, rule_name=rule_name,
+                                                 domains=domains, backends=backends)
+
+    def web_gateway_list_hosts():
+        jwttoken = bot.string_ask("Please enter your JWT, "
+                                  "(click <a target='_blank' href='/client'>here</a> to get one)")
+        res = gedis_client.farmer.web_gateway_list_hosts(jwttoken).res
+        report = """| Rule Name    |                Domains                       |             Backends                  |   Gateway    | 
+|:-------------:|:---------------------------------------:|:--------------------------------------------:|:-----------------------------:|  
+"""
+        for rule in res:
+            report += """|{rule_name}|{domains}|{backends}|{webgateway_name}| 
+""".format(rule_name=rule.rule_name, domains=",".join(rule.domains),
+           backends=", ".join(rule.backends), webgateway_name=rule.webgateway_name)
+        bot.md_show(report)
 
     def web_gateway_register():
         jwttoken = bot.string_ask("Please enter your JWT, "
-                                   "(click <a target='_blank' href='/client'>here</a> to get one)")
-        etcd_host = bot.string_ask("Enter etcd host:")
+                                  "(click <a target='_blank' href='/client'>here</a> to get one)")
+        etcd_host = bot.string_ask("Enter etcd ip:")
         etcd_port = bot.string_ask("Enter etcd port:")
-        etcd_secret = bot.string_ask("Enter etcd secret:")
-        farmer_name = bot.single_choice("choose farmer:", [farmer.name for farmer in farmers])
+        etcd_secret = bot.password_ask("Enter etcd secret:")
+        farmer_name = bot.drop_down_choice("choose farmer:", [farmer.name for farmer in farmers])
         name = bot.string_ask("Enter gateway name:")
-        pubip4 = bot.string_ask("Enter public ip4:")
-        pubip6 = bot.string_ask("Enter public ip6:")
-        country = bot.single_choice("choose country:", countries)
+        pubip4 = bot.string_ask("Enter comma separated public IPsV4 i.e. (192.168.20.3,192.168.30.3):")
+        pubip4 = [ip.strip() for ip in pubip4.split(",")] if pubip4 else []
+        pubip6 = bot.string_ask("Enter comma separated public IPsV6 "
+                                "i.e. (0:0:0:0:0:ffff:c0a8:114,0:0:0:0:0:ffff:c0a8:115):")
+        pubip6 = [ip.strip() for ip in pubip6.split(",")] if pubip6 else []
+        country = bot.drop_down_choice("choose country:", [country for country in countries])
         location = None  # what is the difference between location and country
         description = bot.string_ask("Additional description?")
-
-        gedis_client.farmer.web_gateway_register(jwttoken, etcd_host, etcd_port, etcd_secret, farmer_name, name,
-                             pubip4, pubip6, country, location, description)
+        gedis_client.farmer.web_gateway_register(jwttoken=jwttoken, etcd_host=etcd_host, etcd_port=etcd_port,
+                                                 etcd_secret=etcd_secret, farmer_name=farmer_name, name=name,
+                                                 pubip4=pubip4, pubip6=pubip6, country=country, location=location,
+                                                 description=description)
 
     def zdb_reserve(jwttoken, node):
         zdb_name = bot.string_ask("Please enter your ZDB name:")
@@ -186,13 +231,15 @@ def chat(bot):
             "Register a farmer": farmer_register,
             # "Find a node": node_find,
             "Reserve vm": reserve_vm,
-            "Register Domain": web_gateway_http_proxy_delete,
-            "Delete Domain": web_gateway_http_proxy_set,
+            "Register Domain": web_gateway_http_proxy_set,
+            "List Domains": web_gateway_list_hosts,
+            "Delete Domain": web_gateway_http_proxy_delete,
             "Register web gateway": web_gateway_register,
             # "Reserve ZDB vm": zdb_reserve,
             # "Reserve ZOS vm": zos_reserve
         }
-        choice = bot.single_choice("what do you want to do", [method for method in methods.keys()])
-        methods[choice]()
+        while True:
+            choice = bot.single_choice("what do you want to do", [method for method in methods.keys()])
+            methods[choice]()
 
     main()

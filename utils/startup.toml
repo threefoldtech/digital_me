@@ -1,0 +1,18 @@
+[startup.digital_me]
+name = "bash"
+protected = true #set protected to true to respawn the container if it crashed
+
+[startup.digital_me.args]
+script = """
+sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+    locale-gen
+export HOME=/root
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+redis-server --daemonize yes
+js_shell \"j.servers.zdb.build()\"
+js_shell \"j.clients.zdb.testdb_server_start_client_get()\"
+exec js_shell \"j.servers.digitalme.start()\"
+"""

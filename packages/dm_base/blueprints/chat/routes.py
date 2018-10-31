@@ -84,7 +84,7 @@ def route_template(template):
 @blueprint.route('/jsclient.js')
 def load_js_client():
     scheme = "ws"
-    if request.scheme == "https":
+    if request.scheme == "https" or request.headers.get('X-Forwarded-Proto') == "https":
         scheme = "wss"
     js_code = j.servers.gedis.latest.code_js_client
     js_client = js_code.replace("%%host%%", "{scheme}://{host}/chat/ws/gedis".format(scheme=scheme, host=request.host))

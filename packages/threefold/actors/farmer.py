@@ -1,4 +1,5 @@
 from Jumpscale import j
+from jose import jwt
 
 JSBASE = j.application.JSBaseClass
 
@@ -16,6 +17,7 @@ class Farmer(JSBASE):
         self._farmer_model = None
         self._node_model = None
         self._wgw_model = None
+        self._wgw_rule_model = None
         self.capacity_planner = j.tools.threefold_farmer.capacity_planner
 
     @property
@@ -29,6 +31,12 @@ class Farmer(JSBASE):
         if not self._node_model:
             self._node_model = self._bcdb.model_get('threefold.grid.node')
         return self._node_model
+
+    @property
+    def wgw_rule_model(self):
+        if not self._wgw_rule_model:
+            self._wgw_rule_model = self._bcdb.model_get('threefold.grid.webgateway_rule')
+        return self._wgw_rule_model
 
     @property
     def wgw_model(self):
@@ -65,7 +73,7 @@ class Farmer(JSBASE):
         out.res = list({n.location.country for n in nodes if n.location.country})
         return out
 
-    def node_find(self, country, farmer_name, cores_min_nr, mem_min_mb, ssd_min_gb, hd_min_gb, nr_max, schema_out):
+    def node_find(self, country, farmer_name, cores_min_nr, mem_min_mb, ssd_min_gb, hd_min_gb, nr_max,node_zos_id, schema_out):
         """
         ```in
         country = "" (S)
@@ -75,6 +83,7 @@ class Farmer(JSBASE):
         ssd_min_gb = 0 (I)
         hd_min_gb = 0 (I)
         nr_max = 10 (I)
+        node_zos_id = "" (S)
         ```
 
         ```out
@@ -90,6 +99,7 @@ class Farmer(JSBASE):
         :param ssd_min_gb:
         :param hd_min_gb:
         :param nr_max: max nr of records to return
+        :param node_zos_id:
 
         :return: [node_objects]
 
@@ -115,6 +125,8 @@ class Farmer(JSBASE):
             if ssd_min_gb and ssd_min_gb > (node.capacity_total.sru - node.capacity_used.sru):
                 continue
             if hd_min_gb and hd_min_gb > (node.capacity_total.hru - node.capacity_used.hru):
+                continue
+            if node_zos_id and node_zos_id != node.node_zos_id:
                 continue
             nodes.append(node)
         nodes = nodes[:nr_max]
@@ -289,9 +301,47 @@ class Farmer(JSBASE):
         :param domains: list of domains we need to register e.g. ["threefold.io", "www.threefold.io"]
         :param backends: list of backends that the domains will point to e.g. ['10.10.100.10:80', '10.10.100.11:80']
         """
-        return self.capacity_planner.web_gateway_add_host(web_gateway, rule_name, domains, backends)
+        user = jwt.get_unverified_claims(jwttoken)['username']
+        self.capacity_planner.web_gateway_add_host(web_gateway, rule_name, domains, backends)
 
-    def web_gateway_remove_host(self, jwttoken, web_gateway, rule_name):
+        # Check if the rule already exist, so we need to update it or create a new one
+        res = self.wgw_rule_model.index.select().where(self.wgw_rule_model.index.user == user).execute()
+        rules = [self.wgw_rule_model.get(rule.id) for rule in res]
+        for user_rule in rules:
+            if user_rule.rule_name == rule_name and user_rule.webgateway_name == web_gateway['name']:
+                rule = user_rule
+                break
+        else:
+            rule = self.wgw_rule_model.new()
+            rule.rule_name = rule_name
+            rule.webgateway_name = web_gateway["name"]
+            rule.user = user
+
+        rule.domains = domains
+        rule.backends = backends
+        self.wgw_rule_model.set(rule)
+        return
+
+    def web_gateway_list_hosts(self, jwttoken, schema_out):
+        """
+        ```in
+        jwttoken = ""
+        ```
+        ```out
+        res = (LO) !threefold.grid.webgateway_rule
+        ```
+
+        :param jwttoken:
+        :param schema_out:
+        :return:
+        """
+        user = jwt.get_unverified_claims(jwttoken)['username']
+        res = self.wgw_rule_model.index.select().where(self.wgw_rule_model.index.user == user).execute()
+        out = schema_out.new()
+        out.res = [self.wgw_rule_model.get(rule.id) for rule in res]
+        return out
+
+    def web_gateway_delete_host(self, jwttoken, web_gateway, rule_name):
         """
         ```in
         jwttoken = (S)
@@ -303,7 +353,14 @@ class Farmer(JSBASE):
         :param rule_name: the rule name for the config you need to delete
         :return:
         """
-        return self.capacity_planner.web_gateway_delete_host(web_gateway, rule_name)
+        user = jwt.get_unverified_claims(jwttoken)['username']
+        res = self.wgw_rule_model.index.select().where(self.wgw_rule_model.index.user == user).execute()
+        rules = [self.wgw_rule_model.get(rule.id) for rule in res]
+        for rule in rules:
+            if rule.rule_name == rule_name and rule.webgateway_name == web_gateway['name']:
+                self.capacity_planner.web_gateway_delete_host(web_gateway, rule_name)
+                self.wgw_rule_model.delete(rule.id)
+                break
 
     def farmer_register(self, jwttoken, farmername, email_addresses=None, mobile_numbers=None, pubkey=""):
         """
@@ -330,7 +387,7 @@ class Farmer(JSBASE):
         self.farmer_model.set(new_farmer)
         return
 
-    def web_gateway_register(self, jwttoken, etcd_host, etcd_port, etcd_secret, farmer_id, name,
+    def web_gateway_register(self, jwttoken, etcd_host, etcd_port, etcd_secret, farmer_name, name,
                              pubip4, pubip6, country, location, description, schema_out):
         """
         ```in
@@ -338,7 +395,7 @@ class Farmer(JSBASE):
         etcd_host = (S)
         etcd_port = (S)
         etcd_secret = (S)
-        farmer_id = (I)
+        farmer_name = (S)
         name = "" (S)
         country = "" (S)
         location = "" (S)
@@ -355,7 +412,7 @@ class Farmer(JSBASE):
         :param etcd_host: the etcd host which allows this bot to configure the required forwards
         :param etcd_port: the etcd server port
         :param etcd_secret is the secret for the etcd connection
-        :param farmer_id: the owner farmer of this gateway
+        :param farmer_name: the owner farmer of this gateway
         :param pubip4: comma separated list of public ip addr, ip v4
         :param pubip6: comma separated list of public ip addr, ip v6
         :param name: chosen name for the webgateway
@@ -371,7 +428,9 @@ class Farmer(JSBASE):
         new_gateway.etcd_secret = etcd_secret
         new_gateway.country = country
         new_gateway.location = location
-        new_gateway.farmer_id = farmer_id
+        for farmer in self.farmer_model.get_all():
+            if farmer.name == farmer_name:
+                new_gateway.farmer_id = farmer.id
         new_gateway.pubip4 = pubip4
         new_gateway.pubip6 = pubip6
         new_gateway.description = description

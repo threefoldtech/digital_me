@@ -82,9 +82,9 @@ class ZOSContainer(BASE):
         self.model.progress=[] #make sure we don't remember old stuff
         self.model_save()
 
-
         self.logger.warning("A")
         self.model.nics=[]
+        #TODO: something wrong here, it keeps on adding nics, have no idea why
         if len(self.model.nics) == 0:
             self.logger.warning("ADDNIC")
             nic = self.model.nics.new()
