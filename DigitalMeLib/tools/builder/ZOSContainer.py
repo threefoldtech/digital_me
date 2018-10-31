@@ -15,7 +15,7 @@ authorized = False (B)
 pid = 0 (I)
 container_id = 0 (I) 
 progress = (LS)
-flist = "https://hub.grid.tf/tf-official-apps/ubuntu-bionic-build.flist"
+flist = ""
 nics = (LO) !zos.container.nic
 sshport = 0 (I)
 
@@ -38,6 +38,8 @@ class ZOSContainer(BASE):
         self._redis_key="config:zos:container:%s"%name
 
         BASE.__init__(self,redis=zos._redis,name=name,schema=schema)
+
+        self.model.flist = "https://hub.grid.tf/tf-official-apps/ubuntu-bionic-build.flist"
 
 
 
@@ -80,13 +82,16 @@ class ZOSContainer(BASE):
         self.model.progress=[] #make sure we don't remember old stuff
         self.model_save()
 
-        self.logger.info("create container: %s %s sshport:%s \nnics:\n%s"%
-                         (self.name,self.model.flist,self.sshport,self.nics))
 
-        if len(self.model.nics)==0:
+        if len(self.model.nics) == 0:
             nic = self.model.nics.new()
             nic.type = "default"
             self.model_save()
+            j.shell()
+
+        self.logger.info("create container: %s %s sshport:%s \nnics:\n%s"%
+                         (self.name,self.model.flist,self.sshport,self.nics))
+
 
         self._container = self.zosclient.containers.create(name=self.name,
                                            hostname=self.name,
@@ -132,7 +137,7 @@ class ZOSContainer(BASE):
         if self._node_connected:
             return self._node
 
-        self.zos_container_obj #makes sure container has been created
+        self.start()
 
 
         if self.model.authorized is False:
