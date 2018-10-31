@@ -140,31 +140,26 @@ class BCDBFactory(JSBASE):
         #pool_type = "managed,unmanaged" (E)  #NOT DONE FOR NOW
         """
 
-        if self.bcdb_instances=={}:
+
+        if self.bcdb_instances == {}:
             self.logger.debug("start bcdb in tmux")
-            server_db = j.servers.zdb.start_test_instance(reset=reset)
+            j.servers.zdb.start_test_instance(reset=reset)
             zdbclient_admin = j.servers.zdb.client_admin_get()
             zdbclient = zdbclient_admin.namespace_new("test",secret="1234")
-            if reset:
-                zdbclient.flush() #empty
-            bcdb = j.data.bcdb.get(name="test",zdbclient=zdbclient)
-            schemaobj=j.data.schema.get(schema)
-            bcdb.model_get_from_schema(schemaobj)
+            bcdb = j.data.bcdb.get(name="test", zdbclient=zdbclient)
         else:
+            zdbclient = j.servers.zdb.client_get("test", secret="1234")
             bcdb = self.bcdb_instances["test"]
 
-        bcdb.models = {} #just to make sure all is empty, good to test
+        if reset:
+            bcdb.reset_data()  # empty
+
+        schemaobj = j.data.schema.get(schema)
+        bcdb.model_get_from_schema(schemaobj)
 
         self.logger.debug("bcdb already exists")
-        zdbclient = j.servers.zdb.client_get("test",secret="1234")
+
         model = bcdb.model_get("despiegk.test")
-
-
-        if reset:
-            zdbclient_admin = j.servers.zdb.client_admin_get()
-            model.reset_data(zdbclient_admin,force=True)  #we need a method which allows a user to delete its own data
-
-        assert len(model.zdbclient.meta.schemas_load())==1  #check schema's loaded
 
         assert model.get_all()==[]
 
@@ -207,7 +202,7 @@ class BCDBFactory(JSBASE):
                 o.description = "something"
                 o.name = "name%s" % i
                 o.email = "info%s@something.com" % i
-                o2 = model.set(o)
+                o2 = model.set_dynamic(o)
 
             o3 = model.get(o2.id)
             assert o3.id == o2.id
@@ -218,7 +213,6 @@ class BCDBFactory(JSBASE):
             return db
 
         db = load()
-
         m = db.model_get(url="despiegk.test")
         query = m.index.select()
         qres = [(item.name, item.nr) for item in query]
@@ -262,7 +256,7 @@ class BCDBFactory(JSBASE):
 
         o.token_price = "10 USD"
         assert o.token_price_usd == 10
-        m.set(o)
+        m.set_dynamic(o)
         o2=m.get(o.id)
         assert o2.token_price_usd == 10
 
@@ -289,9 +283,10 @@ class BCDBFactory(JSBASE):
              9: 'name9'}
 
         result = {}
-        for obj in m.iterate(key_start=7, reverse=False):
+        for obj in m.iterate(key='nr', key_start=7, reverse=False):
             result[obj.nr] = obj.name
-        assert result == {5: 'name5', 6: 'name6', 7: 'name7', 8: 'name8', 9: 'name9'}
+
+        assert result == {7: 'name7', 8: 'name8', 9: 'name9'}
 
         self.logger.info("TEST DONE")
 
@@ -317,14 +312,14 @@ class BCDBFactory(JSBASE):
         assert m.bcdb.queue.empty() == True
 
         # j.shell()
-        m.set(o)
+        m.set_dynamic(o)
 
         o2 = m.get(o.id)
         assert o2._data == o._data
 
         #will process 1000 obj (set)
         for x in range(1000):
-            m.set(get_obj(x))
+            m.set_dynamic(get_obj(x))
 
         #should be nothing in queue
         assert m.bcdb.queue.empty() == True
@@ -480,7 +475,6 @@ class BCDBFactory(JSBASE):
         except Exception as e:
             assert str(e).find("cannot update object with id:1, it does not exist")!=-1
             #should not be able to set because the id does not exist
-
         #restart redis lets see if schema's are there autoloaded
         self.redis_server_start(port=6380, background=True)
         r = j.clients.redis.get(ipaddr="localhost", port=6380)

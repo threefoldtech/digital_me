@@ -266,7 +266,7 @@ class BCDBModel(JSBASE):
 
 
 
-    def iterate(self, key_start=None, reverse=False, keyonly=False):
+    def iterate(self, key='id', key_start=None, reverse=False, keyonly=False):
         """
         walk over objects which are of type of this model
 
@@ -281,8 +281,12 @@ class BCDBModel(JSBASE):
         :param keyonly: bool, optional
         :raises e: [description]
         """
+        if key_start:
+            items = self.index.select().where(getattr(self.index, key) >= key_start)
+        else:
+            items = self.index.select()
         self.index_ready()
-        for item in self.index.select():
+        for item in items:
             yield self.get(item.id)
 
     def get_all(self):
