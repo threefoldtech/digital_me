@@ -296,17 +296,21 @@ class Package(JSBASE):
 
     def models_load(self):
         #fetch the right client for the right BCDB
+
+        if not self.namespace in j.data.bcdb.bcdb_instances:
+            if self.namespace in self.zdbclients:
+                zdbclient = self.zdbclients[self.namespace]
+            else:
+                if "default" not in self.zdbclients:
+                    raise RuntimeError("default zdb client not specified")
+                zdbclient = self.zdbclients["default"]
+            j.data.bcdb.bcdb_instances[self.namespace] = j.data.bcdb.get(name=self.namespace, zdbclient=zdbclient)
+        bcdb = j.data.bcdb.bcdb_instances[self.namespace]
+
         for item in self.data.models:
-            if not self.namespace in j.data.bcdb.bcdb_instances:
-                if self.namespace in self.zdbclients:
-                    zdbclient = self.zdbclients[self.namespace]
-                else:
-                    if "default" not in self.zdbclients:
-                        raise RuntimeError("default zdb client not specified")
-                    zdbclient = self.zdbclients["default"]
-                j.data.bcdb.bcdb_instances[self.namespace] = j.data.bcdb.get(name=self.namespace, zdbclient=zdbclient)
-            bcdb = j.data.bcdb.bcdb_instances[self.namespace]
-            bcdb.models_add(item.path)
+            bcdb.models_add(path=item.path)
+
+        j.servers.gedis.latest.models_add(bcdb, namespace=self.namespace)
 
 
     def chatflows_load(self):

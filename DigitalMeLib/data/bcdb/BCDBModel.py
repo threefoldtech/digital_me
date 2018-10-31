@@ -56,6 +56,7 @@ class BCDBModel(JSBASE):
         self.objects_in_queue = {}
 
         self.key = "%s_%s"%(self.zdbclient.nsname,self.url)  #is unique id for a bcdbmodel (unique per zdbclient !)
+        self.key = self.key.replace(".","_")
 
         self.logger_enable()
 

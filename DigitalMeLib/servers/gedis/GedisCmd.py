@@ -92,6 +92,17 @@ class GedisCmd(JSBASE):
             return out
 
     @property
+    def args_client_js(self):
+        t = self.args_client.strip(",")
+        t = t.replace("False", "false")
+        t = t.replace("True", "true")
+        t = t.replace("*", "...")
+        if t.strip() == ",schema_out":
+            return ""
+        return t
+
+
+    @property
     def code_indent(self):
         return j.core.text.indent(self.cmdobj.code)
 

@@ -3,26 +3,12 @@ from Jumpscale import j
 
 
 SCHEMA="""
-@url = digitalme.circle
-#unique global name
-name = "" (S) 
-#unique aliases
-alias = [""] (LS)
-ipaddr = "" (S)
-ipaddr6 = "" (S)
-pubkey = "" (S)
-#only used for the subcircles of my circle
-privkey = "" (S)
-#used to store initial data for a digital me, its a service we optionally do for each DM who asks us too
-#max 1kbyte and needs to be signed by the digital.me source
-data = "" (S)
-#my own accounting to know who belongs to a circle, I keep id's thats why i need to remember
-members = [] (LI) 
-secret = "" (S)
-otp = "" (S)
-
-
-
+@url = threefold.grid.webgateway_rule
+rule_name = ""
+user* = ""
+domains = [] (LS)
+backends = [] (LS)
+webgateway_name = ""
 
 
 """
@@ -33,8 +19,8 @@ MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 class BCDBModel2(MODEL_CLASS):
     def __init__(self, bcdb):
 
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="digitalme.circle")
-        self.url = "digitalme.circle"
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.webgateway_rule")
+        self.url = "threefold.grid.webgateway_rule"
         self._init()
 
     def _init(self):
@@ -46,20 +32,22 @@ class BCDBModel2(MODEL_CLASS):
             class Meta:
                 database = db
 
-        class Index_digitalme_circle(BaseModel):
+        class Index_threefold_grid_webgateway_rule(BaseModel):
             id = IntegerField(unique=True)
+            user = TextField(index=True)
 
-        self.index = Index_digitalme_circle
+        self.index = Index_threefold_grid_webgateway_rule
             
         self.index.create_table()
 
 
-        self.index = Index_digitalme_circle
+        self.index = Index_threefold_grid_webgateway_rule
         self.index.create_table()
 
     
     def index_set(self,obj):
         idict={}
+        idict["user"] = obj.user
         idict["id"] = obj.id
         if not self.index.select().where(self.index.id == obj.id).count()==0:
             #need to delete previous record from index

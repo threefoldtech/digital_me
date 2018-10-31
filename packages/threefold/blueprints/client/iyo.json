@@ -1,6 +1,6 @@
 {
-  "organization": "abdoorg",
-  "client_secret": "SECRET",
+  "organization": "kristof-farm",
+  "client_secret": "cW80a6N35k0NsYK5d4ExtM0DtzG0SirrRk-nrXzPSHZlOMhi7n-E",
   "callback_uri": "http://localhost:8000/client/callback",
   "callback_path": "/client/callback",
   "scope": [

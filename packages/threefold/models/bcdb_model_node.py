@@ -46,42 +46,54 @@ location = (O) !threefold.grid.capacity.location
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["default"].sqlitedb
-
-class BaseModel(Model):
-    class Meta:
-        database = db
-
-class Index_(BaseModel):
-    id = IntegerField(unique=True)
-    node_zos_id = TextField(index=True)
-    node_zerotier_id = TextField(index=True)
-    noderobot = BooleanField(index=True)
-    noderobot_up_last = IntegerField(index=True)
-    noderobot_ipaddr = TextField(index=True)
-    sysadmin = BooleanField(index=True)
-    sysadmin_up_ping = BooleanField(index=True)
-    sysadmin_up_zos = BooleanField(index=True)
-    sysadmin_up_last = IntegerField(index=True)
-    sysadmin_ipaddr = TextField(index=True)
-    tfdir_found = BooleanField(index=True)
-    tfdir_up_last = IntegerField(index=True)
-    tfgrid_up_ping = BooleanField(index=True)
-    tfgrid_up_last = IntegerField(index=True)
-    state = TextField(index=True)
-    farmer_id = IntegerField(index=True)
-    farmer = BooleanField(index=True)
-    update = IntegerField(index=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
-class Model(MODEL_CLASS):
-    def __init__(self, bcdb, zdbclient):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.node", zdbclient=zdbclient)
+class BCDBModel2(MODEL_CLASS):
+    def __init__(self, bcdb):
+
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.node")
         self.url = "threefold.grid.node"
-        self.index = Index_
+        self._init()
+
+    def _init(self):
+        pass #to make sure works if no index
+
+        db = self.bcdb.sqlitedb
+
+        class BaseModel(Model):
+            class Meta:
+                database = db
+
+        class Index_threefold_grid_node(BaseModel):
+            id = IntegerField(unique=True)
+            node_zos_id = TextField(index=True)
+            node_zerotier_id = TextField(index=True)
+            noderobot = BooleanField(index=True)
+            noderobot_up_last = IntegerField(index=True)
+            noderobot_ipaddr = TextField(index=True)
+            sysadmin = BooleanField(index=True)
+            sysadmin_up_ping = BooleanField(index=True)
+            sysadmin_up_zos = BooleanField(index=True)
+            sysadmin_up_last = IntegerField(index=True)
+            sysadmin_ipaddr = TextField(index=True)
+            tfdir_found = BooleanField(index=True)
+            tfdir_up_last = IntegerField(index=True)
+            tfgrid_up_ping = BooleanField(index=True)
+            tfgrid_up_last = IntegerField(index=True)
+            state = TextField(index=True)
+            farmer_id = IntegerField(index=True)
+            farmer = BooleanField(index=True)
+            update = IntegerField(index=True)
+
+        self.index = Index_threefold_grid_node
             
         self.index.create_table()
+
+
+        self.index = Index_threefold_grid_node
+        self.index.create_table()
+
     
     def index_set(self,obj):
         idict={}

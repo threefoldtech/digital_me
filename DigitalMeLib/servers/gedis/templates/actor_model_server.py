@@ -12,9 +12,9 @@ class model_{{schema.name}}(JSBASE):
     
     def __init__(self):
         JSBASE.__init__(self)        
-        self.namespace = "{{model.key}}"
+        # self.namespace = "{{model.key}}"
         self.url = "{{schema.url}}"
-        self.bcdb = j.data.bcdb.bcdb_instances["{{model.namespace}}"]
+        self.bcdb = j.data.bcdb.bcdb_instances["{{model.bcdb.name}}"]
         self.model = self.bcdb.models["{{schema.url}}"]
         self.schema = self.model.schema
 
@@ -23,7 +23,7 @@ class model_{{schema.name}}(JSBASE):
             #e.g. for json
             ddict = j.servers.gedis.latest.return_serializer.loads(data_in)
             obj = self.schema.get(data=ddict)
-            data = schema.data
+            data = self.schema.data
         else:
             id,data = j.data.serializers.msgpack.loads(data_in)
 
@@ -45,7 +45,7 @@ class model_{{schema.name}}(JSBASE):
         else:
             return j.data.serializers.msgpack.dumps([obj.id,obj.data])
 
-    def find(self, total_items_in_page=20, page_number=1, only_fields=[], **args):
+    def find(self, total_items_in_page=20, page_number=1, only_fields=[]):
         #TODO:*1 what is this, who uses it?
         if isinstance(only_fields, bytes):
             import ast

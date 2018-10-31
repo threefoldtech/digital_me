@@ -12,8 +12,9 @@ class Farmer(JSBASE):
 
     def __init__(self):
         JSBASE.__init__(self)
-        j.tools.threefold_farmer.zdb = j.clients.zdb.testdb_server_start_client_admin_get(reset=False, secret="123456")
-        self._bcdb = j.tools.threefold_farmer.bcdb
+        # j.tools.threefold_farmer.zdb = j.clients.zdb.testdb_server_start_client_admin_get(reset=False, secret="123456")
+        # self._bcdb = j.tools.threefold_farmer.bcdb
+        self._bcdb = j.data.bcdb.bcdb_instances["default"]
         self._farmer_model = None
         self._node_model = None
         self._wgw_model = None

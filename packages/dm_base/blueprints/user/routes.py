@@ -1,7 +1,7 @@
 from flask import redirect, request, render_template, session, flash
 import flask_login
 from . import name as bp_name, blueprint
-from .user import dm_table, User, get_iyo_login_url, password_protect
+# from .user import dm_table, User, get_iyo_login_url, password_protect
 
 
 @blueprint.route('/login', methods=['GET', 'POST'])

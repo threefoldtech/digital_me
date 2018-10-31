@@ -11,24 +11,36 @@ val = "" (S)
 
 """
 from peewee import *
-db = j.data.bcdb.bcdb_instances["base"].sqlitedb
-
-class BaseModel(Model):
-    class Meta:
-        database = db
-
-class Index_(BaseModel):
-    id = IntegerField(unique=True)
 
 MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
-class Model(MODEL_CLASS):
-    def __init__(self, bcdb, zdbclient):
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="digitalme.dnsrecord", zdbclient=zdbclient)
+class BCDBModel2(MODEL_CLASS):
+    def __init__(self, bcdb):
+
+        MODEL_CLASS.__init__(self, bcdb=bcdb, url="digitalme.dnsrecord")
         self.url = "digitalme.dnsrecord"
-        self.index = Index_
+        self._init()
+
+    def _init(self):
+        pass #to make sure works if no index
+
+        db = self.bcdb.sqlitedb
+
+        class BaseModel(Model):
+            class Meta:
+                database = db
+
+        class Index_digitalme_dnsrecord(BaseModel):
+            id = IntegerField(unique=True)
+
+        self.index = Index_digitalme_dnsrecord
             
         self.index.create_table()
+
+
+        self.index = Index_digitalme_dnsrecord
+        self.index.create_table()
+
     
     def index_set(self,obj):
         idict={}

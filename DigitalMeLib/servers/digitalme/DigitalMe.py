@@ -69,7 +69,7 @@ class DigitalMe(JSBASE):
         if zdbclients == {}:
             zdb_admin_client = j.clients.zdb.testdb_server_start_client_admin_get(secret=adminsecret)
             zdb_admin_client.namespace_new("digitalme", secret=nssecret)
-            zdbclients["default"] = j.clients.zdb.client_get(nsname='digitalme', ns_secret=nssecret)
+            zdbclients["default"] = j.clients.zdb.client_get(nsname='digitalme', secret=nssecret)
 
         if path is not "":
             if not j.sal.fs.exists(path):

@@ -24,7 +24,7 @@ class BCDBFactory(JSBASE):
     def get(self, name, zdbclient=None, cache=True):
         if zdbclient is None:
             #now a generic client on zdb, but needs to become a sqlite version
-            zdbclient = j.clients.zdb.client_get(nsname="test", addr="localhost",port=9900, ns_secret="1234",mode="seq")
+            zdbclient = j.clients.zdb.client_get(nsname="test", addr="localhost",port=9900, secret="1234",mode="seq")
         if not name in self.bcdb_instances or cache==False:
             if j.data.types.string.check(zdbclient):
                 raise RuntimeError("zdbclient cannot be str")

@@ -33,7 +33,7 @@ const client = (function(){
     {% for command in commands %}
     client.{{command.namespace}}_{{command.name}} = {
     {% for  name, cmd in command.cmds.items() %}
-        "{{name}}": async ({{cmd.args_client.strip(",").replace("False", "false").replace("True", "true").replace("*", "...") if cmd.args_client.strip() != ",schema_out" else ""}}) => {
+        "{{name}}": async ({{cmd.args_client_js}}) => {
         {% if cmd.schema_in %}
             var args = {}
             {% for prop in cmd.schema_in.properties + cmd.schema_in.lists %}

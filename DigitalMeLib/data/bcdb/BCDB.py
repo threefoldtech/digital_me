@@ -265,6 +265,8 @@ class BCDB(JSBASE):
 
         """
         cl = self.model_class_get_from_file(path)
+        if cl is None:
+            return
         model = cl(bcdb=self)
         self.models[model.schema.url] = model
         return model
