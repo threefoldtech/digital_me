@@ -33,7 +33,7 @@ class ZOS(BASE):
         zc = ZOSContainer(zos=self, name=name)
         if flist is not "":
             zc.model.flist = flist
-        zc.create()
+        zc.start()
         return zc
 
     def __repr__(self):

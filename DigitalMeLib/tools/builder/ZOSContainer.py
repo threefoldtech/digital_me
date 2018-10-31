@@ -69,18 +69,31 @@ class ZOSContainer(BASE):
     def name(self):
         return self.model.name
 
-    def create(self):
-        return self.zos_container_obj
+    def start(self):
+        self.api
+
+    def stop(self):
+        self.api.stop()
 
     def _create(self):
         print('creating builder container...')
         self.model.progress=[] #make sure we don't remember old stuff
         self.model_save()
+
+        self.logger.info("create container: %s %s sshport:%s \nnics:\n%s"%
+                         (self.name,self.model.flist,self.sshport,self.nics))
+
+        if len(self.model.nics)==0:
+            nic = self.model.nics.new()
+            nic.type = "default"
+            self.model_save()
+
         self._container = self.zosclient.containers.create(name=self.name,
                                            hostname=self.name,
                                            flist=self.model.flist,
                                            nics=self.nics,
                                            ports={self.sshport: 22})
+
         info = self._container.info['container']
         while "pid" not in info:
             time.sleep(0.1)
@@ -96,13 +109,13 @@ class ZOSContainer(BASE):
         return self.container.info
 
     @property
-    def zos_container_obj(self):
+    def api(self):
         """
         :return: zero-os container object
         """
         if self._container is None:
             if not self.name in [item.name for item in self.zosclient.containers.list()]:
-                self.create()
+                self._create()
             self._container = self.zosclient.containers.get(self.name)
             assert self._container.is_running()
         return self._container

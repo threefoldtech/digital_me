@@ -194,6 +194,8 @@ class Builder(JSBASE):
         # self.zos_vb_delete_all()
         zos = self.zos_vb_get()
         container = zos.container_get("builder") #default is the ub1804 flist
+        container.stop()
+        container.start()
         rc,out,err = container.node.executor.execute("ls /")
         assert "coreX\n" in out  #is a file on the root
 
