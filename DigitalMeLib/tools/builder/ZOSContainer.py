@@ -56,11 +56,11 @@ class ZOSContainer(BASE):
 
         :return:
         """
-        nics = []
+        nics_ret = []
         for nic in self.model.nics:
             d = {"type":nic.type}
-            nics.append(d)
-        return nics
+            nics_ret.append(d)
+        return nics_ret
 
     @property
     def zos_private_address(self):
@@ -83,11 +83,14 @@ class ZOSContainer(BASE):
         self.model_save()
 
 
+        self.logger.warning("A")
+        self.model.nics=[]
         if len(self.model.nics) == 0:
+            self.logger.warning("ADDNIC")
             nic = self.model.nics.new()
             nic.type = "default"
             self.model_save()
-            j.shell()
+        # j.shell()
 
         self.logger.info("create container: %s %s sshport:%s \nnics:\n%s"%
                          (self.name,self.model.flist,self.sshport,self.nics))
