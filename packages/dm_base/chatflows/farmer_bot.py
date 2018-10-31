@@ -116,10 +116,11 @@ def chat(bot):
                                  "i.e. www.test.com,test.com")
         domains = [domain.strip() for domain in domains.split(",")]
         backends = bot.string_ask("Enter comma separated backends you need to point to: "
-                                  "i.e. 192.168.1.1:8000,192.168.1.2:5000")
+                                  "i.e. http://192.168.1.1:8000,http://192.168.1.2:5000")
         backends = [backend.strip() for backend in backends.split(",")]
         gedis_client.farmer.web_gateway_add_host(jwttoken, web_gateway=web_gateway, rule_name=rule_name,
                                                  domains=domains, backends=backends)
+
     def web_gateway_list_hosts():
         jwttoken = bot.string_ask("Please enter your JWT, "
                                   "(click <a target='_blank' href='/client'>here</a> to get one)")
@@ -129,9 +130,10 @@ def chat(bot):
 """
         for rule in res:
             report += """|{rule_name}|{domains}|{backends}|{webgateway_name}| 
-""".format(rule_name=rule.rule_name, domains=[domain for domain in rule.domains],
-           backends=[backend for backend in rule.backends], webgateway_name=rule.webgateway_name)
+""".format(rule_name=rule.rule_name, domains=",".join(rule.domains),
+           backends=", ".join(rule.backends), webgateway_name=rule.webgateway_name)
         bot.md_show(report)
+
     def web_gateway_register():
         jwttoken = bot.string_ask("Please enter your JWT, "
                                   "(click <a target='_blank' href='/client'>here</a> to get one)")

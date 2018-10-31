@@ -301,15 +301,24 @@ class Farmer(JSBASE):
         :param domains: list of domains we need to register e.g. ["threefold.io", "www.threefold.io"]
         :param backends: list of backends that the domains will point to e.g. ['10.10.100.10:80', '10.10.100.11:80']
         """
+        user = jwt.get_unverified_claims(jwttoken)['username']
         self.capacity_planner.web_gateway_add_host(web_gateway, rule_name, domains, backends)
-        rule = self.wgw_rule_model.new()
-        rule.rule_name = rule_name
+
+        # Check if the rule already exist, so we need to update it or create a new one
+        res = self.wgw_rule_model.index.select().where(self.wgw_rule_model.index.user == user).execute()
+        rules = [self.wgw_rule_model.get(rule.id) for rule in res]
+        for user_rule in rules:
+            if user_rule.rule_name == rule_name and user_rule.webgateway_name == web_gateway['name']:
+                rule = user_rule
+                break
+        else:
+            rule = self.wgw_rule_model.new()
+            rule.rule_name = rule_name
+            rule.webgateway_name = web_gateway["name"]
+            rule.user = user
+
         rule.domains = domains
         rule.backends = backends
-        rule.webgateway_name = web_gateway["name"]
-
-        user = jwt.get_unverified_claims(jwttoken)['username']
-        rule.user = user
         self.wgw_rule_model.set(rule)
         return
 
@@ -344,7 +353,14 @@ class Farmer(JSBASE):
         :param rule_name: the rule name for the config you need to delete
         :return:
         """
-        return self.capacity_planner.web_gateway_delete_host(web_gateway, rule_name)
+        user = jwt.get_unverified_claims(jwttoken)['username']
+        res = self.wgw_rule_model.index.select().where(self.wgw_rule_model.index.user == user).execute()
+        rules = [self.wgw_rule_model.get(rule.id) for rule in res]
+        for rule in rules:
+            if rule.rule_name == rule_name and rule.webgateway_name == web_gateway['name']:
+                self.capacity_planner.web_gateway_delete_host(web_gateway, rule_name)
+                self.wgw_rule_model.delete(rule.id)
+                break
 
     def farmer_register(self, jwttoken, farmername, email_addresses=None, mobile_numbers=None, pubkey=""):
         """
