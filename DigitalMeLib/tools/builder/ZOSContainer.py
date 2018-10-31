@@ -4,73 +4,75 @@ from io import StringIO
 import os
 import locale
 
-JSBASE = j.application.JSBaseClass
+from .BASE import BASE
 
 schema = """
 @url = zos.container.config
-@name = ZOSContainerConfig
 date_start = 0 (D)
 description = ""
-port = 0 (I)
+name = ""
 authorized = False (B)
 pid = 0 (I)
 container_id = 0 (I) 
 progress = (LS)
+flist = "https://hub.grid.tf/tf-official-apps/ubuntu-bionic-build.flist"
+nics = (LO) !zos.container.nic
+sshport = 0 (I)
+
+@url = zos.container.nic
+type = "default"
+ 
 """
 
 import time
 
-class ZOSContainer(JSBASE):
+class ZOSContainer(BASE):
 
-    def __init__(self, zosclient,node):
-        JSBASE.__init__(self)
-        self._node = node
-        self.zosclient = zosclient
-        self._zos_private_address = None
+    def __init__(self, zos,name):
+        self.zos = zos
+        # self._node = node
         self._container = None
         self._node_connected = False
-        self._redis_key="containers:%s"%node.name
         self._schema = j.data.schema.get(schema)
 
-        if self._zos_redis.get(self._redis_key) is None:
-            #does not exist in redis yet
-            self.model = self._schema.new()
-            self.model.name = node.name
-            self.model.port = self._get_free_port()
-            self.model_save()
-        else:
-            json = self._zos_redis.get(self._redis_key).decode()
-            self.model = self._schema.get(data=j.data.serializers.json.loads(json))
+        BASE.__init__(self,zos.zosclient,name=name)
 
-        self.logger_enable()
+        j.shell()
+
+
+    @property
+    def nics(self):
+        """
+        e.g.
+
+        nics = '[
+            {
+            "type": "default"
+            }
+        ]'
+
+        :return:
+        """
+        raise RuntimeError("need to implement to return in right way")
+
+
+    @property
+    def zos_private_address(self):
+        return self.zos.zos_private_address
+
 
     @property
     def name(self):
         return self._node.name
 
-    @property
-    def _zos_redis(self):
-        if self.zosclient.client._Client__redis is None:
-            self.zosclient.ping()  # otherwise the redis client does not work
-        return self.zosclient.client._Client__redis
-
-
-    def model_save(self):
-        """
-        register the model with the ZOS in the redis db
-        :return:
-        """
-        json = self.model._json
-        return self._zos_redis.set(self._redis_key, json)
-
-    def _create(self):
+    def create(self):
         print('creating builder container...')
         self.model.progress=[] #make sure we don't remember old stuff
         self.model_save()
         self._container = self.zosclient.containers.create(name=self.name,
                                            hostname=self.name,
-                                           flist='https://hub.grid.tf/tf-official-apps/ubuntu-bionic-build.flist',
-                                           nics=[{'type': 'default'}],
+                                           flist=self.model.flist,
+                                           nics=self.nics,
                                            ports={self.model.port: 22})
         info = self._container.info['container']
         while "pid" not in info:
@@ -195,19 +197,6 @@ class ZOSContainer(JSBASE):
 
         return node
 
-    def done_check(self,name):
-        if name in self.model.progress:
-            return True
-        return False
-
-    def done_set(self,name):
-        if not name in self.model.progress:
-            self.model.progress.append("jscore_install")
-            self.model_save()
-
-    def done_reset(self):
-        self.model.progress = []
-        self.model_save()
 
     def build_python_jumpscale(self,reset=False):
 

@@ -6,7 +6,8 @@ import locale
 
 JSBASE = j.application.JSBaseClass
 
-from .ZOSContainer import ZOSContainer
+from .ZOS import ZOS
+from .ZOSVB import ZOSVB
 
 class Builder(JSBASE):
 
@@ -20,21 +21,21 @@ class Builder(JSBASE):
 
 
 
-    def zos_client_get(self,name="builder"):
-        """
-        if vb is True then it means we will create the zos virtualmachine locally using virtualbox
-
-        js_shell 'j.tools.builder.zos_client_get(name="container")'
-
-        """
-        self.logger.info("zos client gent:%s"%name)
-        if name not in self._clients:
-            if name not in j.clients.zos.list():
-                raise RuntimeError("zos client not found for:%s"%bame)
-
-        # if not j.sal.nettools.tcpPortConnectionTest(cl.addr,cl.port,timeout=1) or not cl.is_running():
-            self._clients[name] = j.clients.zos.get(name)
-        return self._clients[name]
+    # def zos_client_get(self,name="builder"):
+    #     """
+    #     if vb is True then it means we will create the zos virtualmachine locally using virtualbox
+    #
+    #     js_shell 'j.tools.builder.zos_client_get(name="container")'
+    #
+    #     """
+    #     self.logger.info("zos client gent:%s"%name)
+    #     if name not in self._clients:
+    #         if name not in j.clients.zos.list():
+    #             raise RuntimeError("zos client not found for:%s"%bame)
+    #
+    #     # if not j.sal.nettools.tcpPortConnectionTest(cl.addr,cl.port,timeout=1) or not cl.is_running():
+    #         self._clients[name] = j.clients.zos.get(name)
+    #     return self._clients[name]
 
 
     def zos_iso_download(self, zerotierinstance="",overwrite=True):
@@ -58,9 +59,24 @@ class Builder(JSBASE):
         """
         return j.clients.virtualbox.client
 
-    def zos_vb_create(self, name, zerotierinstance="", redis_port=4444, reset=False, memory=2000):
+    def zos_get(self, zosclient_instance="builder", name=None):
         """
-        js_shell 'j.tools.builder.zos_vb_create(name="test",reset=True)'
+        zos client needs to be configured before it can be used at j.clients.zos.configure(...
+
+        connect to existing zero-os
+        :param name: when empty will be same name as the instance of zosclient
+        :param zosclient_instance: is the instance name of zosclient get at j.clients.zos.get ...
+        :return:
+        """
+        if name is None:
+            name = zosclient_instance
+        zosclient=j.clients.zos.get(zosclient_instance)
+        return ZOS(zosclient=zosclient,name=name)
+
+
+    def zos_vb_get(self, name="builder", zerotierinstance="", redis_port=4444, reset=False, memory=4000):
+        """
+        js_shell 'j.tools.builder.zos_vb_create(reset=False)'
         """
         vm = self.vb_client.vm_get(name)
         self.logger.debug(vm)
@@ -143,11 +159,14 @@ class Builder(JSBASE):
         self.logger.info("ping test OK")
 
         if r.get("zos:active") != b'1':
-            self.logger.info("partition first time")
-            zcl.zerodbs.partition_and_mount_disks()
-            r.set("zos:active",1)
+            # self.logger.info("partition first time")
+            # zcl.zerodbs.partition_and_mount_disks()
+            # r.set("zos:active",1)
+            pass
 
-        self.logger.debug("vm ready to be used")
+        self.logger.info("vm ready to be used")
+
+        return ZOSVB(zosclient=zcl,name=name)
 
 
     def zos_vb_delete_all(self):
@@ -158,14 +177,14 @@ class Builder(JSBASE):
         self.vb_client.reset_all()
 
 
-    def get(self,name="builder",zosclient=None):
-        if name not in self._containers:
-            node = j.tools.nodemgr.set(cat="container", name=name, sshclient=name, selected=False)
-            self.zos_vb_create(name="builder")
-            if not zosclient:
-                zosclient = self.zos_client_get()
-            self._containers[name]=ZOSContainer(zosclient=zosclient,node=node)
-        return self._containers[name]
+    # def get(self,name="builder",zosclient=None):
+    #     if name not in self._containers:
+    #         node = j.tools.nodemgr.set(cat="container", name=name, sshclient=name, selected=False)
+    #         self.zos_vb_create(name="builder")
+    #         if not zosclient:
+    #             zosclient = self.zos_client_get()
+    #         self._containers[name]=ZOSContainer(zosclient=zosclient,node=node)
+    #     return self._containers[name]
 
 
     def test(self):
@@ -173,7 +192,8 @@ class Builder(JSBASE):
         js_shell 'j.tools.builder.test()'
         """
         # self.zos_vb_delete_all()
-        container = j.tools.builder.get()
+        zos = self.zos_vb_get()
+        container = zos.container_get("builder") #default is the ub1804 flist
         rc,out,err = container.node.executor.execute("ls /")
         assert "coreX\n" in out  #is a file on the root
 
