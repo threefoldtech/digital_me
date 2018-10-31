@@ -12,6 +12,8 @@ date_start = 0 (D)
 description = ""
 progress = (LS)
 sshport_last = 4010
+redis_address = ""
+redis_port = 0
 """
 
 import time

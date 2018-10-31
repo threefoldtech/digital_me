@@ -66,8 +66,6 @@ class ZOSVB(BASE):
         return port
 
 
-
-
     @property
     def vb_client(self):
         """

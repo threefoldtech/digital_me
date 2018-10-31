@@ -89,7 +89,7 @@ class ZOSContainer(BASE):
         return self.container.info
 
     @property
-    def container(self):
+    def zos_container_obj(self):
         """
         :return: zero-os container object
         """
@@ -162,40 +162,32 @@ class ZOSContainer(BASE):
     @property
     def zos_private_address(self):
         """
-        private addr of the virtualbox, if not virtualbox will return False
-        will also do a ping test
-        :return: False if no virtualbox
         """
-        if self._zos_private_address == None:
-            # assume vboxnet0 use an 192.168.0.0/16 address
-            for nic in self.zosclient.client.info.nic():
-                if len(nic['addrs']) == 0:
-                    continue
-                if nic['addrs'][0]['addr'].startswith("192.168."):
-                    self._zos_private_address = nic['addrs'][0]['addr'].split('/')[0]
-                    if not j.sal.nettools.pingMachine(self._zos_private_address):
-                        raise RuntimeError("could not reach private addr:%s of VB ZOS"%self._zos_private_address)
-                    return self._zos_private_address
-            self._zos_private_address = False
-        return self._zos_private_address
+        return self.zos.zos_private_address
 
-    def _get_free_port(self):
+    @property
+    def sshport(self):
+        raise RuntimeError("needed here? maybe other algoritm is for free ports for ssh connection")
+
+        #CHECK IF VBZOS if yes use port per SSH connection because is same ip addr
+        #CHECK IF ZOS direct (no VB), then is zerotier addr with std ssh port...
+
         port = 4001
         while j.sal.nettools.checkListenPort(port)==True:
             self.logger.debug("check for free tcp port:%s"%port)
             port+=1
         return port
 
-    def zero_os_private(self, node):
-        self.logger.debug("resolving private virtualbox address")
-
-        private = j.clients.virtualbox.zero_os_private_address(node)
-        self.logger.info("virtualbox machine private address: %s" % private)
-
-        node = j.clients.zos.get('builder_private', data={'host': private})
-        node.client.ping()
-
-        return node
+    # def zero_os_private(self, node):
+    #     self.logger.debug("resolving private virtualbox address")
+    #
+    #     private = j.clients.virtualbox.zero_os_private_address(node)
+    #     self.logger.info("virtualbox machine private address: %s" % private)
+    #
+    #     node = j.clients.zos.get('builder_private', data={'host': private})
+    #     node.client.ping()
+    #
+    #     return node
 
 
     def build_python_jumpscale(self,reset=False):
