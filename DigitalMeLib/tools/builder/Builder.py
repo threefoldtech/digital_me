@@ -5,7 +5,7 @@ import os
 import locale
 
 JSBASE = j.application.JSBaseClass
-
+from .namegenerator import random_hostname
 from .ZOS import ZOS
 from .ZOSVB import ZOSVB
 
@@ -20,6 +20,8 @@ class Builder(JSBASE):
         self.logger_enable()
 
 
+    def random_hostname(self):
+        return random_hostname()
 
     # def zos_client_get(self,name="builder"):
     #     """
