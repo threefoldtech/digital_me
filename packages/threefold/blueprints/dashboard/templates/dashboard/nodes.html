@@ -1,0 +1,114 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<div class="sidebar">
+    {% include "dashboard/sidebar.html" %}
+</div>
+<div class="page-container">
+    <!-- {% include "dashboard/navbar.html" %} -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="container mt-5">
+                <p class="float-right"><a href="https://threefoldfoundation.github.io/info_grid/#/">Threefold grid
+                        documentation</a>
+                </p>
+                <h2>Search for capacity</h2>
+                <form method="get" id="form1">
+                    <div class="form-group">
+                        <label for="formCRU">Minimum <abbr title="CPU resource unit">CRU</abbr> :
+                            <span class="badge badge-pill badge-primary">
+                                <output id="formCRUValue">0</output> CPU</span>
+                        </label>
+                        <input type="range" class="custom-range" value="0" step="1" id="formCRU" name="cores_min_nr" oninput="formCRUValue.value = formCRU.value">
+                    </div>
+                    <div class="form-group">
+                        <label for="formMRU">Minimum <abbr title="Memory resource unit">MRU</abbr> :
+                            <span class="badge badge-pill badge-primary">
+                                <output id="formMRUValue">0</output> GiB</span>
+                        </label>
+                        <input type="range" class="custom-range" value="0" step="1" id="formMRU" name="mem_min_mb" oninput="formMRUValue.value = formMRU.value">
+                    </div>
+                    <div class="form-group">
+                        <label for="formHRU">Minimum <abbr title="HDD resource unit">HRU</abbr> :
+                            <span class="badge badge-pill badge-primary">
+                                <output id="formHRUValue">0</output> GiB</span>
+                        </label>
+                        <input type="range" class="custom-range" value="0" step="1" max="5000" id="formHRU" name="hd_min_gb" oninput="formHRUValue.value = formHRU.value">
+                    </div>
+                    <div class="form-group">
+                        <label for="formSRU">Minimum <abbr title="SSD resource unit">SRU</abbr> :
+                            <span class="badge badge-pill badge-primary">
+                                <output id="formSRUValue">0</output> GiB</span>
+                        </label>
+                        <input type="range" class="custom-range" value="0" step="1" max="1000" id="formSRU" name="ssd_min_gb" oninput="formSRUValue.value = formSRU.value">
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label for="formCountry">Filter by country :</label>
+                            <input class="form-control" name="country" list="formCountry">
+                            <datalist id="formCountry">
+                                {% for country in countries%}
+                                <option value="{{country}}">
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="formFarmer">Filter by farmer :</label>
+                            <input class="form-control" name="farmer_name" list="formFarmer">
+                            <datalist id="formFarmer">
+                                {% for farmer in farmers.values()%}
+                                <option value="{{farmer.name}}">
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                        <input class="btn btn-secondary" type="reset" value="Reset">
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- <div class="col-md-4">
+      <div class="card bg-light mb-3">
+         <div class="card-header">Nodes Heatmap</div>
+         <div class="card-body">
+            <div id="mapheatmap" class="mapdiv" style="width: 100%; height: 400px;"></div>
+         </div>
+      </div>
+      </div> -->
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="bgc-white bd bdrs-3 p-20 mB-20">
+                <table id="dataTable" class="table table-striped table-bordered data" cellspacing="0" width="100%">
+                    <thead>
+                        <tr>
+                            <th>Node ID</th>
+                            <th>Location</th>
+                            <th>State</th>
+                            <th>Farmer</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Node ID</th>
+                            <th>Location</th>
+                            <th>State</th>
+                            <th>Farmer</th>
+                        </tr>
+                    </tfoot>
+                    <tbody>
+                        {% for node in nodes %}
+                        <tr onclick="select_node('{{node.node_zos_id}}')">
+                            <td>{{node.node_zos_id}}</td>
+                            <td>{{node.location.continent}}, {{node.location.country}}, {{node.location.city}}</td>
+                            <td>{{node.state if node.state == "up" else "down"}}</td>
+                            <td>{{farmers.get(node.farmer_id).name if node.farmer_id in farmers else "NONE"}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {%endblock%}

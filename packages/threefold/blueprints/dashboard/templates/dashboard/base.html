@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+    {%block css%} {%endblock%}
+    <link rel="stylesheet" href="/dashboard/static/assets/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/dashboard/static/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/dashboard/static/css/themify-icons.css">
+    <link rel="stylesheet" href="/dashboard/static/assets/perfect-scrollbar/css/perfect-scrollbar.css">
+    <link rel="stylesheet" href="/dashboard/static/assets/jvectormap/jquery-jvectormap.css">
+    <link rel="stylesheet" href="/dashboard/static/assets/datatables/media/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="/dashboard/static/assets/bootstrap-datepicker/bootstrap-datepicker.min.css">
+    <link rel="stylesheet" href="/dashboard/static/css/style.css">
+    <link rel="stylesheet" href="/dashboard/static/css/custom.css">
+    <title>Farmer Dashboard</title>
+    <style>
+        #loader {
+            transition: all .3s ease-in-out;
+            opacity: 1;
+            visibility: visible;
+            position: fixed;
+            height: 100vh;
+            width: 100%;
+            background: #fff;
+            z-index: 90000
+        }
+
+        #loader.fadeOut {
+            opacity: 0;
+            visibility: hidden
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            top: calc(50% - 20px);
+            left: calc(50% - 20px);
+            background-color: #333;
+            border-radius: 100%;
+            -webkit-animation: sk-scaleout 1s infinite ease-in-out;
+            animation: sk-scaleout 1s infinite ease-in-out
+        }
+
+        @-webkit-keyframes sk-scaleout {
+            0% {
+                -webkit-transform: scale(0)
+            }
+
+            100% {
+                -webkit-transform: scale(1);
+                opacity: 0
+            }
+        }
+
+        @keyframes sk-scaleout {
+            0% {
+                -webkit-transform: scale(0);
+                transform: scale(0)
+            }
+
+            100% {
+                -webkit-transform: scale(1);
+                transform: scale(1);
+                opacity: 0
+            }
+        }
+    </style>
+    <script>
+        var data = {
+            "capacity_reserved": {
+                "cru": 2960.0,
+                "hru": 0.0,
+                "mru": 2960.0,
+                "sru": 0.0
+            },
+            "capacity_total": {
+                "cru": 2.0,
+                "hru": 11176.0,
+                "mru": 125.94,
+                "sru": 0.0
+            },
+            "capacity_used": {
+                "cru": 1.7,
+                "hru": 0.0,
+                "mru": 1.73,
+                "sru": 0.0
+            },
+            "description": "",
+            "error": "",
+            "farmer": false,
+            "farmer_id": 0,
+            "id": 1,
+            "location": {
+                "city": "دبي‎",
+                "continent": "Asia",
+                "country": "United Arab Emirates",
+                "latitude": 25.262084587654503,
+                "longitude": 55.30435179825873
+            },
+            "macaddresses": [],
+            "node_public_ip": "",
+            "node_zerotier_id": "00247104cc",
+            "node_zos_id": "002590d9e352",
+            "noderobot": false,
+            "noderobot_ipaddr": "http://10.102.114.32:6600",
+            "noderobot_up_last": "",
+            "state": "",
+            "sysadmin": true,
+            "sysadmin_ipaddr": "172.29.114.32",
+            "sysadmin_up_last": "2018/10/15 13:20:10",
+            "sysadmin_up_ping": true,
+            "sysadmin_up_zos": true,
+            "tfdir_found": true,
+            "tfdir_up_last": "",
+            "tfgrid_up_last": "",
+            "tfgrid_up_ping": false,
+            "update": "2018/10/15 13:20:11"
+        }
+    </script>
+</head>
+
+<body class="app">
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+    <script>
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            setTimeout(() => {
+                loader.classList.add('fadeOut');
+            }, 300);
+        });
+    </script>
+    <div>
+        {% block content %} {% endblock %}
+    </div>
+
+    <!-- {% include "dashboard/footer.html" %} -->
+    {% include "dashboard/scripts.html" %}
+</body>
+
+</html>
