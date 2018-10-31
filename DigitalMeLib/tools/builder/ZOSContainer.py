@@ -39,7 +39,7 @@ class ZOSContainer(BASE):
 
         BASE.__init__(self,redis=zos._redis,name=name,schema=schema)
 
-        self.model.flist = "https://hub.grid.tf/tf-official-apps/ubuntu-bionic-build.flist"
+        self.model.flist = "https://hub.grid.tf/tf-bootable/ubuntu:18.04.flist"
 
 
 
@@ -96,11 +96,35 @@ class ZOSContainer(BASE):
                          (self.name,self.model.flist,self.sshport,self.nics))
 
 
-        self._container = self.zosclient.containers.create(name=self.name,
-                                           hostname=self.name,
-                                           flist=self.model.flist,
-                                           nics=self.nics,
-                                           ports={self.sshport: 22})
+        def getAgentPublicKeys():
+            rc, keys = j.sal.process.execute('ssh-add -L', die=False)
+            if rc == 0:
+                return keys
+            return ""
+
+        keys = ""
+
+        keys = getAgentPublicKeys()
+        
+        if keys == "":
+            raise RuntimeError("couldn't find sshkeys in agent or in default paths [generate one with ssh-keygen]")
+
+        self._container = self.zosclient.container.create(name=self.name,
+                                        hostname=self.name,
+                                        flist=self.model.flist,
+                                        nics=self.nics,
+                                        ports={self.sshport: 22},
+                                        config={"/root/.ssh/authorized_keys":keys})
+
+        #TODO ONLY IF VBOX
+        self.zosclient.nft.open_port(self.sshport)
+
+        # RUN SSHD
+        container_client = self.zosclient.container.client(self._container)
+        print(container_client.system("service ssh start").get())
+        print(container_client.system("service ssh status").get())
+
+
 
         info = self._container.info['container']
         while "pid" not in info:
