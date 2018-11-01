@@ -1,5 +1,5 @@
 import {default as client} from '/chat/jsclient.js';
-var stringContentGenerate = function (message){
+var stringContentGenerate = function (message, kwargs){
     return `
     <h4>${message}</h4>
     <div class="form-group">
@@ -7,7 +7,7 @@ var stringContentGenerate = function (message){
     </div>`
 }
 
-var passwordContentGenerate = function (message){
+var passwordContentGenerate = function (message, kwargs){
     return `
     <h4>${message}</h4>
     <div class="form-group">
@@ -15,7 +15,7 @@ var passwordContentGenerate = function (message){
     </div>`
 }
 
-var textContentGenerate = function (message){
+var textContentGenerate = function (message, kwargs){
     return `
     <h4>${message}</h4>
     <div class="form-group">
@@ -23,7 +23,7 @@ var textContentGenerate = function (message){
     </div>`
 }
 
-var intContentGenerate = function (message){
+var intContentGenerate = function (message, kwargs){
     return `
     <h4>${message}</h4>
     <div class="form-group">
@@ -31,13 +31,13 @@ var intContentGenerate = function (message){
     </div>`
 }
 
-var mdContentGenerate = function (message){
+var mdContentGenerate = function (message, kwargs){
     let converter = new showdown.Converter({tables: true, tablesHeaderId: "table"});
     const htmlContents = converter.makeHtml(message);
     return `${htmlContents}`;
 }
 
-var multiChoiceGenerate = function(message, options){
+var multiChoiceGenerate = function(message, options, kwargs){
     let choices = ""
     $.each(options, function(i, value){
         choices += `
@@ -63,7 +63,7 @@ var multiChoiceGenerate = function(message, options){
     return contents;
 }
 
-var singleChoiceGenerate = function(message, options){
+var singleChoiceGenerate = function(message, options, kwargs){
     let choices = "";
     const classes = ["primary", "success", "danger", "warning", "info"];
     let i = 0;
@@ -81,7 +81,7 @@ var singleChoiceGenerate = function(message, options){
     return contents;
 }
 
-var dropDownChoiceGenerate = function(message, options){
+var dropDownChoiceGenerate = function(message, options, kwargs){
     let choices = "";
     $.each(options, function(i, value){
         choices += `<option value="${value}">${value}</option>`;
@@ -96,7 +96,10 @@ var dropDownChoiceGenerate = function(message, options){
     return contents;
 }
 
-var addStep = function(){
+var addStep = function(reset){
+    if(reset) {
+        $(".f1-steps").empty();
+    }
     const currentStep = $(".f1-steps").children().length + 1;
 	const stepTemplate = `
 	<div class="f1-step active">
@@ -120,32 +123,32 @@ var generateSlide = function(res) {
             $(location).attr("href", res["msg"]);
             return
     }
-    addStep();
+    addStep(res['kwargs']['reset']);
     let contents = "";
     switch(res['cat']){
         case "string_ask":
-            contents = stringContentGenerate(res['msg']);
+            contents = stringContentGenerate(res['msg'], res['kwargs']);
             break;
         case "password_ask":
-            contents = passwordContentGenerate(res['msg']);
+            contents = passwordContentGenerate(res['msg'], res['kwargs']);
             break;
         case "text_ask":
-            contents = textContentGenerate(res['msg']);
+            contents = textContentGenerate(res['msg'], res['kwargs']);
             break;
         case "int_ask":
-            contents = intContentGenerate(res['msg']);
+            contents = intContentGenerate(res['msg'], res['kwargs']);
             break;
         case "md_show":
-            contents = mdContentGenerate(res['msg']);
+            contents = mdContentGenerate(res['msg'], res['kwargs']);
             break;
         case "multi_choice":
-            contents = multiChoiceGenerate(res['msg'], res['options'])
+            contents = multiChoiceGenerate(res['msg'], res['options'], res['kwargs'])
             break;
         case "single_choice":
-            contents = singleChoiceGenerate(res['msg'], res['options'])
+            contents = singleChoiceGenerate(res['msg'], res['options'], res['kwargs'])
             break;
         case "drop_down_choice":
-            contents = dropDownChoiceGenerate(res['msg'], res['options'])
+            contents = dropDownChoiceGenerate(res['msg'], res['options'], res['kwargs'])
             break;
     }
 	contents = `

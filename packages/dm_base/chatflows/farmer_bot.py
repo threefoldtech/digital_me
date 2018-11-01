@@ -239,7 +239,7 @@ def chat(bot):
             # "Reserve ZOS vm": zos_reserve
         }
         while True:
-            choice = bot.single_choice("what do you want to do", [method for method in methods.keys()])
+            choice = bot.single_choice("what do you want to do", [method for method in methods.keys()], reset=True)
             methods[choice]()
 
     main()

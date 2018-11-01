@@ -61,68 +61,77 @@ class GedisChatBotSession(JSBASE):
         self.q_in = gevent.queue.Queue()  # from browser
         self.greenlet = gevent.spawn(topic_method, bot=self)
 
-    def string_ask(self, msg):
+    def string_ask(self, msg, **kwargs):
         self.q_out.put({
             "cat": "string_ask",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def password_ask(self, msg):
+    def password_ask(self, msg, **kwargs):
         self.q_out.put({
             "cat": "password_ask",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def text_ask(self, msg):
+    def text_ask(self, msg, **kwargs):
         self.q_out.put({
             "cat": "text_ask",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def int_ask(self, msg):
+    def int_ask(self, msg, **kwargs):
         self.q_out.put({
             "cat": "int_ask",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def md_show(self, msg):
+    def md_show(self, msg, **kwargs):
         self.q_out.put({
             "cat": "md_show",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def redirect(self, msg):
+    def redirect(self, msg, **kwargs):
         self.q_out.put({
             "cat": "redirect",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
 
-    def multi_choice(self, msg, options):
+    def multi_choice(self, msg, options, **kwargs):
         self.q_out.put({
             "cat": "multi_choice",
             "msg": msg,
-            "options": options
+            "options": options,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def single_choice(self, msg, options):
+    def single_choice(self, msg, options, **kwargs):
         self.q_out.put({
             "cat": "single_choice",
             "msg": msg,
-            "options": options
+            "options": options,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def drop_down_choice(self, msg, options):
+    def drop_down_choice(self, msg, options, **kwargs):
         self.q_out.put({
             "cat": "drop_down_choice",
             "msg": msg,
-            "options": options
+            "options": options,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
