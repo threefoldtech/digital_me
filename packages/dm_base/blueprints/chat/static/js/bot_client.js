@@ -165,7 +165,6 @@ var generateSlide = function(res) {
 
 	$(".btn-submit").on("click", function(ev){
         ev.preventDefault();
-        $(this).attr("disabled", "disabled");
 		let value="";
 		if (["string_ask", "int_ask", "text_ask", "password_ask", "drop_down_choice"].includes(res['cat'])) {
 			value = $("#value").val();
@@ -178,6 +177,19 @@ var generateSlide = function(res) {
             });
             value = JSON.stringify(values);
         }
+        // Validate the input
+        const errors = validate(value, res['kwargs']['validate']);
+        if (errors.length > 0){
+            var ul = $('<ul>');
+            $(errors).each(function(index, error) {
+                ul.append($('<li>').html(error));
+            });
+            $("#error").html(ul);
+            $("#error").removeClass("hidden");
+            return
+        }
+        $("#error").addClass("hidden");
+        $(this).attr("disabled", "disabled");
         $("#spinner").toggle();
         $(".form-box").toggle({"duration": 400});
 		client.base_chat.work_report(SESSIONID, value).then(function(res){

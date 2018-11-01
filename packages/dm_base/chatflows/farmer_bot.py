@@ -229,17 +229,17 @@ def chat(bot):
             "List countries": country_list,
             "List farmers": farmers_get,
             "Register a farmer": farmer_register,
-            # "Find a node": node_find,
             "Reserve vm": reserve_vm,
             "Register Domain": web_gateway_http_proxy_set,
             "List Domains": web_gateway_list_hosts,
             "Delete Domain": web_gateway_http_proxy_delete,
             "Register web gateway": web_gateway_register,
-            # "Reserve ZDB vm": zdb_reserve,
-            # "Reserve ZOS vm": zos_reserve
         }
         while True:
             choice = bot.single_choice("what do you want to do", [method for method in methods.keys()], reset=True)
-            methods[choice]()
+            try:
+                methods[choice]()
+            except Exception as e:
+                bot.md_show(str(e))
 
     main()
