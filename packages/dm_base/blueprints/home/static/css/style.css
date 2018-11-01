@@ -1,0 +1,92 @@
+body {
+    background-image: url(../img/vintage-blue-robot-portrait_4460x4460.jpg);
+    background-size: cover;
+    background-position: 50% 50%;
+    height: 100vh;
+}
+
+.intro {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    color: #fff;;
+
+}
+
+.intro h1 {
+    text-transform: capitalize;
+    font-size: 5em;
+    letter-spacing: 2px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+}
+
+.intro ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.intro ul li {
+    display: inline-block;
+    padding: 10px 5px;
+}
+
+.intro ul a {
+    text-decoration: none;
+    font-size: 1.5em;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 15px;
+    padding: 10px 30px;
+    transition: all .5s ease-in-out
+    
+}
+
+.intro ul a:hover {
+    background-color: #134457;
+    border: 2px solid transparent;
+
+}
+
+/* .intro {
+    background-image: url(../img/vintage-blue-robot-portrait_4460x4460.jpg);
+    background-size: cover;
+    background-position: 50% 70%;
+    min-height: 750px;
+    display: flex;
+    align-items: center
+}
+
+.intro-text h1 {
+    color: #134457;
+    font-size: 4em;
+    font-family: sans-serif;
+    font-weight: 900;
+}
+
+.links {
+    margin-top: 70px;
+}
+
+.links ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    justify-content: space-between;
+
+}
+
+.links ul a {
+    text-decoration: none;
+    font-size: 1.5em;
+    color: #134457;
+    padding: 10px 50px;
+    border-radius: 4px;
+    background-color: #a7bfc1;
+    transition: all .5s ease-in-out
+}
+
+.links ul a:hover {
+    background-color: #fff;
+} */
