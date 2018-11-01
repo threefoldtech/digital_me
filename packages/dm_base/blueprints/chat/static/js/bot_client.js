@@ -66,14 +66,15 @@ var multiChoiceGenerate = function(message, options, kwargs){
 var singleChoiceGenerate = function(message, options, kwargs){
     let choices = "";
     const classes = ["primary", "success", "danger", "warning", "info"];
-    let i = 0;
     $.each(options, function(i, value){
+        if(i >= classes.length){
+            i -= classes.length;
+        }
         choices += `
         <div class="funkyradio-${classes[i]}">
             <input type="radio" name="value" id="${value}" value="${value}"/>
             <label for="${value}">${value}</label>
         </div>`;
-        i += 1;
     });
     let contents = `
     <h4>${message}</h4>
@@ -155,9 +156,9 @@ var generateSlide = function(res) {
         <fieldset>
             <p id="error" class="red"></p>
 			${contents}
-			<div class="f1-buttons">
+			<span class="f1-buttons-right">
 				<button type="submit" class="btn btn-submit" required="true">Next</button>
-			</div>
+			</span>
 		</fieldset>`;
     $("#wizard").html(contents);
     $(".form-box").toggle({"duration": 400});
