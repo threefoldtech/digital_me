@@ -209,43 +209,33 @@ class Schema(JSBASE):
             raise RuntimeError("hash cannot be empty")
         return "f"+self.md5[1:16]  #first bit needs to be 1
 
-    def _code_template_render(self,**args):
-        tpath = "%s/templates/template_obj.py"%self._path
-        return j.tools.jinja2.file_render(tpath, write=False, dest=None, **args)
-
-    def _capnp_template_render(self,**args):
-        tpath = "%s/templates/schema.capnp"%self._path
-        return j.tools.jinja2.file_render(tpath, write=False, dest=None, **args)
-
-
-    @property
-    def code(self):
-        #make sure the defaults render
-        for prop in self.properties:
-            prop.default_as_python_code
-        for prop in self.lists:
-            prop.default_as_python_code
-        code = self._code_template_render(obj=self)
-        return code
-
-    @property
-    def capnp_schema_text(self):
-        return self._capnp_template_render(obj=self)
 
     @property
     def capnp_schema(self):
         if not self._capnp:
-            self._capnp =  j.data.capnp.getSchemaFromText(self.capnp_schema_text)
+            tpath = "%s/templates/schema.capnp"%self._path
+            capnp_schema_text =  j.tools.jinja2.template_render(path=tpath,reload=False,obj=self,objForHash=self.md5)
+            self._capnp =  j.data.capnp.getSchemaFromText(capnp_schema_text)
         return self._capnp
 
     @property
     def objclass(self):
         if self._obj_class is None:
-            url = self.url.replace(".","_")
-            path = j.sal.fs.joinPaths(j.data.schema.code_generation_dir, "%s.py" % url)
-            j.sal.fs.writeFile(path,self.code)
-            m=imp.load_source(name="url", pathname=path)
-            self._obj_class = m.ModelOBJ
+
+            if self.md5 in [None,""]:
+                raise RuntimeError("md5 cannot be None")
+
+            tpath = "%s/templates/template_obj.py"%self._path
+            #make sure the defaults render
+            for prop in self.properties:
+                prop.default_as_python_code
+            for prop in self.lists:
+                prop.default_as_python_code
+
+            self._obj_class =j.tools.jinja2.code_python_render( obj_key="ModelOBJ",
+                        path=tpath,obj=self,
+                        objForHash=self.md5)
+
         return self._obj_class
 
     def get(self,data=None,capnpbin=None):

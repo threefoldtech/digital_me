@@ -106,7 +106,7 @@ class DigitalMe(JSBASE):
 
     def test(self, zdb_start=False):
         """
-        js_shell 'j.servers.digitalme.test(zdb_start=False)'
+        js_shell 'j.servers.digitalme.test(zdb_start=True)'
         """
 
         if zdb_start:

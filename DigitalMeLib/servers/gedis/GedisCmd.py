@@ -120,11 +120,10 @@ class GedisCmd(JSBASE):
         is a real python method, can be called, here it gets loaded & interpreted
         """
         if self._method is None:
-            path = j.servers.gedis.code_generation_dir + "%s_%s.py" % (self.namespace,self.name)
-            code_runtime = j.tools.jinja2.file_render("%s/templates/actor_command_server.py"%j.servers.gedis.path,obj=self)
-            j.sal.fs.writeFile(path,code_runtime)
-            m=imp.load_source(name=self.namespace+"."+self.name, pathname=path)
-            self._method = m.action
+            j.shell()
+            self._method =j.tools.jinja2.code_python_render( obj_key="action",
+                                path="%s/templates/actor_command_server.py"%j.servers.gedis.path,obj=self,
+                                objForHash=self._data)
         return self._method
 
     def __repr__(self):
