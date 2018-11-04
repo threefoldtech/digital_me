@@ -8,5 +8,5 @@ blueprint = Blueprint(
     __name__,
     url_prefix="/",
     template_folder='templates',
-    static_folder='static'
+    static_folder='homestatic'
 )
