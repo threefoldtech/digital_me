@@ -7,10 +7,10 @@ from redis.connection import ConnectionError
 
 TEMPLATE = """
 host = "127.0.0.1"
-port = "9900"
+port = 9900  (I)
 namespace = "default"
 adminsecret_ = ""
-ssl = false
+ssl = False (B)
 sslkey = ""
 """
 
