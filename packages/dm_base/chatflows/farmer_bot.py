@@ -91,39 +91,45 @@ def chat(bot):
     def web_gateway_http_proxy_delete():
         web_gateways = gedis_client.farmer.web_gateways_get().res
         jwttoken = bot.string_ask("Please enter your JWT, "
-                                  "(click <a target='_blank' href='/client'>here</a> to get one)")
+                                  "(click <a target='_blank' href='/client'>here</a> to get one)",
+                                  validate={"required": True})
         web_gateway_name = bot.drop_down_choice("Choose the web gateway you need to delete your domain from: ",
                                                 [web_gateway.name for web_gateway in web_gateways])
         web_gateway = {}
         for gateway in web_gateways:
             if gateway.name == web_gateway_name:
                 web_gateway = gateway
-        rule_name = bot.string_ask("Enter the forwarding rule name that you have configured:")
+        rule_name = bot.string_ask("Enter the forwarding rule name that you have configured:",
+                                   validate={"required": True})
         gedis_client.farmer.web_gateway_delete_host(jwttoken, web_gateway=web_gateway, rule_name=rule_name)
 
     def web_gateway_http_proxy_set():
         web_gateways = gedis_client.farmer.web_gateways_get().res
         jwttoken = bot.string_ask("Please enter your JWT, "
-                                  "(click <a target='_blank' href='/client'>here</a> to get one)")
+                                  "(click <a target='_blank' href='/client'>here</a> to get one)",
+                                  validate={"required": True})
         web_gateway_name = bot.drop_down_choice("Choose the web gateway you need to add your domain to it: ",
-                                                [web_gateway.name for web_gateway in web_gateways])
+                                                [web_gateway.name for web_gateway in web_gateways],
+                                                validate={"required": True})
         web_gateway = {}
         for gateway in web_gateways:
             if gateway.name == web_gateway_name:
                 web_gateway = gateway
-        rule_name = bot.string_ask("Choose a forwarding rule name that you can refer to afterwards:")
+        rule_name = bot.string_ask("Choose a forwarding rule name that you can refer to afterwards:",
+                                   validate={"required": True})
         domains = bot.string_ask("Enter comma separated domains to configure "
-                                 "i.e. www.test.com,test.com")
+                                 "i.e. www.test.com,test.com", validate={"required": True})
         domains = [domain.strip() for domain in domains.split(",")]
         backends = bot.string_ask("Enter comma separated backends you need to point to: "
-                                  "i.e. http://192.168.1.1:8000,http://192.168.1.2:5000")
+                                  "i.e. http://192.168.1.1:8000,http://192.168.1.2:5000", validate={"required": True})
         backends = [backend.strip() for backend in backends.split(",")]
         gedis_client.farmer.web_gateway_add_host(jwttoken, web_gateway=web_gateway, rule_name=rule_name,
                                                  domains=domains, backends=backends)
 
     def web_gateway_list_hosts():
         jwttoken = bot.string_ask("Please enter your JWT, "
-                                  "(click <a target='_blank' href='/client'>here</a> to get one)")
+                                  "(click <a target='_blank' href='/client'>here</a> to get one)",
+                                  validate={"required": True})
         res = gedis_client.farmer.web_gateway_list_hosts(jwttoken).res
         report = """| Rule Name    |                Domains                       |             Backends                  |   Gateway    | 
 |:-------------:|:---------------------------------------:|:--------------------------------------------:|:-----------------------------:|  
@@ -136,13 +142,15 @@ def chat(bot):
 
     def web_gateway_register():
         jwttoken = bot.string_ask("Please enter your JWT, "
-                                  "(click <a target='_blank' href='/client'>here</a> to get one)")
-        etcd_host = bot.string_ask("Enter etcd ip:")
-        etcd_port = bot.string_ask("Enter etcd port:")
-        etcd_secret = bot.password_ask("Enter etcd secret:")
+                                  "(click <a target='_blank' href='/client'>here</a> to get one)",
+                                  validate={"required": True})
+        etcd_host = bot.string_ask("Enter etcd ip:", validate={"required": True})
+        etcd_port = bot.string_ask("Enter etcd port:",validate={"required": True})
+        etcd_secret = bot.password_ask("Enter etcd secret:", validate={"required": True})
         farmer_name = bot.drop_down_choice("choose farmer:", [farmer.name for farmer in farmers])
-        name = bot.string_ask("Enter gateway name:")
-        pubip4 = bot.string_ask("Enter comma separated public IPsV4 i.e. (192.168.20.3,192.168.30.3):")
+        name = bot.string_ask("Enter gateway name:", validate={"required": True})
+        pubip4 = bot.string_ask("Enter comma separated public IPsV4 i.e. (192.168.20.3,192.168.30.3):",
+                                validate={"required": True})
         pubip4 = [ip.strip() for ip in pubip4.split(",")] if pubip4 else []
         pubip6 = bot.string_ask("Enter comma separated public IPsV6 "
                                 "i.e. (0:0:0:0:0:ffff:c0a8:114,0:0:0:0:0:ffff:c0a8:115):")
