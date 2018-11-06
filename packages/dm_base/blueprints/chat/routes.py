@@ -20,7 +20,7 @@ def route_default():
 @blueprint.route('/session/<topic>')
 def route_chattopic(topic):
     # needs to return the session id
-    session_id = j.servers.gedis.latest.chatbot.session_new(topic)
+    session_id = j.servers.gedis.latest.chatbot.session_new(topic, **request.args)
     return render_template("chat_index.html", session_id=session_id)
 
 # @login_required

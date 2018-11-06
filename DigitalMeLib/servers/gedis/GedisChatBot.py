@@ -15,13 +15,13 @@ class GedisChatBotFactory(JSBASE):
         # self.chatflows_load()
         self.sessions_id_latest = 0
 
-    def session_new(self, topic):
+    def session_new(self, topic, **kwargs):
         """
         returns the last session id
         """
         self.sessions_id_latest += 1
         topic_method = self.chat_flows[topic]
-        bot = GedisChatBotSession(self.sessions_id_latest, topic_method)
+        bot = GedisChatBotSession(self.sessions_id_latest, topic_method, **kwargs)
         self.sessions[str(self.sessions_id_latest)] = bot
         return self.sessions_id_latest
 
@@ -54,12 +54,13 @@ class GedisChatBotFactory(JSBASE):
 
 
 class GedisChatBotSession(JSBASE):
-    def __init__(self, sessionid, topic_method):
+    def __init__(self, sessionid, topic_method, **kwargs):
         JSBASE.__init__(self)
         self.sessionid = sessionid
         self.q_out = gevent.queue.Queue()  # to browser
         self.q_in = gevent.queue.Queue()  # from browser
         self.greenlet = gevent.spawn(topic_method, bot=self)
+        self.kwargs = kwargs
 
     def string_ask(self, msg, **kwargs):
         self.q_out.put({
