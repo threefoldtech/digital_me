@@ -14,6 +14,7 @@ class ZOSVB(ZOS):
         ZOS.__init__(self,zosclient=zosclient,name=name)
         self._zos_private_address = None
         self.zos_private_address #make sure we know the private addr
+        self._type = 'vbox'
 
 
     @property
@@ -32,7 +33,7 @@ class ZOSVB(ZOS):
                 for nic in self.zosclient.client.info.nic():
                     if len(nic['addrs']) == 0:
                         continue
-                    if nic['addrs'][0]['addr'].startswith("192.168."):
+                    if nic['addrs'][0]['addr'].startswith("127.0.0.1"):
                         self._zos_private_address = nic['addrs'][0]['addr'].split('/')[0]
                         if not j.sal.nettools.pingMachine(self._zos_private_address):
                             raise RuntimeError("could not reach private addr:%s of VB ZOS"%self._zos_private_address)
@@ -55,18 +56,6 @@ class ZOSVB(ZOS):
         virtualbox client
         """
         return j.clients.virtualbox.client
-
-
-    # def client(self, node):
-    #     self.logger.debug("resolving private virtualbox address")
-    #
-    #     private = j.clients.virtualbox.zero_os_private_address(node)
-    #     self.logger.info("virtualbox machine private address: %s" % private)
-    #
-    #     node = j.clients.zos.get('builder_private', data={'host': private})
-    #     node.client.ping()
-    #
-    #     return node
 
     def __repr__(self):
         return "zosvb:%s" % self.name

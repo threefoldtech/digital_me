@@ -23,23 +23,6 @@ class Builder(JSBASE):
     def random_hostname(self):
         return random_hostname()
 
-    # def zos_client_get(self,name="builder"):
-    #     """
-    #     if vb is True then it means we will create the zos virtualmachine locally using virtualbox
-    #
-    #     js_shell 'j.tools.builder.zos_client_get(name="container")'
-    #
-    #     """
-    #     self.logger.info("zos client gent:%s"%name)
-    #     if name not in self._clients:
-    #         if name not in j.clients.zos.list():
-    #             raise RuntimeError("zos client not found for:%s"%bame)
-    #
-    #     # if not j.sal.nettools.tcpPortConnectionTest(cl.addr,cl.port,timeout=1) or not cl.is_running():
-    #         self._clients[name] = j.clients.zos.get(name)
-    #     return self._clients[name]
-
-
     def zos_iso_download(self, zerotierinstance="",overwrite=True):
 
         if zerotierinstance:
@@ -179,26 +162,15 @@ class Builder(JSBASE):
         self.vb_client.reset_all()
 
 
-    # def get(self,name="builder",zosclient=None):
-    #     if name not in self._containers:
-    #         node = j.tools.nodemgr.set(cat="container", name=name, sshclient=name, selected=False)
-    #         self.zos_vb_create(name="builder")
-    #         if not zosclient:
-    #             zosclient = self.zos_client_get()
-    #         self._containers[name]=ZOSContainer(zosclient=zosclient,node=node)
-    #     return self._containers[name]
-
-
     def test(self):
         """
         js_shell 'j.tools.builder.test()'
         """
         # self.zos_vb_delete_all()
         zos = self.zos_vb_get()
-        container = zos.container_get("builder", redis_port=8888) #default is the ub1804 flist
-        container.stop()
+        container = zos.container_get("builder2") #default is the ub1804 flist
         container.start()
-        rc,out,err = container.node.executor.execute("ls /")
-        assert "coreX\n" in out  #is a file on the root
+        res = container.container.system("ls /").get()
+        assert "coreX\n" in res.stdout  #is a file on the root
 
         # container.build_python_jumpscale()

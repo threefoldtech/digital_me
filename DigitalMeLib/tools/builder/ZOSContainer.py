@@ -32,7 +32,9 @@ class ZOSContainer(BASE):
         self.zos = zos
         self.zosclient = zos.zosclient
         # self._node = node
+        self._container_id = None
         self._container = None
+
         self._node_connected = False
         self._schema = j.data.schema.get(schema)
         self._redis_key="config:zos:container:%s"%name
@@ -40,7 +42,7 @@ class ZOSContainer(BASE):
         BASE.__init__(self,redis=zos._redis,name=name,schema=schema)
 
         self.model.flist = "https://hub.grid.tf/tf-bootable/ubuntu:18.04.flist"
-
+        self._create()
 
 
     @property
@@ -75,7 +77,7 @@ class ZOSContainer(BASE):
         self.api
 
     def stop(self):
-        self.api.stop()
+        self.zosclient.client.container.terminate(self._container_id)
 
     def _create(self):
         print('creating builder container...')
@@ -97,44 +99,68 @@ class ZOSContainer(BASE):
 
 
         def getAgentPublicKeys():
-            rc, keys = j.sal.process.execute('ssh-add -L', die=False)
+            rc, keys, _ = j.sal.process.execute('ssh-add -L', die=False)
             if rc == 0:
                 return keys
             return ""
-
-        keys = ""
 
         keys = getAgentPublicKeys()
         
         if keys == "":
             raise RuntimeError("couldn't find sshkeys in agent or in default paths [generate one with ssh-keygen]")
 
-        self._container = self.zosclient.container.create(name=self.name,
-                                        hostname=self.name,
-                                        flist=self.model.flist,
-                                        nics=self.nics,
-                                        ports={self.sshport: 22},
-                                        config={"/root/.ssh/authorized_keys":keys})
+        # zos client here is node client WHICH doesn't support config parameter.
+        try:
+            if self.zos._zostype == 'vbox':
+                self.model.sshport = self.sshport + 20
+                self.model_save()
+            self._container_id = self.zosclient.client.container.create(name=self.name,
+                                            hostname=self.name,
+                                            root_url=self.model.flist,
+                                            nics=self.nics,
+                                            port={self.model.sshport: 22},
+                                            config={"/root/.ssh/authorized_keys":keys}).get()
 
-        #TODO ONLY IF VBOX
-        self.zosclient.nft.open_port(self.sshport)
+            #TODO ONLY IF VBOX
+            self.zosclient.client.nft.open_port(self.model.sshport)
 
-        # RUN SSHD
-        container_client = self.zosclient.container.client(self._container)
-        print(container_client.system("service ssh start").get())
-        print(container_client.system("service ssh status").get())
+            # RUN SSHD
+            container_client = self.zosclient.client.container.client(self._container_id)
+            print(container_client.system("service ssh start").get())
+            print(container_client.system("service ssh status").get())
+        
+        except Exception as e:
+            print(self._container_id, e)
+            if self._container_id:
+                self.zosclient.client.container.terminate(self._container_id)
+            print(e)
+            if self.zos._zostype == 'vbox':
+                self.model.sshport = self.sshport - 20
+                self.model_save()
+            import sys
+            sys.exit()
 
 
-
-        info = self._container.info['container']
+        info = self.zosclient.client.container.list()[str(self._container_id)]['container']
         while "pid" not in info:
             time.sleep(0.1)
             self.logger.debug("waiting for container to start")
         self.model.pid = info["pid"]
-        self.model.container_id = info["id"]
+        self.model.container_id = str(self._container_id)
         self.model_save()
-        assert self._container.is_running()
+        assert self.zosclient.client.container.client(self._container_id).ping()
 
+    @property
+    def container(self):
+        if self._container is None:
+            try:
+                self._container = self.zosclient.client.container.client(self._container_id)
+            except:
+                self._create()
+                self._container = self.zosclient.client.container.client(self._container_id)
+            
+        return self._container
+    
     @property
     def info(self):
         # assert self.model.port == self.container.info
@@ -145,12 +171,8 @@ class ZOSContainer(BASE):
         """
         :return: zero-os container object
         """
-        if self._container is None:
-            if not self.name in [item.name for item in self.zosclient.containers.list()]:
-                self._create()
-            self._container = self.zosclient.containers.get(self.name)
-            assert self._container.is_running()
-        return self._container
+
+        return self.container
 
     @property
     def prefab(self):
@@ -173,7 +195,7 @@ class ZOSContainer(BASE):
                                           die=True, login="root",passwd='rooter',
                                           stdout=True, allow_agent=False, use_paramiko=True)
 
-            print("waiting for ssh to start for container:%s\n    (if the ZOS VM is new, will take a while, OS files are being downloaded)"%self.name)
+            print("waiting for ssh to start for container:%s\n (if the ZOS VM is new, will take a while, OS files are being downloaded)"%self.name)
             for i in range(50):
                 try:
                     res = sshclient.connect()
@@ -212,23 +234,17 @@ class ZOSContainer(BASE):
         return self._node
 
     @property
-    def zos_private_address(self):
-        """
-        """
-        return self.zos.zos_private_address
-
-    @property
     def sshport(self):
 
         #CHECK IF VBZOS if yes use port per SSH connection because is same ip addr
         #CHECK IF ZOS direct (no VB), then is zerotier addr with std ssh port...
-
-        if self.model.sshport == 0:
-            if self.zos.model.sshport_last==0:
-               self.zos.model.sshport_last=6000
-            else:
-                self.zos.model.sshport_last+=1
-            self.model.sshport = self.zos.model.sshport_last
+        if self.zos._zostype == 'vbox':
+            if self.model.sshport == 0:
+                if self.zos.model.sshport_last==0:
+                self.zos.model.sshport_last=6000
+                else:
+                    self.zos.model.sshport_last+=1
+                self.model.sshport = self.zos.model.sshport_last
 
         return self.model.sshport
 

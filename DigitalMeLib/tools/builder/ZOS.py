@@ -26,6 +26,7 @@ class ZOS(BASE):
             zosclient.ping()  # otherwise the redis client does not work
         self._redis_key="config:zos:%s"%name
         BASE.__init__(self,redis=self.zosclient.client._Client__redis,name=name,schema=schema)
+        self._zostype = 'zerotier'
 
 
     def container_get(self,name="builder",flist=""):
