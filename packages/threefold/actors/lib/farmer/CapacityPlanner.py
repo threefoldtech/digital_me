@@ -20,8 +20,8 @@ class CapacityPlanner(JSBASE):
 
     @staticmethod
     def get_3bot_robot():
-        if not '3bot' in j.clients.zrobot.robots:
-            j.clients.zrobot.get('3bot', data={'url':'http://172.30.132.0:6600'})
+        if '3bot' not in j.clients.zrobot.robots:
+            j.clients.zrobot.get('3bot', data={'url': 'http://172.30.132.0:6600'})
         return j.clients.zrobot.robots['3bot']
 
     @staticmethod
@@ -215,13 +215,13 @@ class CapacityPlanner(JSBASE):
         for domain in domains:
             domain_parts = domain.strip().split('.')
             for i, ip in enumerate(web_gateway['pubip4']):
-                key = "/hosts/{}/x{}".format("/".join(domain_parts[::-1]), i+1)
+                key = "/hosts/{}/x{}".format("/".join(domain_parts[::-1]), i + 1)
                 value = '{{"host":"{}","ttl":3600}}'.format(ip)
                 etcd_client.put(key, value)
 
         # register the domain for traefik use
         for i, backend in enumerate(backends):
-            backend_key = "/traefik/backends/{}/servers/server{}/url".format(rule_name, i+1)
+            backend_key = "/traefik/backends/{}/servers/server{}/url".format(rule_name, i + 1)
             backend_value = "http://{}".format(backend)
             etcd_client.put(backend_key, backend_value)
 
@@ -261,9 +261,9 @@ class CapacityPlanner(JSBASE):
         etcd_client.api.delete_prefix(frontend_key)
         return
 
-    def s3_reserve(self, name, management_network_id, size, farmer_name, data_shards=4, parity_shards=2,
+    def s3_reserve(self, name, management_network_id, size, farmer_name, zt_token, data_shards=4, parity_shards=2,
                    storage_type='ssd', minio_login='admin', minio_password='admin', ns_name='default',
-                   ns_password='password', zt_client='managementzt'):
+                   ns_password='password'):
         """
         reserve s3 storage
         :param name: s3 service name
@@ -277,13 +277,14 @@ class CapacityPlanner(JSBASE):
         :param minio_password: (default: 'admin')
         :param ns_name: namespace name (default: 'default')
         :param ns_password: namespace password (default: 'password')
-        :param zt_client: zerotier client instance name (default: 'managementzt')
+        :param zt_token: zerotier token
         :return:
         """
+        j.clients.zerotier.get(name, data={'token_': zt_token})
         data = {
             'mgmtNic': {
                 'id': management_network_id,
-                'ztClient': zt_client
+                'ztClient': name
             },
             'farmerIyoOrg': farmer_name,
             'minioPassword': minio_password,
@@ -295,9 +296,9 @@ class CapacityPlanner(JSBASE):
             'storageType': storage_type,
             'nsName': ns_name
         }
-        service = self.get_3bot_robot().services.find_or_create("github.com/threefoldtech/0-templates/s3_redundant/0.0.1",
-                                                           name, data)
+        service = self.get_3bot_robot().services.find_or_create(
+            "github.com/threefoldtech/0-templates/s3_redundant/0.0.1", name, data)
         service.schedule_action("install").wait(die=True)
         urls = service.schedule_action('urls').wait(die=True).res
-        #TODO: register these urls to webgateway
+        # TODO: register these urls to webgateway
         return urls

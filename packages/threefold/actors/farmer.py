@@ -439,8 +439,8 @@ class Farmer(JSBASE):
         out.res = new_gateway
         return out
 
-    def s3_reserve(self, name, management_network_id, size, farmer_name, data_shards, parity_shards,storage_type,
-                   minio_login, minio_password, ns_name, ns_password, zt_client, schema_out):
+    def s3_reserve(self, name, management_network_id, size, farmer_name, data_shards, parity_shards, storage_type,
+                   minio_login, minio_password, ns_name, ns_password, zt_token, schema_out):
         """
         ```in
         name = (S)
@@ -454,7 +454,7 @@ class Farmer(JSBASE):
         minio_password = "admin" (S)
         ns_name = "default" (S)
         ns_password = "password" (S)
-        zt_client = "managementzt"(S)
+        zt_token = (S)
         ```
 
         ```out
@@ -471,13 +471,15 @@ class Farmer(JSBASE):
         :param minio_password:
         :param ns_name:
         :param ns_password:
-        :param zt_client:
+        :param zt_token:
         :param schema_out:
         :return:
         """
-        result = self.capacity_planner.s3_reserve(name, management_network_id, size, farmer_name, data_shards, parity_shards,
-                                         storage_type,minio_login, minio_password,ns_name, ns_password, zt_client)
-
+        result = self.capacity_planner.s3_reserve(name=name, management_network_id=management_network_id, size=size,
+                                                  farmer_name=farmer_name, zt_token=zt_token, data_shards=data_shards,
+                                                  parity_shards=parity_shards, storage_type=storage_type,
+                                                  minio_login=minio_login, minio_password=minio_password,
+                                                  ns_name=ns_name, ns_password=ns_password)
         out = schema_out.new()
         out.res = str(result)
         return out

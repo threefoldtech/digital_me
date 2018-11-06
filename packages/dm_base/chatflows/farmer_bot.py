@@ -145,7 +145,7 @@ def chat(bot):
                                   "(click <a target='_blank' href='/client'>here</a> to get one)",
                                   validate={"required": True})
         etcd_host = bot.string_ask("Enter etcd ip:", validate={"required": True})
-        etcd_port = bot.string_ask("Enter etcd port:",validate={"required": True})
+        etcd_port = bot.string_ask("Enter etcd port:", validate={"required": True})
         etcd_secret = bot.password_ask("Enter etcd secret:", validate={"required": True})
         farmer_name = bot.drop_down_choice("choose farmer:", [farmer.name for farmer in farmers])
         name = bot.string_ask("Enter gateway name:", validate={"required": True})
@@ -208,23 +208,27 @@ def chat(bot):
             zos_reserve(jwt_token, node, vm_name, zerotier_token, memory=memory, cores=cores)
 
     def reserve_s3():
-        name = bot.string_ask("Please enter your s3 name")
-        zerotier_network = bot.string_ask("Enter the zerotier network id you need the s3 to join:")
-        size = bot.int_ask("Enter the total size of S3")
-        farmer_name = bot.single_choice("Select a farm to deploy s3 at", [farmer.name for farmer in farmers])
-        data_shard = bot.int_ask("How many data shard do you want to create")
-        parity_shards = bot.int_ask("how many parity shards you want to create")
-        storage_type = bot.single_choice("Select disk type", ['ssd', 'hdd'])
-        minio_login = bot.string_ask("Enter minio login name")
-        minio_password = bot.string_ask("Enter minio password")
-        ns_name = bot.string_ask("Enter namespace name")
-        ns_password = bot.string_ask("Enter namespace password")
+        name = bot.string_ask("Please enter your s3 name", validate={"required": True})
+        zerotier_token = bot.string_ask("Enter your zerotier token:", validate={"required": True})
+        zerotier_network = bot.string_ask("Enter the zerotier network id you need the s3 to join:",
+                                          validate={"required": True})
+        size = bot.int_ask("Enter the total size of S3 in GB", default=10, validate={"required": True})
+        farmer_name = bot.single_choice("Select a farm to deploy s3 at:", [farmer.iyo_org for farmer in farmers],
+                                        validate={"required": True})
+        data_shard = bot.int_ask("How many data shard do you want to create", default=4, validate={"required": True})
+        parity_shards = bot.int_ask("How many parity shards you want to create", default=2, validate={"required": True})
+        storage_type = bot.single_choice("Select disk type", ['ssd', 'hdd'], default='ssd', validate={"required": True})
+        minio_login = bot.string_ask("Enter minio login name", default="admin", validate={"required": True})
+        minio_password = bot.password_ask("Enter minio password", validate={"required": True, "length_min": 8})
+        ns_name = bot.string_ask("Enter namespace name", default="default", validate={"required": True})
+        ns_password = bot.password_ask("Enter namespace password", validate={"required": True, "length_min": 8})
         res = gedis_client.farmer.s3_reserve(name=name, management_network_id=zerotier_network, size=size,
-                                             farmer_name=farmer_name, data_shards=data_shard, parity_shards=parity_shards,
-                                             storage_type=storage_type, minio_login=minio_login, minio_password=minio_password,
+                                             farmer_name=farmer_name, data_shards=data_shard,
+                                             parity_shards=parity_shards, zerotier_token=zerotier_token,
+                                             storage_type=storage_type, minio_login=minio_login,
+                                             minio_password=minio_password,
                                              ns_name=ns_name, ns_password=ns_password).res
         bot.md_show(res)
-
 
     def get_gedis_client():
         global gedis_client, countries, farmers
