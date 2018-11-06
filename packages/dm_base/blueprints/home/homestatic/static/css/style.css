@@ -1,7 +1,8 @@
 body {
-    background-image: url(../img/vintage-blue-robot-portrait_4460x4460.jpg);
-    background-size: cover;
-    background-position: 50% 50%;
+    -webkit-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
+    -moz-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
+    -o-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
+    background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
     height: 100vh;
 }
 
@@ -9,16 +10,15 @@ body {
     display: flex;
     height: 100%;
     align-items: center;
-    color: #fff;;
-
+    color: #fff;
 }
 
 .intro h1 {
     text-transform: capitalize;
     font-size: 5em;
-    letter-spacing: 2px;
+    letter-spacing: -2px;
     font-family: 'Open Sans', sans-serif;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .intro ul {
@@ -39,54 +39,24 @@ body {
     border: 2px solid #fff;
     border-radius: 15px;
     padding: 10px 30px;
-    transition: all .5s ease-in-out
-    
+    -webkit-transition: all .4s ease-in-out;
+    -moz-transition: all .4s ease-in-out;
+    -o-transition: all .4s ease-in-out;
+    transition: all .4s ease-in-out;
 }
 
 .intro ul a:hover {
-    background-color: #134457;
+    background-color: #38afa7;
     border: 2px solid transparent;
-
 }
 
-/* .intro {
-    background-image: url(../img/vintage-blue-robot-portrait_4460x4460.jpg);
-    background-size: cover;
-    background-position: 50% 70%;
-    min-height: 750px;
-    display: flex;
-    align-items: center
+.intro-text p {
+    display: inline-block;
+    width: 40%;
 }
 
-.intro-text h1 {
-    color: #134457;
-    font-size: 4em;
-    font-family: sans-serif;
-    font-weight: 900;
+.intro-text img {
+    height: 300px;
+    display: block;
+    margin: 0 auto;
 }
-
-.links {
-    margin-top: 70px;
-}
-
-.links ul {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    justify-content: space-between;
-
-}
-
-.links ul a {
-    text-decoration: none;
-    font-size: 1.5em;
-    color: #134457;
-    padding: 10px 50px;
-    border-radius: 4px;
-    background-color: #a7bfc1;
-    transition: all .5s ease-in-out
-}
-
-.links ul a:hover {
-    background-color: #fff;
-} */
