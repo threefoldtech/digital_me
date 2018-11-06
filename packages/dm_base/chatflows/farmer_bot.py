@@ -207,6 +207,25 @@ def chat(bot):
         elif vm_type == "Zero OS":
             zos_reserve(jwt_token, node, vm_name, zerotier_token, memory=memory, cores=cores)
 
+    def reserve_s3():
+        name = bot.string_ask("Please enter your s3 name")
+        zerotier_network = bot.string_ask("Enter the zerotier network id you need the s3 to join:")
+        size = bot.int_ask("Enter the total size of S3")
+        farmer_name = bot.single_choice("Select a farm to deploy s3 at", [farmer.name for farmer in farmers])
+        data_shard = bot.int_ask("How many data shard do you want to create")
+        parity_shards = bot.int_ask("how many parity shards you want to create")
+        storage_type = bot.single_choice("Select disk type", ['ssd', 'hdd'])
+        minio_login = bot.string_ask("Enter minio login name")
+        minio_password = bot.string_ask("Enter minio password")
+        ns_name = bot.string_ask("Enter namespace name")
+        ns_password = bot.string_ask("Enter namespace password")
+        res = gedis_client.farmer.s3_reserve(name=name, management_network_id=zerotier_network, size=size,
+                                             farmer_name=farmer_name, data_shards=data_shard, parity_shards=parity_shards,
+                                             storage_type=storage_type, minio_login=minio_login, minio_password=minio_password,
+                                             ns_name=ns_name, ns_password=ns_password).res
+        bot.md_show(res)
+
+
     def get_gedis_client():
         global gedis_client, countries, farmers
         # Previously configured gedis clients
@@ -242,6 +261,7 @@ def chat(bot):
             "List Domains": web_gateway_list_hosts,
             "Delete Domain": web_gateway_http_proxy_delete,
             "Register web gateway": web_gateway_register,
+            "Reserve S3": reserve_s3,
         }
         while True:
             choice = bot.single_choice("what do you want to do", [method for method in methods.keys()], reset=True)

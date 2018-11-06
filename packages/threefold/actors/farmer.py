@@ -438,3 +438,46 @@ class Farmer(JSBASE):
         out = schema_out.new()
         out.res = new_gateway
         return out
+
+    def s3_reserve(self, name, management_network_id, size, farmer_name, data_shards, parity_shards,storage_type,
+                   minio_login, minio_password, ns_name, ns_password, zt_client, schema_out):
+        """
+        ```in
+        name = (S)
+        management_network_id = (S)
+        size = (I)
+        farmer_name = (S)
+        data_shards = 4 (I)
+        parity_shards = 2 (I)
+        storage_type = "ssd" (S)
+        minio_login = "admin (S)
+        minio_password = "admin" (S)
+        ns_name = "default" (S)
+        ns_password = "password" (S)
+        zt_client = "managementzt"(S)
+        ```
+
+        ```out
+        res = (S)
+        ```
+        :param name:
+        :param management_network_id:
+        :param size:
+        :param farmer_name:
+        :param data_shards:
+        :param parity_shards:
+        :param storage_type:
+        :param minio_login:
+        :param minio_password:
+        :param ns_name:
+        :param ns_password:
+        :param zt_client:
+        :param schema_out:
+        :return:
+        """
+        result = self.capacity_planner.s3_reserve(name, management_network_id, size, farmer_name, data_shards, parity_shards,
+                                         storage_type,minio_login, minio_password,ns_name, ns_password, zt_client)
+
+        out = schema_out.new()
+        out.res = str(result)
+        return out

@@ -19,6 +19,12 @@ class CapacityPlanner(JSBASE):
         return j.clients.zrobot.robots[node['node_zos_id']]
 
     @staticmethod
+    def get_3bot_robot():
+        if not '3bot' in j.clients.zrobot.robots:
+            j.clients.zrobot.get('3bot', data={'url':'http://172.30.132.0:6600'})
+        return j.clients.zrobot.robots['3bot']
+
+    @staticmethod
     def get_etcd_client(web_gateway):
         etcd_data = {
             "host": web_gateway['etcd_host'],
@@ -254,3 +260,44 @@ class CapacityPlanner(JSBASE):
         etcd_client.api.delete_prefix(backend_key)
         etcd_client.api.delete_prefix(frontend_key)
         return
+
+    def s3_reserve(self, name, management_network_id, size, farmer_name, data_shards=4, parity_shards=2,
+                   storage_type='ssd', minio_login='admin', minio_password='admin', ns_name='default',
+                   ns_password='password', zt_client='managementzt'):
+        """
+        reserve s3 storage
+        :param name: s3 service name
+        :param management_network_id: management zerotier network id
+        :param size: total s3 storage size in GB
+        :param farmer_name: the farmer to create the s3 on
+        :param data_shards: number of data shards (default: 4)
+        :param parity_shards: number of parity shards (default: 2)
+        :param storage_type: 'ssd' or 'hdd' (default: 'ssd')
+        :param minio_login: (default: 'admin')
+        :param minio_password: (default: 'admin')
+        :param ns_name: namespace name (default: 'default')
+        :param ns_password: namespace password (default: 'password')
+        :param zt_client: zerotier client instance name (default: 'managementzt')
+        :return:
+        """
+        data = {
+            'mgmtNic': {
+                'id': management_network_id,
+                'ztClient': zt_client
+            },
+            'farmerIyoOrg': farmer_name,
+            'minioPassword': minio_password,
+            'minioLogin': minio_login,
+            'dataShards': data_shards,
+            'parityShards': parity_shards,
+            'storageSize': size,
+            'nsPassowrd': ns_password,
+            'storageType': storage_type,
+            'nsName': ns_name
+        }
+        service = self.get_3bot_robot().services.find_or_create("github.com/threefoldtech/0-templates/s3_redundant/0.0.1",
+                                                           name, data)
+        service.schedule_action("install").wait(die=True)
+        urls = service.schedule_action('urls').wait(die=True).res
+        #TODO: register these urls to webgateway
+        return urls
