@@ -280,11 +280,13 @@ class CapacityPlanner(JSBASE):
         :param zt_token: zerotier token
         :return:
         """
-        j.clients.zerotier.get(name, data={'token_': zt_token})
+        robot = self.get_3bot_robot()
+        zt_data = {'token': zt_token}
+        robot.services.find_or_create(ZEROTIER_TEMPLATE, management_network_id, data=zt_data)
         data = {
             'mgmtNic': {
                 'id': management_network_id,
-                'ztClient': name
+                'ztClient': management_network_id
             },
             'farmerIyoOrg': farmer_name,
             'minioPassword': minio_password,
@@ -296,8 +298,7 @@ class CapacityPlanner(JSBASE):
             'storageType': storage_type,
             'nsName': ns_name
         }
-        service = self.get_3bot_robot().services.find_or_create(
-            "github.com/threefoldtech/0-templates/s3_redundant/0.0.1", name, data)
+        service = robot.services.find_or_create("github.com/threefoldtech/0-templates/s3_redundant/0.0.1", name, data)
         service.schedule_action("install").wait(die=True)
         urls = service.schedule_action('urls').wait(die=True).res
         # TODO: register these urls to webgateway

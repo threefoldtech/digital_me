@@ -210,7 +210,7 @@ def chat(bot):
 
     def reserve_s3():
         name = bot.string_ask("Please enter your s3 name", validate={"required": True})
-        zerotier_token = bot.string_ask("Enter your zerotier token:", validate={"required": True})
+        zt_token = bot.string_ask("Enter your zerotier token:", validate={"required": True})
         zerotier_network = bot.string_ask("Enter the zerotier network id you need the s3 to join:",
                                           validate={"required": True})
         size = bot.int_ask("Enter the total size of S3 in GB", default=10, validate={"required": True})
@@ -225,7 +225,7 @@ def chat(bot):
         ns_password = bot.password_ask("Enter namespace password", validate={"required": True, "length_min": 8})
         res = gedis_client.farmer.s3_reserve(name=name, management_network_id=zerotier_network, size=size,
                                              farmer_name=farmer_name, data_shards=data_shard,
-                                             parity_shards=parity_shards, zerotier_token=zerotier_token,
+                                             parity_shards=parity_shards, zt_token=zt_token,
                                              storage_type=storage_type, minio_login=minio_login,
                                              minio_password=minio_password,
                                              ns_name=ns_name, ns_password=ns_password).res
