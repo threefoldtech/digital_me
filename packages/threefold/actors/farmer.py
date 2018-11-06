@@ -362,7 +362,7 @@ class Farmer(JSBASE):
                 self.wgw_rule_model.delete(rule.id)
                 break
 
-    def farmer_register(self, jwttoken, farmername, email_addresses=None, mobile_numbers=None, pubkey=""):
+    def farmer_register(self, jwttoken, farmername, email_addresses=None, mobile_numbers=None, pubkey="", iyo_org=""):
         """
         ```in
         jwttoken = (S)
@@ -370,6 +370,7 @@ class Farmer(JSBASE):
         email_addresses = [] (LS)
         mobile_numbers = [] (LS)
         pubkey = "" (S)
+        iyo_org = "" (S)
         ```
 
         :param farmername: official farmer name as in tf-dir
@@ -377,6 +378,7 @@ class Farmer(JSBASE):
         :param mobile_numbers: comma separated list of mobile tel nr's (can be used for sms, ...)
         :param pubkey: pubkey of farmer
         :param description
+        :param iyo_org: itsyou.online organization name
         :return:
         """
         new_farmer = self.farmer_model.new()
@@ -384,6 +386,7 @@ class Farmer(JSBASE):
         new_farmer.emailaddr = email_addresses
         new_farmer.mobile = mobile_numbers
         new_farmer.pubkeys = pubkey
+        new_farmer.iyo_org = iyo_org
         self.farmer_model.set(new_farmer)
         return
 

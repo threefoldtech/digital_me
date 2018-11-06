@@ -29,6 +29,7 @@ def chat(bot):
         email_address = bot.string_ask("Enter farmer email:")
         mobile_number = bot.string_ask("Enter farmer mobile:")
         farmer_pub_key = bot.text_ask("Public key for the farmer:")
+        farmer_iyo = bot.string_ask("Enter IYO organization name:", validate={"required": True})
         gedis_client.farmer.farmer_register(jwttoken, farmer_name, email_addresses=[email_address],
                                             mobile_numbers=[mobile_number], pubkey=farmer_pub_key)
 
