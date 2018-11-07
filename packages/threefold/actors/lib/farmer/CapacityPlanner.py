@@ -300,6 +300,6 @@ class CapacityPlanner(JSBASE):
         }
         service = robot.services.find_or_create("github.com/threefoldtech/0-templates/s3_redundant/0.0.1", name, data)
         service.schedule_action("install").wait(die=True)
-        urls = service.schedule_action('urls').wait(die=True).res
+        urls = service.schedule_action('urls').wait(die=True).result
         # TODO: register these urls to webgateway
         return urls
