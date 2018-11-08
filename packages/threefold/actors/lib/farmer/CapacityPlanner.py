@@ -1,4 +1,5 @@
 from Jumpscale import j
+import uuid
 
 JSBASE = j.application.JSBaseClass
 VM_TEMPLATE = 'github.com/threefoldtech/0-templates/vm/0.0.1'
@@ -21,7 +22,7 @@ class CapacityPlanner(JSBASE):
     @staticmethod
     def get_3bot_robot():
         if '3bot' not in j.clients.zrobot.robots:
-            j.clients.zrobot.get('3bot', data={'url': 'http://172.30.132.0:6600'})
+            raise RuntimeError("You need to configure zrobot client for 3bot firstly")
         return j.clients.zrobot.robots['3bot']
 
     @staticmethod
@@ -283,6 +284,27 @@ class CapacityPlanner(JSBASE):
         robot = self.get_3bot_robot()
         zt_data = {'token': zt_token}
         robot.services.find_or_create(ZEROTIER_TEMPLATE, management_network_id, data=zt_data)
+
+        # This dirty hack is temporarily for authorizing zrobot into user's zt-network
+        robot_zos = j.clients.zos.get("robot_zos", data={"host": "172.18.0.1"})
+        for cont in robot_zos.containers.list():
+            if cont.name == "ubuntu-zrobot":
+                for nic in cont.client.zerotier.list():
+                    if nic['nwid'] == management_network_id:
+                        break
+                else:
+                    cont.add_nic({
+                        "type": "zerotier",
+                        "id": management_network_id,
+                        "name":  uuid.uuid4().hex[:8]})
+                    zt_client = j.clients.zerotier.get(management_network_id, data={'token_': zt_token})
+                    zt_identity = cont.client.zerotier.info()["publicIdentity"]
+                    zt_nw = zt_client.network_get(management_network_id)
+                    zt_nw.member_add(zt_identity)
+                break
+        else:
+            raise RuntimeError("No robot containers found")
+
         data = {
             'mgmtNic': {
                 'id': management_network_id,
