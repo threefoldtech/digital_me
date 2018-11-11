@@ -12,7 +12,7 @@ Jinja2==2.9.6
 MarkupSafe==1.0
 pytoml==0.1.14
 redis==2.10.6
-requests==2.18.2
+requests>=2.20.0
 simplegeneric==0.8.1
 six==1.10.0
 urllib3==1.22
