@@ -1,35 +1,11 @@
 from Jumpscale import j
 #GENERATED CODE, can now change
-
-
-SCHEMA="""
-@url = threefold.grid.webgateway
-name* = ""
-description = ""
-country = ""
-location = ""
-etcd_host = ""
-etcd_port = ""
-etcd_secret = ""
-node_id = ""
-farmer_id = (I)
-pubip4 = [] (LS)
-pubip6 = [] (LS)
-
-
-"""
 from peewee import *
 
-MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
-class BCDBModel2(MODEL_CLASS):
-    def __init__(self, bcdb):
+class threefold_grid_webgateway_index:
 
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.webgateway")
-        self.url = "threefold.grid.webgateway"
-        self._init()
-
-    def _init(self):
+    def _init_index(self):
         pass #to make sure works if no index
 
         db = self.bcdb.sqlitedb
@@ -41,11 +17,6 @@ class BCDBModel2(MODEL_CLASS):
         class Index_threefold_grid_webgateway(BaseModel):
             id = IntegerField(unique=True)
             name = TextField(index=True)
-
-        self.index = Index_threefold_grid_webgateway
-            
-        self.index.create_table()
-
 
         self.index = Index_threefold_grid_webgateway
         self.index.create_table()

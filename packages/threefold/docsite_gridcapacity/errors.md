@@ -580,3 +580,122 @@ link is empty, but url is:[...]()
 
 
 ```
+```
+## ERROR: readme
+
+- in doc: doc:readme:/Users/despiegk/code/github/threefoldtech/digital_me/packages/threefold/docsite_gridcapacity/README.md
+
+```python
+ERROR IN MACRO*** TODO: *1 ***
+macro:
+grid_node_show
+ERROR:
+COULD NOT FIND MACRO
+```
+
+
+
+
+```
+```
+## ERROR: readme
+
+- in doc: doc:readme:/Users/despiegk/code/github/threefoldtech/digital_me/packages/threefold/docsite_gridcapacity/README.md
+
+```python
+ERROR IN MACRO*** TODO: *1 ***
+macro:
+grid_node_show
+ERROR:
+COULD NOT FIND MACRO
+```
+
+
+
+
+```
+```
+## ERROR: readme
+
+- in doc: doc:readme:/Users/despiegk/code/github/threefoldtech/digital_me/packages/threefold/docsite_gridcapacity/README.md
+
+```python
+ERROR IN MACRO*** TODO: *1 ***
+macro:
+grid_node_show
+ERROR:
+COULD NOT FIND MACRO
+```
+
+
+
+
+```
+```
+## ERROR: readme
+
+- in doc: doc:readme:/Users/despiegk/code/github/threefoldtech/digital_me/packages/threefold/docsite_gridcapacity/README.md
+
+```python
+ERROR IN MACRO*** TODO: *1 ***
+macro:
+grid_node_show
+ERROR:
+COULD NOT FIND MACRO
+```
+
+
+
+
+```
+```
+## ERROR: readme
+
+- in doc: doc:readme:/Users/despiegk/code/github/threefoldtech/digital_me/packages/threefold/docsite_gridcapacity/README.md
+
+```python
+ERROR IN MACRO*** TODO: *1 ***
+macro:
+grid_node_show
+ERROR:
+COULD NOT FIND MACRO
+```
+
+
+
+
+```
+```
+## ERROR: readme
+
+- in doc: doc:readme:/Users/despiegk/code/github/threefoldtech/digital_me/packages/threefold/docsite_gridcapacity/README.md
+
+```python
+ERROR IN MACRO*** TODO: *1 ***
+macro:
+grid_node_show
+ERROR:
+COULD NOT FIND MACRO
+```
+
+
+
+
+```
+```
+## ERROR: readme
+
+- in doc: doc:readme:/Users/despiegk/code/github/threefoldtech/digital_me/packages/threefold/docsite_gridcapacity/README.md
+
+```python
+ERROR IN MACRO*** TODO: *1 ***
+macro:
+grid_node_show
+ERROR:
+COULD NOT FIND MACRO
+```
+
+
+
+
+```

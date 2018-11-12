@@ -57,21 +57,28 @@
                 </div>
                 <div class="row">
                     <div class="col-sm-12 col-md-12 col-lg-12 form-box">
-                        <form role="form" action="" method="post" class="f1">
-                    		<div class="f1-steps"></div>
+                        <form role="form" action="" method="GET" class="f1">
+                            <div class="f1-buttons-right">
+                                <button onClick="window.location.reload()" class="btn" style="color:grey">
+                                    <i class="fa fa-refresh"></i> Reset
+                                </button>
+                            </div>
+                    		<div class="f1-steps"></div><br>
+                            <div class="alert alert-danger text-left hidden" id="error"></div>
                     		<div id="wizard"></div>
                     	</form>
                     </div>
                 </div>
             </div>
         </div>
-        <script>var sessionid={{session_id}}</script>
+        <script>var SESSIONID={{session_id}}</script>
         <!-- Javascript -->
         <script src="/static/jquery/jquery.min.js"></script>
         <script src="/static/bootstrap3/js/bootstrap.min.js"></script>
         <script src="/static/jquery/jquery.backstretch.min.js"></script>
         <script src="/static/retina/retina.min.js"></script>
         <script src="/static/showdown/showdown.min.js"></script>
+        <script src="/chat/static/js/validators.js"></script>
         <script type="module" src="/chat/static/js/bot_client.js"></script>
         <script src="/chat/static/js/scripts.js"></script>
 

@@ -7,10 +7,10 @@ from redis.connection import ConnectionError
 
 TEMPLATE = """
 host = "127.0.0.1"
-port = 9900  (I)
+port = "9900" 
 namespace = "default"
 adminsecret_ = ""
-ssl = False (B)
+ssl = false
 sslkey = ""
 """
 
@@ -75,6 +75,7 @@ class GedisClient(JSConfigBase):
 
 
     def generate(self, reset=False):
+        self.models
 
     @property
     def models():
@@ -87,7 +88,7 @@ class GedisClient(JSConfigBase):
                 schemas_meta = self.redis.execute_command("core_schemas_get",self.namespace)
                 return schemas_meta
 
-            schemas_meta =
+            # schemas_meta =
 
             schemas_meta = j.data.serializers.msgpack.loads(schemas_meta)
             for key,txt in schemas_meta.items():

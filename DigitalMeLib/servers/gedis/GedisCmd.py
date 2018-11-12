@@ -42,8 +42,6 @@ class GedisCmd(JSBASE):
 
         self._method = None
 
-        # print(self.code_runtime)
-
 
 
     @property
@@ -96,6 +94,7 @@ class GedisCmd(JSBASE):
         t = self.args_client.strip(",")
         t = t.replace("False", "false")
         t = t.replace("True", "true")
+        t = t.replace("**", "...")
         t = t.replace("*", "...")
         if t.strip() == ",schema_out":
             return ""

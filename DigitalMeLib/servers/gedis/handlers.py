@@ -211,7 +211,7 @@ class Handler(JSBASE):
 
 
     def command_obj_get(self, namespace,actor, cmd):
-        self.logger.debug('(%s) command cache miss')
+        self.logger.debug('command cache miss:%s %s %s'%(namespace,actor,cmd))
 
 
         key="%s__%s"%(namespace,actor)

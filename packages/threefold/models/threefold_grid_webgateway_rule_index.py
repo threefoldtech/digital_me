@@ -1,29 +1,11 @@
 from Jumpscale import j
 #GENERATED CODE, can now change
-
-
-SCHEMA="""
-@url = threefold.grid.webgateway_rule
-rule_name = ""
-user* = ""
-domains = [] (LS)
-backends = [] (LS)
-webgateway_name = ""
-
-
-"""
 from peewee import *
 
-MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
-class BCDBModel2(MODEL_CLASS):
-    def __init__(self, bcdb):
+class threefold_grid_webgateway_rule_index:
 
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="threefold.grid.webgateway_rule")
-        self.url = "threefold.grid.webgateway_rule"
-        self._init()
-
-    def _init(self):
+    def _init_index(self):
         pass #to make sure works if no index
 
         db = self.bcdb.sqlitedb
@@ -35,11 +17,6 @@ class BCDBModel2(MODEL_CLASS):
         class Index_threefold_grid_webgateway_rule(BaseModel):
             id = IntegerField(unique=True)
             user = TextField(index=True)
-
-        self.index = Index_threefold_grid_webgateway_rule
-            
-        self.index.create_table()
-
 
         self.index = Index_threefold_grid_webgateway_rule
         self.index.create_table()

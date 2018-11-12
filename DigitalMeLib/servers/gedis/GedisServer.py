@@ -76,7 +76,7 @@ class GedisServer(StreamServer, JSConfigBase):
         if self.code_generated_dir not in sys.path:
             sys.path.append(self.code_generated_dir)
 
-        self.actors_add(namespace="system",path = "%s/systemactors" % j.servers.gedis.path)  # add the system actors
+        self.actors_add(namespace="system",path = "%s/systemactors" % j.servers.gedis._dirpath)  # add the system actors
 
 
         self._sig_handler.append(gevent.signal(signal.SIGINT, self.stop))
@@ -106,15 +106,15 @@ class GedisServer(StreamServer, JSConfigBase):
 
     #######################################CODE GENERATION
 
-    def code_generate_last_step(self):
+    def code_generate_webclient(self):
         # generate web client
         commands = []
         for key,cmds_ in self.cmds_meta.items():
             # if 'model_' in key:
             #     continue
             commands.append(cmds_)
-        self.code_js_client = j.tools.jinja2.file_render("%s/templates/client.js" % j.servers.gedis.path,
-                                                         commands=commands,write=False)
+        self.code_js_client = j.tools.jinja2.template_render("%s/templates/client.js" % j.servers.gedis._dirpath,
+                                                         commands=commands)
 
     ########################POPULATION OF SERVER#########################
 
@@ -136,10 +136,9 @@ class GedisServer(StreamServer, JSConfigBase):
             if reset or not j.sal.fs.exists(dest):
                 # find_args = ''.join(["{0}={1},".format(p.name, p.default_as_python_code) for p in table.schema.properties if p.index]).strip(',')
                 # kwargs = ''.join(["{0}={0},".format(p.name, p.name) for p in table.schema.properties if p.index]).strip(',')
-                j.tools.jinja2.file_render("%s/templates/actor_model_server.py"%(j.servers.gedis.path),
-                                                    dest=dest,bcdb=model.bcdb,
-                                                    schema=model.schema,model=model)
-
+                r = j.tools.jinja2.template_render(path="%s/templates/actor_model_server.py"%(j.servers.gedis._dirpath),
+                                                dest=dest, bcdb=model.bcdb,
+                                                schema=model.schema,model=model)
                 # self.logger.debug("cmds generated add:%s" % item)
                 self.actor_add(namespace=namespace, path=dest)
             self.schema_urls.append(model.schema.url)

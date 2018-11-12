@@ -304,7 +304,7 @@ class Package(JSBASE):
                 if "default" not in self.zdbclients:
                     raise RuntimeError("default zdb client not specified")
                 zdbclient = self.zdbclients["default"]
-            j.data.bcdb.bcdb_instances[self.namespace] = j.data.bcdb.get(name=self.namespace, zdbclient=zdbclient)
+            j.data.bcdb.bcdb_instances[self.namespace] = j.data.bcdb.new(name=self.namespace, zdbclient=zdbclient)
         bcdb = j.data.bcdb.bcdb_instances[self.namespace]
 
         for item in self.data.models:
@@ -331,7 +331,7 @@ class Package(JSBASE):
         # if self.namespace=="threefold":
         #     from pudb import set_trace; set_trace()
         for item in self.data.docmacros:
-            j.tools.docsites.macros_load(item.path)
+            j.tools.markdowndocs.macros_load(item.path)
 
     def actors_load(self):
         for item in self.data.actors:

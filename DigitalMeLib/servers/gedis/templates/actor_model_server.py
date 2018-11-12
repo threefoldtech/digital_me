@@ -45,7 +45,7 @@ class model_{{schema.name}}(JSBASE):
         else:
             return j.data.serializers.msgpack.dumps([obj.id,obj.data])
 
-    def find(self, total_items_in_page=20, page_number=1, only_fields=[]):
+    def find(self, total_items_in_page=20, page_number=1, only_fields=[], **args):
         #TODO:*1 what is this, who uses it?
         if isinstance(only_fields, bytes):
             import ast

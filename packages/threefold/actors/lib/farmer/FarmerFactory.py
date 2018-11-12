@@ -2,7 +2,9 @@ from Jumpscale import j
 from .CapacityPlanner import CapacityPlanner
 
 JSBASE = j.application.JSBaseClass
-DIR_ITEMS = j.clients.threefold_directory.capacity
+
+#CANNOT DO THIS !!!
+# DIR_ITEMS = j.clients.threefold_directory.capacity
 
 
 class Models:
@@ -22,9 +24,7 @@ class FarmerFactory(JSBASE):
         self.capacity_planner = CapacityPlanner()
 
         self._models = None
-        self.bcdb = j.data.bcdb.bcdb_instances.get('test', None)
-        if not self.bcdb:
-            self.bcdb = j.data.bcdb.get('test')
+        self.bcdb = j.data.bcdb.bcdb_instances.get('default')
 
     @property
     def zerotier_client(self):

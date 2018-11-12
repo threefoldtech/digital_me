@@ -17,7 +17,7 @@ lib/js/                     , {{BASE}}/modish/js/
 """
 
 def get_replace_list(replace_items):
-    replace_items = j.tools.jinja2.text_render(replace_items,BASE=BASE)
+    replace_items = j.tools.jinja2.template_render(text=replace_items,BASE=BASE)
     res=[]
     for line in replace_items.split("\n"):
         if line.strip()=="" or line.startswith("#"):

@@ -15,13 +15,13 @@ class GedisChatBotFactory(JSBASE):
         # self.chatflows_load()
         self.sessions_id_latest = 0
 
-    def session_new(self, topic):
+    def session_new(self, topic, **kwargs):
         """
         returns the last session id
         """
         self.sessions_id_latest += 1
         topic_method = self.chat_flows[topic]
-        bot = GedisChatBotSession(self.sessions_id_latest, topic_method)
+        bot = GedisChatBotSession(self.sessions_id_latest, topic_method, **kwargs)
         self.sessions[str(self.sessions_id_latest)] = bot
         return self.sessions_id_latest
 
@@ -54,75 +54,85 @@ class GedisChatBotFactory(JSBASE):
 
 
 class GedisChatBotSession(JSBASE):
-    def __init__(self, sessionid, topic_method):
+    def __init__(self, sessionid, topic_method, **kwargs):
         JSBASE.__init__(self)
         self.sessionid = sessionid
         self.q_out = gevent.queue.Queue()  # to browser
         self.q_in = gevent.queue.Queue()  # from browser
         self.greenlet = gevent.spawn(topic_method, bot=self)
+        self.kwargs = kwargs
 
-    def string_ask(self, msg):
+    def string_ask(self, msg, **kwargs):
         self.q_out.put({
             "cat": "string_ask",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def password_ask(self, msg):
+    def password_ask(self, msg, **kwargs):
         self.q_out.put({
             "cat": "password_ask",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def text_ask(self, msg):
+    def text_ask(self, msg, **kwargs):
         self.q_out.put({
             "cat": "text_ask",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def int_ask(self, msg):
+    def int_ask(self, msg, **kwargs):
         self.q_out.put({
             "cat": "int_ask",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def md_show(self, msg):
+    def md_show(self, msg, **kwargs):
         self.q_out.put({
             "cat": "md_show",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def redirect(self, msg):
+    def redirect(self, msg, **kwargs):
         self.q_out.put({
             "cat": "redirect",
-            "msg": msg
+            "msg": msg,
+            "kwargs": kwargs
         })
 
-    def multi_choice(self, msg, options):
+    def multi_choice(self, msg, options, **kwargs):
         self.q_out.put({
             "cat": "multi_choice",
             "msg": msg,
-            "options": options
+            "options": options,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def single_choice(self, msg, options):
+    def single_choice(self, msg, options, **kwargs):
         self.q_out.put({
             "cat": "single_choice",
             "msg": msg,
-            "options": options
+            "options": options,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 
-    def drop_down_choice(self, msg, options):
+    def drop_down_choice(self, msg, options, **kwargs):
         self.q_out.put({
             "cat": "drop_down_choice",
             "msg": msg,
-            "options": options
+            "options": options,
+            "kwargs": kwargs
         })
         return self.q_in.get()
 

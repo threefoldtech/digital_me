@@ -65,10 +65,6 @@ class GedisFactory(JSConfigBase):
         namespace, name = key.split("__")
         return GedisCmds(namespace=namespace,name=name, capnpbin=capnpbin)
 
-    @property
-    def path(self):
-        return j.sal.fs.getDirName(os.path.abspath(__file__))
-
     def test_server_start(self):
         """
         this method is only used when not used in digitalme
@@ -98,7 +94,7 @@ class GedisFactory(JSConfigBase):
         """
         js_shell 'j.servers.gedis.test(zdb_start=False)'
         """
-
+        raise RuntimeError()
         if zdb_start:
             # remove configuration of the gedis factory
             self.delete("test")

@@ -124,7 +124,8 @@ ul.navbar-nav {
 
 .f1 fieldset { text-align: left; }
 
-.f1-buttons { text-align: right; }
+.f1-buttons-right { text-align: right; float:right;}
+.f1-buttons-left { text-align: left;}
 
 .f1 .input-error { border-color: #f35b3f; }
 

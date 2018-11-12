@@ -1,27 +1,11 @@
 from Jumpscale import j
 #GENERATED CODE, can now change
-
-
-SCHEMA="""
-@url = digitalme.dnsrecord
-type = "" (S)   # A, AAAA, NS, MX, CNAME, TXT, PTR
-val = "" (S)
-
-
-
-"""
 from peewee import *
 
-MODEL_CLASS=j.data.bcdb.MODEL_CLASS
 
-class BCDBModel2(MODEL_CLASS):
-    def __init__(self, bcdb):
+class threefold_grid_reservation_index:
 
-        MODEL_CLASS.__init__(self, bcdb=bcdb, url="digitalme.dnsrecord")
-        self.url = "digitalme.dnsrecord"
-        self._init()
-
-    def _init(self):
+    def _init_index(self):
         pass #to make sure works if no index
 
         db = self.bcdb.sqlitedb
@@ -30,20 +14,25 @@ class BCDBModel2(MODEL_CLASS):
             class Meta:
                 database = db
 
-        class Index_digitalme_dnsrecord(BaseModel):
+        class Index_threefold_grid_reservation(BaseModel):
             id = IntegerField(unique=True)
+            threebot_id = TextField(index=True)
+            date_start = IntegerField(index=True)
+            date_end = IntegerField(index=True)
+            state = TextField(index=True)
+            node_id = IntegerField(index=True)
 
-        self.index = Index_digitalme_dnsrecord
-            
-        self.index.create_table()
-
-
-        self.index = Index_digitalme_dnsrecord
+        self.index = Index_threefold_grid_reservation
         self.index.create_table()
 
     
     def index_set(self,obj):
         idict={}
+        idict["threebot_id"] = obj.threebot_id
+        idict["date_start"] = obj.date_start
+        idict["date_end"] = obj.date_end
+        idict["state"] = obj.state
+        idict["node_id"] = obj.node_id
         idict["id"] = obj.id
         if not self.index.select().where(self.index.id == obj.id).count()==0:
             #need to delete previous record from index
