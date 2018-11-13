@@ -3,8 +3,6 @@ from .CapacityPlanner import CapacityPlanner
 
 JSBASE = j.application.JSBaseClass
 
-#CANNOT DO THIS !!!
-# DIR_ITEMS = j.clients.threefold_directory.capacity
 
 
 class Models:
@@ -25,6 +23,14 @@ class FarmerFactory(JSBASE):
 
         self._models = None
         self._bcdb = None
+        self._diritems_ = None
+
+    @property
+    def _diritems(self):
+        if self._diritems_ == None:
+            self._diritems_ = j.clients.threefold_directory.capacity
+        return self._diritems_
+
 
     @property
     def bcdb(self):
@@ -85,7 +91,7 @@ class FarmerFactory(JSBASE):
 
     @staticmethod
     def _tf_dir_node_find(ipaddr=None, node_id=None):
-        for item in DIR_ITEMS:
+        for item in self._diritems:
             if ipaddr and "robot_address" in item and ipaddr in item["robot_address"]:
                 return item
             if node_id and node_id.lower() == item['node_id'].lower():
@@ -123,7 +129,6 @@ class FarmerFactory(JSBASE):
         :param reset: reset saved node info
         :return: the populated node obj
         """
-        self._fail_save()
 
         if j.data.types.int.check(node):
             o = self.models.nodes.get(node)
