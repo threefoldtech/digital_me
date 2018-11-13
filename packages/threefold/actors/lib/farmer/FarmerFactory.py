@@ -89,16 +89,14 @@ class FarmerFactory(JSBASE):
         print("Found nr of nodes which can be managed over ZOS:%s" % nr_zos_sysadmin)
         return nr_zos_sysadmin
 
-    @staticmethod
-    def _tf_dir_node_find(ipaddr=None, node_id=None):
+    def _tf_dir_node_find(self,ipaddr=None, node_id=None):
         for item in self._diritems:
             if ipaddr and "robot_address" in item and ipaddr in item["robot_address"]:
                 return item
             if node_id and node_id.lower() == item['node_id'].lower():
                 return item
 
-    @staticmethod
-    def _ping(ipaddr):
+    def _ping(self,ipaddr):
         """
 
         :param ipaddr:
@@ -238,7 +236,7 @@ class FarmerFactory(JSBASE):
 
         o.update = j.data.time.epoch  # last time this check was done
 
-        o = self.models.nodes.set(o)
+        o.save()
 
         print(o)
 
