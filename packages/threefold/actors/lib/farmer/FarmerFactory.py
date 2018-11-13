@@ -24,7 +24,13 @@ class FarmerFactory(JSBASE):
         self.capacity_planner = CapacityPlanner()
 
         self._models = None
-        self.bcdb = j.data.bcdb.bcdb_instances.get('default')
+        self._bcdb = None
+
+    @property
+    def bcdb(self):
+        if self._bcdb is None:
+            self._bcdb = j.data.bcdb.get('default')
+        return self._bcdb
 
     @property
     def zerotier_client(self):
@@ -53,9 +59,8 @@ class FarmerFactory(JSBASE):
 
     @property
     def models(self):
-        if self.zdb is None:
-            raise RuntimeError("you need to set self.zdb with a zerodb connection")
         if self._models is None:
+            self.bcdb
             models_path = j.clients.git.getContentPathFromURLorPath(
                 "https://github.com/threefoldtech/digital_me/tree/development_simple_redisbcdb/packages/threefold/models")
             self.bcdb.models_add(models_path, overwrite=True)
@@ -272,7 +277,7 @@ class FarmerFactory(JSBASE):
                 if wallet_addr not in obj.wallets:
                     obj.wallets.append(wallet_addr)
             obj.iyo_org = farmer['iyo_organization']
-            self.models.farmers.set(obj)
+            obj.save()
 
     def node_get_from_zerotier(self, node_addr, return_none_if_not_exist=False):
         """
@@ -354,8 +359,10 @@ class FarmerFactory(JSBASE):
         :param reset:
         :return:
         """
-        self.zdb = j.clients.zdb.testdb_server_start_client_admin_get(reset=reset)
-        self._bcdb = j.data.bcdb.get('test', zdbclient=self.zdb, cache= not reset)  # to make sure we reset the index
+        zdbadmin =  j.clients.zdb.testdb_server_start_client_admin_get(reset=reset)
+        zdbclient = zdbadmin.namespace_new("tfdirectory")
+
+        self._bcdb = j.data.bcdb.new('default', zdbclient=zdbclient, cache= not reset)  # to make sure we reset the index
         self.farmers_load()
         self.zerotier_scan(reset=reset)
         # self.tf_dir_scan(reset=reset)

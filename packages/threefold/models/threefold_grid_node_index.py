@@ -7,11 +7,14 @@ class threefold_grid_node_index:
 
     def _init_index(self):
         pass #to make sure works if no index
+        self.logger.info("init index:%s"%self.schema.url)
 
         db = self.bcdb.sqlitedb
+        print(db)
 
         class BaseModel(Model):
             class Meta:
+                print("*%s"%db)
                 database = db
 
         class Index_threefold_grid_node(BaseModel):
@@ -36,7 +39,7 @@ class threefold_grid_node_index:
             update = IntegerField(index=True)
 
         self.index = Index_threefold_grid_node
-        self.index.create_table()
+        self.index.create_table(safe=True)
 
     
     def index_set(self,obj):
