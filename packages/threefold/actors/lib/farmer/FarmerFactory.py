@@ -367,5 +367,5 @@ class FarmerFactory(JSBASE):
 
         self._bcdb = j.data.bcdb.new('default', zdbclient=zdbclient, cache= not reset)  # to make sure we reset the index
         self.farmers_load()
-        self.zerotier_scan(reset=reset)
-        # self.tf_dir_scan(reset=reset)
+        # self.zerotier_scan(reset=reset)
+        self.tf_dir_scan(reset=reset)
