@@ -75,7 +75,9 @@ setup(
         'cryptocompare',
         'flask_login',
         'flask_sockets',
-        'dnslib'
+        'dnslib',
+        'graphene>=2.0',
+        'flask_graphql'
         # 'flask_sqlalchemy'
     ],
     cmdclass={
