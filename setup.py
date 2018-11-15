@@ -64,7 +64,7 @@ setup(
         'peewee>=2.9.2',
         'pudb>=2017.1.2',
         'pycapnp>=0.5.12',
-        'redis>=2.10.5',
+        'redis<3.0.0',
         'requests>=2.13.0',
         'toml>=0.9.2',
         'watchdog>=0.8.3',
