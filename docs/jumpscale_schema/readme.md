@@ -24,9 +24,8 @@ you can define the schema url like that.
 | Integer| I | can only be Integer numbers| 1, 2, 200, 1000 |
 | Float  | F | just like the primitive float | 1.123, 1.0, 100.99 |
 | Boolean| B | can only be True of False | True, False |
-| Date   | D | date | 20/11/2018, +4h. see [date supported formats]("#date_supported_formats")|
+| Date   | D | date | 20/11/2018, +4h. see [date supported formats](#date_supported_formats)|
 | Numeric| N | can store any numeric data including currencies | 1, 1.12, 10 USD, 90%, 10.5 EUR| 
-[comment]: <> (TODO: add the rest of suppoted types)
 
 
 ### <a name="date_supported_formats"></a> Date supported formats
