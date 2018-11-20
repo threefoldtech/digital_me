@@ -66,7 +66,7 @@ class GedisClientFactory(JSConfigBase):
         port=5000,
         secret="",
         namespace="default",
-        ssl=True,
+        ssl=False,
         ssl_cert_file="",
         reset=False, get=True
         ):

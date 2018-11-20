@@ -6,6 +6,7 @@ from gevent import monkey
 from .Community import Community
 from .ServerRack import ServerRack
 from .Package import  Package
+import time
 from gevent import event, sleep
 
 JSBASE = j.application.JSBaseClass
@@ -46,16 +47,21 @@ class DigitalMe(JSBASE):
         if p.name not in self.packages:
             self.packages[p.name]=p
 
-    def start(self,path="", name="test", zdbclients={}, adminsecret="123456", nssecret="1234"):
+    def start(self, addr="localhost",port=9900,namespace="digitalme", secret="1234",background=False):
         """
+
         examples:
 
         js_shell 'j.servers.digitalme.start()'
+        js_shell 'j.servers.digitalme.start(addr="localhost",port=9900,namespace="digitalme", secret="1234")'
 
-        path can be git url or path
+        :param addr: addr of starting zerodb namespace
+        :param port: port
+        :param namespace: name of the namespace
+        :param secret: the secret of the namespace
+        :return:
 
-        @PARAM if zdbclients is {} then will use j.clients.zdb.testdb_server_start_client_admin_get()
-                is dict with key = namespace, default will be used for each one where namespace not defined
+
         """
 
         def install_zrobot():
@@ -66,67 +72,88 @@ class DigitalMe(JSBASE):
             # means not installed yet
             install_zrobot()
 
-        if zdbclients == {}:
-            zdb_admin_client = j.clients.zdb.testdb_server_start_client_admin_get(secret=adminsecret)
-            zdb_admin_client.namespace_new("digitalme", secret=nssecret)
-            zdbclients["default"] = j.clients.zdb.client_get(nsname='digitalme', secret=nssecret)
+        if background:
 
-        if path is not "":
-            if not j.sal.fs.exists(path):
-                path = j.clients.git.getContentPathFromURLorPath(path)
+            cmd = "js_shell 'j.servers.digitalme.start(addr=\"%s\",port=%s,namespace=\"%s\", secret=\"%s\")'"%\
+                  (addr,port,namespace,secret)
+            print (cmd)
+            j.tools.tmux.execute(
+                cmd,
+                session='main',
+                window='digitalme',
+                pane='main',
+                session_reset=False,
+                window_reset=True
+            )
+            print ("wait till server started, will timeout in 25 sec max")
+            time.sleep(1)
+            assert j.sal.nettools.waitConnectionTest("localhost", 8000, timeoutTotal=25)
+            assert j.sal.nettools.waitConnectionTest("localhost", 8001, timeoutTotal=5)
+
+
+            gedisclient = j.clients.gedis.configure(namespace,namespace=namespace,port=8001,secret=secret,
+                                                        host="localhost")
+
+            j.shell()
+            w
+
+
         else:
+
+            monkey.patch_all(subprocess=False) #TODO: should try not to monkey patch, its not good practice at all
+            self.rack = self.server_rack_get()
+
+            geventserver = j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
+                                      adminsecret=secret, instance=namespace)
+            # configure a local webserver server (the master one)
+            j.servers.web.configure(instance=namespace, port=8000, port_ssl=0, host="0.0.0.0", secret=secret)
+
+            self.rack.add("gedis", geventserver.redis_server) #important to do like this, otherwise 2 servers started
+            self.rack.add("web", j.servers.web.geventserver_get(namespace))
+
+            #the core packages, always need to be loaded
             path = j.clients.git.getContentPathFromURLorPath(
-                "https://github.com/threefoldtech/digital_me/tree/development/packages")
+                    "https://github.com/threefoldtech/digital_me/tree/development/packages")
+            zdbclient = j.clients.zdb.client_get(nsname=namespace, addr=addr, port=port, secret=secret, mode='seq')
+            zdbclients = {"default":zdbclient}
+            self.packages_add(path,zdbclients=zdbclients)
 
-        monkey.patch_all(subprocess=False) #TODO: should try not to monkey patch, its not good practice at all
-        self.rack = self.server_rack_get()
+            j.servers.web.latest.loader.load() #loads the rules in the webserver (routes)
 
-        geventserver = j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
-                                  adminsecret=adminsecret, instance=name)
-        # configure a local webserver server (the master one)
-        j.servers.web.configure(instance=name, port=8000, port_ssl=0, host="0.0.0.0", secret=adminsecret)
-
-        self.rack.add("gedis", geventserver.redis_server) #important to do like this, otherwise 2 servers started
-        self.rack.add("web", j.servers.web.geventserver_get(name))
-
-        self.packages_add(path,zdbclients=zdbclients)
-
-        j.servers.web.latest.loader.load() #loads the rules in the webserver (routes)
-
-        self.rack.start()
+            self.rack.start()
 
     def server_rack_get(self):
 
         """
         returns a server rack
+
+        to start the server manually do:
+        js_shell 'j.servers.digitalme.start(namespace="test", secret="1234")'
+
         """
 
         return ServerRack()
 
 
-    def test(self, zdb_start=False):
+    def test(self):
         """
-        js_shell 'j.servers.digitalme.test(zdb_start=True)'
+        js_shell 'j.servers.digitalme.test()'
         """
 
-        if zdb_start:
-            cl = j.clients.zdb.testdb_server_start(start=True)  # starts & resets a zdb in seq mode with name test
+        def connect_manual():
+            namespace="test"
+            #if server manually started can use this
+            secret="1234"
+            gedisclient = j.clients.gedis.configure(namespace,namespace=namespace,port=8001,secret=secret,
+                                                        host="localhost")
+        connect_manual()
 
-        cmd = "js_shell 'j.servers.digitalme.start()'"
-        j.tools.tmux.execute(
-            cmd,
-            session='main',
-            window='digitalme_test',
-            pane='main',
-            session_reset=False,
-            window_reset=True
-        )
-        print ("wait till server started, will timeout in 25 sec max")
-        assert j.sal.nettools.waitConnectionTest("localhost", 8000, timeoutTotal=20)
-        assert j.sal.nettools.waitConnectionTest("localhost", 8001, timeoutTotal=5)
+        admincl = j.clients.zdb.testdb_server_start_client_admin_get()  # starts & resets a zdb in seq mode with name test
+        cl = admincl.namespace_new("test",secret="1234")
 
-        #now means the server is up and running
 
-        # gedisclient = j.clients.gedis.configure("test",namespace="system",port=8001,secret="1234",host="localhost")
-        # j.shell()
-        #
+        #gclient will be gedis client
+        gcl = self.start(addr=cl.addr,port=cl.port,namespace=cl.nsname, secret=cl.secret,background=True)
+
+
+        j.shell()

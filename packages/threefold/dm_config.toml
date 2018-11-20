@@ -1,28 +1,20 @@
 
-enable = true
-namespace = "default"
-
-[[docsite]]
+[[docsites_loader]]
 name = "foundation"
-url = "https://github.com/threefoldfoundation/info_foundation/blob/development"
-publish = "/foundation"
+giturl = "https://github.com/threefoldfoundation/info_foundation/blob/development"
 
-[[docsite]]
+[[docsites_loader]]
 name = "grid"
-url = "https://github.com/threefoldfoundation/info_grid/blob/development"
-publish = "/grid"
+giturl = "https://github.com/threefoldfoundation/info_grid/blob/development"
 
-[[docsite]]
+[[docsites_loader]]
 name = "tokens"
-url = "https://github.com/threefoldfoundation/info_tokens/blob/development"
-publish = "/tokens"
+giturl = "https://github.com/threefoldfoundation/info_tokens/blob/development"
 
-[[docsite]]
+[[docsites_loader]]
 name = "tech"
-url = "https://github.com/threefoldfoundation/info_tech/blob/development"
-publish = "/tech"
+giturl = "https://github.com/threefoldfoundation/info_tech/blob/development"
 
-[[docsite]]
+[[docsites_loader]]
 name = "tools"
-url = "https://github.com/threefoldfoundation/info_tools/blob/master"
-publish = "/tools"
+giturl = "https://github.com/threefoldfoundation/info_tools/blob/master"

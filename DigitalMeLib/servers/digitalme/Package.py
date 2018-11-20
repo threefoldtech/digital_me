@@ -4,137 +4,99 @@ import sys
 from importlib import import_module
 
 SCHEMA_PACKAGE = """
-@url = jumpscale.digitalme.package
-enabled = false (B)
-start = 0 (D)
-path = "" (S)
-namespace = "" (S)
-docsites = (LO) !jumpscale.digitalme.package.docsite
-blueprints = (LO) !jumpscale.digitalme.package.blueprints
-actors = (LO) !jumpscale.digitalme.package.actors
-chatflows = (LO) !jumpscale.digitalme.package.chatflow
-recipes = (LO) !jumpscale.digitalme.package.recipes
-docmacros = (LO) !jumpscale.digitalme.package.docmacros
-zrbotrepos = (LO) !jumpscale.digitalme.package.zrbotrepos
-models = (LO) !jumpscale.digitalme.package.models
-doc_macros = (LO) !jumpscale.digitalme.package.docmacros
+@url =  jumpscale.digitalme.package
+name = "UNKNOWN" (S)           #official name of the package, there can be no overlap (can be dot notation)
+enable = true (B)
+args = (LO) !jumpscale.digitalme.package.arg
+actors_loader= (LO) !jumpscale.digitalme.package.items_loader
+actors = (LO) !jumpscale.digitalme.package.item
+docsites_loader= (LO) !jumpscale.digitalme.package.items_loader
+docsites = (LO) !jumpscale.digitalme.package.item
+blueprints_loader= (LO) !jumpscale.digitalme.package.items_loader
+blueprints = (LO) !jumpscale.digitalme.package.item
+links = (LO) !jumpscale.digitalme.package.link
+chatflows_loader= (LO) !jumpscale.digitalme.package.items_loader
+chatflows = (LO) !jumpscale.digitalme.package.item
+schemas_loader= (LO) !jumpscale.digitalme.package.items_loader
+schemas = (LO) !jumpscale.digitalme.package.item
+recipes_loader= (LO) !jumpscale.digitalme.package.items_loader
+recipes = (LO) !jumpscale.digitalme.package.item
+zrobot_repos_loader= (LO) !jumpscale.digitalme.package.items_loader
+docmacros_loader= (LO) !jumpscale.digitalme.package.items_loader
+docmacros = (LO) !jumpscale.digitalme.package.item
+configobjects_loader= (LO) !jumpscale.digitalme.package.items_loader
+configobjects = (LO) !jumpscale.digitalme.package.item
 
-@url = jumpscale.digitalme.package.docsite
-name = "" (S)
-url = "" (S)
-path = "" (S)
-publish = "" (S)
-enabled = false (B)
 
-@url = jumpscale.digitalme.package.blueprints
-name = "" (S)
-url = "" (S)
-path = "" (S)
-publish = (B)
-enabled = false (B)
-links = (LO) !jumpscale.digitalme.package.bp.link
 
-@url = jumpscale.digitalme.package.bp.link
-name = "" (S)
-url = "" (S)
+@url =  jumpscale.digitalme.package.arg
+key = "" (S)
+val =  "" (S)
+
+@url =  jumpscale.digitalme.package.items_loader
+giturl =  "" (S)
+enable = true (B)
+
+@url =  jumpscale.digitalme.package.item
+instance = "" (S)
+prefix = "" (S)
+path = "" (S)
+enable = true (B)
+
+@url =  jumpscale.digitalme.package.link
+giturl =  "" (S)
 dest = "" (S)
-enabled = false (B)
+enable = true (B)
 
-@url = jumpscale.digitalme.package.actors
-name = "" (S)
-url = "" (S)
-path = "" (S)
-enabled = false (B)
 
-@url = jumpscale.digitalme.package.chatflow
-name = "" (S)
-url = "" (S)
-path = "" (S)
-enabled = false (B)
-
-@url = jumpscale.digitalme.package.recipes
-name = "" (S)
-url = "" (S)
-path = "" (S)
-enabled = false (B)
-
-@url = jumpscale.digitalme.package.docmacros
-name = "" (S)
-url = "" (S)
-path = "" (S)
-enabled = false (B)
-
-@url = jumpscale.digitalme.package.zrbotrepo
-name = "" (S)
-url = "" (S)
-path = "" (S)
-enabled = false (B)
-
-@url = jumpscale.digitalme.package.models
-name = "" (S)
-url = "" (S)
-path = "" (S)
-enabled = false (B)
+##ENDSCHEMA
 
 """
 
 TOML_KEYS_ALIASES = {}
-TOML_KEYS_ALIASES["enable"] = "enabled"
-TOML_KEYS_ALIASES["active"] = "enabled"
+TOML_KEYS_ALIASES["enabled"] = "enable"
+TOML_KEYS_ALIASES["active"] = "enable"
 
+TOML_KEYS = ["docsites","blueprints","chatflows","actors","schemas","recipes","docmacros","links","zrobot_repos","configobjects"]
 
 class Package(JSBASE):
-    def __init__(self,path,zdbclients={}):
+    def __init__(self,bcdb):
         JSBASE.__init__(self)
 
-        self.zdbclients = zdbclients
-
-        #SOMEWHERE IN FUTURE WE WILL HAVE TO STORE THE MODELS IN OWN ZDB
-        # self._bcdb_core = j.data.bcdb.get(j.core.db,namespace="system") #get system namespace for own metadata
-        # self._bcdb_core.model_create(schema=SCHEMA_PACKAGE)
-        # self._model = self._bcdb_core.model_get(url="jumpscale.digitalme.package")
-
+        self.bcdb = bcdb
         s=j.data.schema.get(SCHEMA_PACKAGE)
         self.data = s.new()
-        self.data.path = j.sal.fs.getDirName(path)
+        self._loaded = [] #key is processed by j.core.text.strip_to_ascii_dense
 
-        data = j.data.serializers.toml.load(path)  #path is the toml file
+    def _error_raise(self,msg,path=""):
+        msg = "ERROR in package:%s\n"%self.data.name
+        if path!="":
+            msg+="path:%s\n"%path
+        msg+= "%s\n"%msg
+        raise RuntimeError(msg)
 
-        self.data.namespace = data.get("namespace","default")  #fall back on default value "default" for the namespace
 
-        #each package is part of a namespace
 
-        #be flexible
-        #std value is False
-        if "enable" in data:
-            self.data.enabled =data["enable"]
-        elif "enabled" in data:
-            self.data.enabled =data["enabled"]
-        elif "active" in data:
-            self.data.enabled =data["active"]
+    def load(self):
+        """
+        the loaders are there to find more info & include it
+        this loader will make sure the directories are pulled in from github & info inside processed
+        :return:
+        """
 
-        self.data.name = j.sal.fs.getBaseName(self.path)
+        j.shell()
 
-        def find_sub_dir(cat):
-            cat = cat.rstrip("s")
-            dir_items = j.sal.fs.listDirsInDir(self.path, False, True)
-            cat=cat.lower()
-            # if self.data.name == "examples" and cat=="docsites":
-            #     from pudb import set_trace; set_trace()
-            res = []
-            for item in dir_items:
 
-                #all elements to check against, category without s, with s, before_
-                tocheck = [item.lower(), item.lower().rstrip("s")]
-                if "_" in item:
-                    item1 = item.split("_",1)[0]
-                    tocheck.append(item1.lower())
-                    tocheck.append(item1.lower().rstrip("s"))
-
-                for checkitem in tocheck:
-                    if checkitem==cat:
-                        res.append(j.sal.fs.joinPaths(self.path, item))
-            return res
+    def toml_add(self,path,category="schema"):
+        if not j.sal.fs.exists(path):
+            self._error_raise("cannot find toml path",path=path)
+        #just to check that the toml is working
+        try:
+            data = j.data.serializers.toml.load(path)
+        except Exception as e:
+            j.shell()
+            self._error_raise("toml syntax error",path=path)
+        j.shell()
 
         def get_toml_section(tomldata,cat):
             tocheck = [cat,  cat.lower(),  cat.rstrip("s"), cat.lower().rstrip("s")]
@@ -143,68 +105,118 @@ class Package(JSBASE):
                     return data[itemtocheck]
 
 
-        #walk over all sections in the toml file
-        for cat in ["docsites","blueprints","chatflows","actors","models","recipes","docmacros","blueprint_links"]:
 
-            for subdirpath in  find_sub_dir(cat):
-                #we found a subdir which is related to the category
-                subdirname = j.sal.fs.getBaseName(subdirpath.rstrip("/"))
-                if "_" in subdirname:
-                    name=subdirname.split("_",1)[1]
-                else:
-                    name="main"
-                obj = self.obj_get(cat=cat, name=name)
-                #now we have the relevant data obj
-                obj.path = subdirpath
-                obj.name = name
-                obj.enabled = True
+    def path_scan(self,path):
 
-            tomlsub = get_toml_section(data, cat)
-            if tomlsub is not None:
-                #we found the subsection in toml
+        path_norm = j.core.text.strip_to_ascii_dense(path)
+        if path_norm not in self._loaded:
 
-                for item in tomlsub:
-                    if "name" not in item:
-                        name = "main"
+            j.shell()
+
+            # self.data.path = j.sal.fs.getDirName(path)
+
+            data = j.data.serializers.toml.load(path)  #path is the toml file
+
+            self.data.namespace = data.get("namespace","default")  #fall back on default value "default" for the namespace
+
+            #each package is part of a namespace
+
+            #be flexible
+            #std value is False
+            if "enable" in data:
+                self.data.enable =data["enable"]
+            elif "enable" in data:
+                self.data.enable =data["enable"]
+            elif "active" in data:
+                self.data.enable =data["active"]
+
+            self.data.name = j.sal.fs.getBaseName(self.path)
+
+            def find_sub_dir(cat):
+                cat = cat.rstrip("s")
+                dir_items = j.sal.fs.listDirsInDir(self.path, False, True)
+                cat=cat.lower()
+                # if self.data.name == "examples" and cat=="docsites":
+                #     from pudb import set_trace; set_trace()
+                res = []
+                for item in dir_items:
+
+                    #all elements to check against, category without s, with s, before_
+                    tocheck = [item.lower(), item.lower().rstrip("s")]
+                    if "_" in item:
+                        item1 = item.split("_",1)[0]
+                        tocheck.append(item1.lower())
+                        tocheck.append(item1.lower().rstrip("s"))
+
+                    for checkitem in tocheck:
+                        if checkitem==cat:
+                            res.append(j.sal.fs.joinPaths(self.path, item))
+                return res
+
+
+
+            #walk over all sections in the toml file
+            for cat in ["docsites","blueprints","chatflows","actors","models","recipes","docmacros","links"]:
+
+                for subdirpath in  find_sub_dir(cat):
+                    #we found a subdir which is related to the category
+                    subdirname = j.sal.fs.getBaseName(subdirpath.rstrip("/"))
+                    if "_" in subdirname:
+                        name=subdirname.split("_",1)[1]
                     else:
-                        name = item["name"]
-                    if cat == 'blueprint_links':
-                        self._process_link("main",item)
-                    else:
-                        obj = self.obj_get(cat, name)
-                        obj.name = name
-                        if "path" in item:
-                            obj.path = item["path"]
-                        elif "url" in item:
-                            obj.path = j.clients.git.getContentPathFromURLorPath(item["url"])
-                            obj.url = item["url"]
+                        name="main"
+                    obj = self.obj_get(cat=cat, name=name)
+                    #now we have the relevant data obj
+                    obj.path = subdirpath
+                    obj.name = name
+                    obj.enable = True
+
+                tomlsub = get_toml_section(data, cat)
+                if tomlsub is not None:
+                    #we found the subsection in toml
+
+                    for item in tomlsub:
+                        if "name" not in item:
+                            name = "main"
                         else:
-                            raise RuntimeError("did not find path or url in %s,%s" % (item, self))
-                        #now look for keys in the toml item out of default, need to add those too
-                        for key in item.keys():
-                            if key not in ["path","name","url"]:
-                                key2 = self._key_toml(key)
-                                obj._changed_items[key2] = item[key]
-                                # obj._data
+                            name = item["name"]
+                        if cat == 'blueprint_links':
+                            self._process_link("main",item)
+                        else:
+                            obj = self.obj_get(cat, name)
+                            obj.name = name
+                            if "path" in item:
+                                obj.path = item["path"]
+                            elif "url" in item:
+                                obj.path = j.clients.git.getContentPathFromURLorPath(item["url"])
+                                obj.giturl =  item["url"]
+                            else:
+                                raise RuntimeError("did not find path or url in %s,%s" % (item, self))
+                            #now look for keys in the toml item out of default, need to add those too
+                            for key in item.keys():
+                                if key not in ["path","name","url"]:
+                                    key2 = self._key_toml(key)
+                                    obj._changed_items[key2] = item[key]
+                                    # obj._data
 
 
-        # if "blueprint_links" in data:
-        #     for item in data["blueprint_links"]:
-        #         j.shell()
-        #         w
-        #         staticpath = j.clients.git.getContentPathFromURLorPath(
-        #             "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static")
-        #
-        #         # create link to static dir on jumpscale web libs
-        #         localstat_path = "%s/static" % j.sal.fs.getDirName(__file__)
-        #         # j.sal.fs.remove(localstat_path)
-        #         j.sal.process.execute("rm -f %s" % localstat_path)  # above does not work if link is broken in advance
-        #         j.sal.fs.symlink(staticpath, localstat_path, overwriteTarget=True)
+            # if "blueprint_links" in data:
+            #     for item in data["blueprint_links"]:
+            #         j.shell()
+            #         w
+            #         staticpath = j.clients.git.getContentPathFromURLorPath(
+            #             "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static")
+            #
+            #         # create link to static dir on jumpscale web libs
+            #         localstat_path = "%s/static" % j.sal.fs.getDirName(__file__)
+            #         # j.sal.fs.remove(localstat_path)
+            #         j.sal.process.execute("rm -f %s" % localstat_path)  # above does not work if link is broken in advance
+            #         j.sal.fs.symlink(staticpath, localstat_path, overwriteTarget=True)
 
 
-        if self.data.enabled:
-            #only when enabled load the stuff in mem
-            self.load()
+            if self.data.enable:
+                #only when enable load the stuff in mem
+                self.load()
 
 
 
@@ -224,8 +236,8 @@ class Package(JSBASE):
         sobj = obj.links.new()
         target = j.sal.fs.joinPaths(obj.path,toml["name"],toml["dest"])
         sobj.dest = target
-        sobj.url = toml["url"]
-        sobj.enabled = True
+        sobj.giturl =  toml["url"]
+        sobj.enable = True
         j.sal.fs.symlink(path, target, overwriteTarget=True)
 
 
@@ -320,7 +332,7 @@ class Package(JSBASE):
 
     def blueprints_load(self):
         for blueprint in self.data.blueprints:
-            if blueprint.enabled:
+            if blueprint.enable:
                 j.servers.web.latest.loader.paths.append(blueprint.path)
 
     def docsites_load(self):

@@ -76,6 +76,7 @@ setup(
         'flask_login',
         'flask_sockets',
         'dnslib',
+        'pycountry',
         'graphene>=2.0',
         'flask_graphql'
         # 'flask_sqlalchemy'
