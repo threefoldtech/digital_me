@@ -209,22 +209,39 @@ def chat(bot):
             zos_reserve(jwt_token, node, vm_name, zerotier_token, memory=memory, cores=cores)
 
     def reserve_s3():
+        farmer_name = 'bancadati.threefold.grid.farm01'
+        storage_type = 'hdd'
+        data_plans = {
+            "plan 1 (1 data shard and 1 parity shard)":
+                {
+                    "data_shards": 1,
+                    "parity_shards": 1,
+                },
+            "plan 2  (1 data shard and 1 parity shard)":
+                {
+                    "data_shards": 4,
+                    "parity_shards": 2
+                }
+        }
+        # generate random namespace login and password
+        ns_name = j.data.idgenerator.generateXCharID(8)
+        ns_password = j.data.idgenerator.generateXCharID(16)
+
+
         name = bot.string_ask("Please enter your s3 name", validate={"required": True})
         zt_token = bot.string_ask("Enter your zerotier token:", validate={"required": True})
         zerotier_network = bot.string_ask("Enter the zerotier network id you need the s3 to join:",
                                           validate={"required": True})
         size = bot.int_ask("Enter the total size of S3 in GB", default=10, validate={"required": True})
-        farmer_name = bot.single_choice("Select a farm to deploy s3 at:", [farmer.iyo_org for farmer in farmers],
-                                        validate={"required": True})
-        data_shard = bot.int_ask("How many data shard do you want to create", default=4, validate={"required": True})
-        parity_shards = bot.int_ask("How many parity shards you want to create", default=2, validate={"required": True})
-        storage_type = bot.single_choice("Select disk type", ['ssd', 'hdd'], default='ssd', validate={"required": True})
+
+        plan = bot.single_choice("Choose a plan", data_plans.keys())
+        data_shards = data_plans[plan]['data_shards']
+        parity_shards = data_plans[plan]['parity_shards']
+
         minio_login = bot.string_ask("Enter minio login name", default="admin", validate={"required": True})
         minio_password = bot.password_ask("Enter minio password", validate={"required": True, "length_min": 8})
-        ns_name = bot.string_ask("Enter namespace name", default="default", validate={"required": True})
-        ns_password = bot.password_ask("Enter namespace password", validate={"required": True, "length_min": 8})
         res = gedis_client.farmer.s3_reserve(name=name, management_network_id=zerotier_network, size=size,
-                                             farmer_name=farmer_name, data_shards=data_shard,
+                                             farmer_name=farmer_name, data_shards=data_shards,
                                              parity_shards=parity_shards, zt_token=zt_token,
                                              storage_type=storage_type, minio_login=minio_login,
                                              minio_password=minio_password,
@@ -258,15 +275,11 @@ def chat(bot):
     def main():
         get_gedis_client()
         methods = {
-            "List countries": country_list,
-            "List farmers": farmers_get,
-            "Register a farmer": farmer_register,
-            "Reserve vm": reserve_vm,
+            "Reserve S3": reserve_s3,
             "Register Domain": web_gateway_http_proxy_set,
             "List Domains": web_gateway_list_hosts,
             "Delete Domain": web_gateway_http_proxy_delete,
             "Register web gateway": web_gateway_register,
-            "Reserve S3": reserve_s3,
         }
         while True:
             choice = bot.single_choice("what do you want to do", [method for method in methods.keys()], reset=True)
