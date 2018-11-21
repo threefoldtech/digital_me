@@ -25,10 +25,21 @@ class DigitalMe(JSBASE):
         :param path: path of packages, will look for dm_config.toml
         :return:
         """
+        graphql_dir = ''
         for item in j.sal.fs.listFilesInDir(path, recursive=True, filter="dm_config.toml",
                                 followSymlinks=False, listSymlinks=False):
             pdir = j.sal.fs.getDirName(item)
+            # don't lopad now! defer as last package
+            if pdir.endswith('graphql/'):
+                graphql_dir = pdir
+                continue
             self.package_add(pdir,zdbclients=zdbclients)
+
+        # load graphql as latest package.
+        # this ensures all schemas are loaded, so auto generation of queries for all loaded schemas
+        # can be acheieved!
+        if graphql_dir:
+            self.package_add(graphql_dir, zdbclients=zdbclients)
         # Generate js client code
         j.servers.gedis.latest.code_generate_webclient()
 

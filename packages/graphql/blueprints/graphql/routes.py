@@ -7,7 +7,12 @@ login_manager = j.servers.web.latest.loader.login_manager
 from flask_graphql import GraphQLView
 import graphene
 
+
 class TestQuery(BaseQuery):
+    """
+    Test Query.
+    Useful to test if graphql is working or not
+    """
     test = graphene.String()
 
     def resolve_test(self, info):
@@ -22,14 +27,53 @@ class TestMutationFiled(graphene.Mutation):
         return cls(ok=True)
 
 class TestMutation(BaseMutation):
+    """
+    Test Mutation .
+    Useful to test if graphql is working or not
+    """
     test = TestMutationFiled.Field()
 
+def generateQueriesFromSchemas():
+    """
+    Loop over all loaded schemas, find ones with (indexed) / searchable fields
+
+    Dynamically create Graphql Queries for these
+    """
+    classes = []
+
+    for url, schema in j.data.schema.schemas.items():
+        if schema.index_list:
+
+            class Q(BaseQuery):
+                pass
+
+            args = ''
+            for i, field in enumerate(schema.index_list):
+                args = args + field + ' = graphene.String()'
+                if i < len(schema.index_list) -1:
+                    args += ','
+
+            def resolver(url):
+                def inner(self, info, **kwargs):
+                    model = j.data.bcdb.latest.models[url]
+                    res = model.index.select()
+                    for arg, value in kwargs.items():
+                        if value:
+                            res = res.where(getattr(model.index, arg) == value)
+                    return [model.get(e) for e in res.execute()]
+                return inner
+
+            eval("setattr(Q, url.replace('.', '_'),  graphene.String({0},resolver=resolver(url)))".format(args))
+            classes.append(Q)
+
+    type('QQ', tuple(classes), {})
+
+generateQueriesFromSchemas()
 
 Query =type('Query', tuple(BaseQuery.__subclasses__()), {})
 Mutation = type('Mutation', tuple(BaseMutation.__subclasses__()), {})
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
-
 
 # Register routes
 

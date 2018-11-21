@@ -14,6 +14,17 @@ Adds support for graphql queries `if enabled`
 
   ![](docs/mutation.png?raw=true)
 
+##### Automatic Queries created for all models in other loaded packages
+
+- By default, `graphql` package is loaded as the last package, so it can detect all models/schemas
+from all other packages and create automatic queries for each model
+
+- Examples
+
+  ![](docs/autoQuery1.png?raw=true)
+
+   ![](docs/autoQuery2.png?raw=true)
+
 ##### How to use in production?
 
 - To use graphql through `HTTP` clients, use the end point `127.0.0.1:8000/graphql/api` and `POST` requests
