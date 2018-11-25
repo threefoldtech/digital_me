@@ -1,0 +1,14 @@
+
+enable = true
+#unique name with dot notation for the package
+name = "digitalme.base"
+
+web_prefixes = "base,home,chat/session/food_get,root,status,user,wiki"
+
+[[loaders]]
+giturl = "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/base"
+dest = ""
+
+[[loaders]]
+giturl = "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static"
+dest = "blueprints/base/static"

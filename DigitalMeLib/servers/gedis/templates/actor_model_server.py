@@ -8,7 +8,7 @@ SCHEMA="""
 {{schema.text}}
 """
 
-class model_{{schema.name}}(JSBASE):
+class model_{{schema.key}}(JSBASE):
     
     def __init__(self):
         JSBASE.__init__(self)        

@@ -17,4 +17,4 @@ giturl = "https://github.com/threefoldfoundation/info_tech/blob/development"
 
 [[docsites_loader]]
 name = "tools"
-giturl = "https://github.com/threefoldfoundation/info_tools/blob/master"
+gitur = "https://github.com/threefoldfoundation/info_tools/blob/master"

@@ -6,4 +6,4 @@ from Jumpscale import j
 @blueprint.route('/', methods=['GET'])
 def route_index():
     # j.shell()
-    return render_template('home/index.html')
+    return render_template('index.html')

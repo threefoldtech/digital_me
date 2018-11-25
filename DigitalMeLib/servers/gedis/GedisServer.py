@@ -131,15 +131,16 @@ class GedisServer(StreamServer, JSConfigBase):
             if hasattr(models,"models"):
                 models=models.models.values()
         for model in models:
-            self.logger.info("generate model: model_%s.py" % namespace)
-            dest = j.sal.fs.joinPaths(self.code_generated_dir, "model_%s_%s.py" % (namespace,model.key))
+            mname =  "model_%s.py" % (model.schema.key)
+            self.logger.info("generate model: %s" % mname)
+            dest = j.sal.fs.joinPaths(self.code_generated_dir,mname)
+            self.logger.debug(dest)
             if reset or not j.sal.fs.exists(dest):
                 # find_args = ''.join(["{0}={1},".format(p.name, p.default_as_python_code) for p in table.schema.properties if p.index]).strip(',')
                 # kwargs = ''.join(["{0}={0},".format(p.name, p.name) for p in table.schema.properties if p.index]).strip(',')
                 r = j.tools.jinja2.template_render(path="%s/templates/actor_model_server.py"%(j.servers.gedis._dirpath),
                                                 dest=dest, bcdb=model.bcdb,
                                                 schema=model.schema,model=model)
-                # self.logger.debug("cmds generated add:%s" % item)
                 self.actor_add(namespace=namespace, path=dest)
             self.schema_urls.append(model.schema.url)
 

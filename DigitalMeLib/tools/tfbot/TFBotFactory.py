@@ -7,18 +7,34 @@ import locale
 
 JSBASE = j.application.JSBaseClass
 
-from .TBot import TBot
+from .TFBot import TFBot
 
-class TBotFactory(JSBASE):
+#https://github.com/kshcherban/acme-nginx
+#https://github.com/GUI/lua-resty-auto-ssl
+#ngrok tls -hostname=test.threefold.io  -region eu 443
+
+
+class TFBotFactory(JSBASE):
 
     def __init__(self):
-        self.__jslocation__ = "j.tools.tbot"
+        self.__jslocation__ = "j.tools.tfbot"
         JSBASE.__init__(self)
         self._tbots={}
         self.logger_enable()
 
+    def zos_cmd_install(self):
+        """
+        js_shell 'j.tools.tfbot.install()'
+        :return:
+        """
+        url = "git@github.com:threefoldtech/zos.git"
 
-    def init(self,addr="localhost",port=4444,secret=""):
+        j.shell()
+
+    def init(self):
+        cmd = "zos init --name=default --memory=4 --reset"
+
+
 
 
     def zos_client_get(self):

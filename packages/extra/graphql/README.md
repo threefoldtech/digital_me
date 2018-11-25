@@ -4,7 +4,7 @@ Adds support for graphql queries `if enabled`
 
 ##### How to Test?
 
-- In config file `dm_config.toml` set `enable` to `true`
+- In config file `dm_package.toml` set `enable` to `true`
 - restart digital me : `js_shell 'j.servers.digitalme.start()`
 - open browser with URL `127.0.0.1:8000/graphql`
 - Test Query

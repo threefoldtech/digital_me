@@ -49,26 +49,22 @@ class GedisCmds(JSBASE):
         if capnpbin:
             self.data = self.schema.get(capnpbin=capnpbin)
         else:
-
-            dname = j.sal.fs.getDirName(path)
             cname = j.sal.fs.getBaseName(path)[:-3]
-            if dname not in sys.path:
-                sys.path.append(dname)
-            classname = self._class_find_name()
-            exec("from %s import %s" % (cname, classname))
-            class_ = eval(classname)
+            klass = j.tools.loader.load(obj_key=cname,path=path,reload=False)
+            kobj = klass()
+            if hasattr(kobj,"schema"):
+                #means is a generated actor which exposes a model (schema)
+                key="%s__model_%s"%(self.namespace,kobj.schema.name)
+            else:
+                key="%s__%s"%(self.namespace,cname.replace(".","_"))
 
-            if namespace in cname and cname.startswith("model"):
-                cname = "model_%s" % cname.split(namespace, 1)[1].strip("_")
-            key="%s__%s"%(self.namespace,cname)
-
-            self.server.classes[key] = class_()
+            self.server.classes[key] =kobj
 
             self.data = self.schema.new()
             self.data.name = name
             self.data.namespace = self.namespace
 
-            for name,item in inspect.getmembers(class_):
+            for name,item in inspect.getmembers(klass):
                 if name.startswith("_"):
                     continue
                 if name.startswith("logger"):

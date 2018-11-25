@@ -1,105 +1,19 @@
 
-enable = false
+[main]
+enable = true
 #unique name with dot notation for the package
 name = "threefold.grid"
 
+[[loader]]
+#is the location where to pull information from and walk over it
+giturl = "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static"
+#location where to link the info too (is inside package)
+dest = "/blueprints/mysite/static/"
+enable = true
+
 #are arguments which will be known inside full digital me and this config file as well to be used
 #will be substituted using jinja2 template instructions e.g. {{JS9_BRANCH}}
-[[args]]
+[[arg]]
 key = "JS_BRANCH"
 val = "development_960"
 
-[[actors_loader]]
-#is a group of actors inside a directory
-#giturl if external to package
-giturl = ""
-enable = true
-
-[[actors]]
-#each actor has a unique name, if not specified basename of file lowercase
-name = ""
-#path inside the package to the python file which represents the actor
-path = ""
-enable = true
-
-[[docsites_loader]]
-#will look for .docsite in each directory, when found the dir will become a docsite see below
-#giturl if external to package
-giturl = "https://github.com/threefoldfoundation/info_tools/blob/development"
-enable = true
-
-[[docsites]]
-name = "tools"
-#prefix as used in $digitalmelocation/$packagename/$prefix
-prefix = "tools"
-#path inside the package
-path = ""
-enable = true
-
-[[blueprints_loader]]
-#is a group of blueprints inside a directory, are subdirs of the dir mentioned here
-#giturl if external to package
-giturl = ""
-enable = true
-
-
-[[blueprints]]
-#unique name of blueprint in package, if not specified name of directory
-name = "mysite"
-#prefix of the blueprint, if not specified is same as name, path on webserver will be $digitalmelocation/$packagename/$prefix/...
-prefix = "mysite"
-#path inside the package to the directory
-path = ""
-enable = false
-
-[[links]]
-#location of info to link into the blueprint (git location)
-giturl = "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static"
-#is dest inside the package directory
-dest = "/blueprint/mysite/static/"
-enable = false
-
-[[chatflows_loader]]
-#is a group of chatflows inside a directory
-#giturl if external to package
-giturl = ""
-enable = true
-
-[[chatflows]]
-#unique name for chatflows in package, if not specified basename of the file without extension and lowercase
-name = "mysite"
-#prefix of the chatflow, if not specified is same as name
-prefix = "mysite"
-#path inside the package to the python file
-path = ""
-
-[[schemas_loader]]
-#is a group of schemas inside a directory, each dir is marked with .schemas
-#giturl if external to package
-giturl = ""
-enable = true
-
-[[schemas]]
-name = ""
-#path inside the package
-path = ""
-enable = true
-
-
-#will load all macro's find on that location, the macro names inside need to be unique !
-[[docmacros_loader]]
-#path inside the package
-path = ""
-#giturl if external to package
-giturl = ""
-enable = true
-
-[[zrobot_repos_loader]]
-#giturl if external to package
-giturl = ""
-enable = true
-
-#configuration items, are yaml or toml files
-[[configobjects_loader]]
-giturl = ""
-enable = true
