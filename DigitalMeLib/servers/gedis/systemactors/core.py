@@ -10,5 +10,18 @@ class core(JSBASE):
         JSBASE.__init__(self)
         self.server = j.servers.gedis.latest
 
-    def auth(self,secret):
-        return "OK"
+    # def auth(self,secret):
+    #     return "OK"
+
+    def namespaces(self,schema_out):
+        """
+
+        returns list of namespaces
+
+        ```out
+        result = (LS)
+        ```
+        """
+        r=schema_out.new()
+        r.namespaces = self.server.namespaces
+        return r

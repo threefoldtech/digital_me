@@ -62,33 +62,30 @@ class GedisClient(JSConfigBase):
         schema_urls = self.redis.execute_command("schema_urls")
         self.schema_urls = j.data.serializers.msgpack.loads(schema_urls)
 
-        try:
-            cmds_meta =self.redis.execute_command("api_meta",self.namespace)
-            cmds_meta = j.data.serializers.msgpack.loads(cmds_meta)
-            for key, capnpbin in cmds_meta["cmds"].items():
-                if not "__model_" in key:
-                    self.cmds_meta[key] = j.servers.gedis._cmds_get(key,capnpbin).cmds
-        except ConnectionError:
-            self.logger.error('Connection error')
-            self._connected  = False
-            return
+        cmds_meta =self.redis.execute_command("api_meta",self.namespace)
+        cmds_meta = j.data.serializers.msgpack.loads(cmds_meta)
+
+        for key, capnpbin in cmds_meta["cmds"].items():
+            if not "__model_" in key:
+                self.cmds_meta[key] = j.servers.gedis._cmds_get(key,capnpbin).cmds
 
 
     def generate(self, reset=False):
         self.models
 
     @property
-    def models():
-        if self._models is not None:
+    def models(self):
+        if self._models is None:
+
             self._models = Models()
 
             # this will make sure we have all the local schemas
 
-            def do(self):
+            def do():
                 schemas_meta = self.redis.execute_command("core_schemas_get",self.namespace)
                 return schemas_meta
 
-            # schemas_meta =
+            schemas_meta = self.cache.get("core_schemas_get", method=do, retry=4, die=True)
 
             schemas_meta = j.data.serializers.msgpack.loads(schemas_meta)
             for key,txt in schemas_meta.items():
@@ -99,23 +96,22 @@ class GedisClient(JSConfigBase):
                     find_args = ''.join(["{0}={1},".format(p.name, p.default_as_python_code) for p in args]).strip(',')
                     kwargs = ''.join(["{0}".format(p.name) for p in args]).strip(',')
 
-                    objForHash = [args, find_args, kwargs]
-
-                    tpath = "%s/templates/ModelBase.py"%(j.clients.gedis._path)
+                    tpath = "%s/templates/ModelBase.py"%(j.clients.gedis._dirpath)
                     model_class = j.tools.jinja2.code_python_render(obj_key="model", path=tpath,
-                                                           objForHash=objForHash,
+                                                           objForHash=schema.text,
                                                            obj= schema, find_args=find_args, kwargs=kwargs)
 
                     model = model_class(client=self)
 
-                self._models.__dict__[schema.url.replace(".","_")] = m.model(client=self)
+                    self._models.__dict__[schema.url.replace(".","_")] = model
+
 
         return self._models
 
 
     @property
-    def cmds():
-        if self._cmds is not None:
+    def cmds(self):
+        if self._cmds is None:
             self._cmds = CmdsBase()
             for nsfull, cmds_ in self.cmds_meta.items():
                 cmds = CmdsBase()
@@ -126,30 +122,19 @@ class GedisClient(JSConfigBase):
                 cmds_name_lower = nsfull.split(".")[-1].strip().lower()
                 cmds.cmds_name_lower = cmds_name_lower
 
-                tpath = "%s/templates/template.py"%(j.clients.gedis._path)
-                cl = j.tools.jinja2.code_python_render(obj_key="CMDS", path=tpath, objForHash=None, obj= cmds)
+                name="gedisclient_cmds_%s"%(cmds_name_lower)
+
+                tpath = "%s/templates/template.py"%(j.clients.gedis._dirpath)
+                cl = j.tools.jinja2.code_python_render(obj_key="CMDS", path=tpath,
+                                                       overwrite=True,name=name,
+                                                       objForHash=None, obj= cmds)
 
                 if "__" in cmds_name_lower:
                     cmds_name_lower = cmds_name_lower.split("__",1)[1]
 
                 self.cmds.__dict__[cmds_name_lower] =cl(client=self,cmds=cmds.cmds)
-                self.logger.debug("cmds:%s"%fname)
-                j.shell()
-                w
-                #
-                #
-                # fname="cmds_%s"%location
-                # dest = os.path.join(self.code_generated_dir, "%s.py"%fname)
-                #
-                # if reset or not j.sal.fs.exists(dest):
-                #     code = j.clients.gedis.code_client_template.render(obj= cmds)
-                #     j.sal.fs.writeFile(dest,code)
-                #
-                # m=imp.load_source(name=fname, pathname=dest)
+                self.logger.debug("cmds:%s"%name)
 
-
-
-                self._cmds.__dict__[cmds_name_lower] =m.CMDS(client=self,cmds=cmds.cmds)
         return self._cmds
 
     @property

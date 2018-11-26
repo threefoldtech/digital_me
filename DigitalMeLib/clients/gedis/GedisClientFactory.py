@@ -8,13 +8,13 @@ class GedisClientCmds():
     def __init__(self):
         pass
 
-    @property
-    def config(self):
-        return self._client.config
-
-    @property
-    def config_template(self):
-        return self._client.config_template
+    # @property
+    # def _config(self):
+    #     return self._client.config
+    #
+    # @property
+    # def _config_template(self):
+    #     return self._client.config_template
 
     def __str__(self):
         if self._client.config.data["ssl"]:
@@ -44,7 +44,7 @@ class GedisClientFactory(JSConfigBase):
 
     def get(self,instance='main',data={},reset=False,configureonly=False):
 
-        client = super(GedisClientFactory, self).get(instance=instance, data=data, reset=reset,
+        client = JSConfigBase.get(self,instance=instance, data=data, reset=reset,
                                                      configureonly=configureonly)
         if configureonly:
             print("CONFIGURE ONLY")
@@ -83,25 +83,3 @@ class GedisClientFactory(JSConfigBase):
         if get:
             return self.get(instance=instance, data=data, reset=reset)
 
-    # @property
-    # def template_engine(self):
-    #     if self._template_engine is None:
-    #         from jinja2 import Environment, PackageLoader
-    #         self._template_engine = Environment(
-    #             loader=PackageLoader('DigitalMeLib.clients.gedis', 'templates'),
-    #             trim_blocks=True,
-    #             lstrip_blocks=True,
-    #         )
-    #     return self._template_engine
-    #
-    # @property
-    # def code_client_template(self):
-    #     if self._template_code_client is None:
-    #         self._template_code_client = self.template_engine.get_template("template.py")
-    #     return self._template_code_client
-    #
-    # @property
-    # def code_model_template(self):
-    #     if self._code_model_template is None:
-    #         self._code_model_template = self.template_engine.get_template("ModelBase.py")
-    #     return self._code_model_template

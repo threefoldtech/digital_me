@@ -44,4 +44,5 @@ class ZOS(BASE):
 
 
 
-#rsync -e "ssh -p1027"  -rav ~/code/github/threefoldtech/ root@192.168.56.101:/root/code/github/threefoldtech/
+#rsync -e "ssh -p1027"  -rav --delete ~/code/github/threefoldtech/ root@192.168.56.101:/root/code/github/threefoldtech/
+#rsync -e "ssh"  -rav --delete ~/code/github/threefoldtech/ root@10.244.172.242:/root/code/github/threefoldtech/

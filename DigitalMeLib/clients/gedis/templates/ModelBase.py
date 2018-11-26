@@ -46,3 +46,8 @@ class model(JSBASE):
 
     def new(self):
         return self.schema.new()
+
+    def __str__(self):
+        return "MODEL%s"%self.url
+
+    __repr__ = __str__

@@ -74,8 +74,6 @@ class DigitalMe(JSBASE):
 
         """
 
-        #OPENRESTY IS NOW USED IN DIGITALME
-        j.servers.openresty.start()
 
         def install_zrobot():
             path = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/0-robot")
@@ -89,50 +87,67 @@ class DigitalMe(JSBASE):
 
             cmd = "js_shell 'j.servers.digitalme.start(addr=\"%s\",port=%s,namespace=\"%s\", secret=\"%s\")'"%\
                   (addr,port,namespace,secret)
-            j.servers.jsrun.get(name="digitalme",
-                cmd=cmd,reset=True,
-                ports=[8000,8001]
+
+            process_strings=["j.servers.digitalme.start"]
+
+            p=j.servers.jsrun.start(name="digitalme",
+                cmd=cmd,reset=True,process_strings=process_strings,
+                ports=[8001]
             )
 
-            gedisclient = j.clients.gedis.configure(namespace,namespace=namespace,port=8001,secret=secret,
+
+            gedisclient = j.clients.gedis.configure(namespace,namespace="system",port=8001,secret=secret,
                                                         host="localhost")
 
-            j.shell()
-            w
+            assert gedisclient.system.ping() == b"PONG"
+
+            return gedisclient
 
 
         else:
 
-            monkey.patch_all(subprocess=False) #TODO: should try not to monkey patch, its not good practice at all
             self.rack = self.server_rack_get()
 
             geventserver = j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
                                       adminsecret=secret, instance=namespace)
-            # configure a local webserver server (the master one)
-            j.servers.web.configure(instance=namespace, port=8000, port_ssl=0, host="0.0.0.0", secret=secret)
 
             self.rack.add("gedis", geventserver.redis_server) #important to do like this, otherwise 2 servers started
-            self.rack.add("web", j.servers.web.geventserver_get(namespace))
 
             zdbclient = j.clients.zdb.client_get(nsname=namespace, addr=addr, port=port, secret=secret, mode='seq')
             key = "%s_%s_%s"%(addr,port,namespace)
 
-            bcdb = j.data.bcdb.new("digitalme_%s"%key, zdbclient=zdbclient, cache=True)
+            self.bcdb = j.data.bcdb.new("digitalme_%s"%key, zdbclient=zdbclient, cache=True)
 
-            #the core packages, always need to be loaded
-            toml_path = j.clients.git.getContentPathFromURLorPath(
-                    "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/base")
-            self.package_add(toml_path,bcdb=bcdb)
-            toml_path = j.clients.git.getContentPathFromURLorPath(
-                    "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/chat")
-            self.package_add(toml_path,bcdb=bcdb)
-            toml_path = j.clients.git.getContentPathFromURLorPath(
-                    "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/example")
-            self.package_add(toml_path,bcdb=bcdb)
-
-            j.servers.web.latest.loader.load() #loads the rules in the webserver (routes)
+            self.web_reload()
 
             self.rack.start()
+
+    def web_reload(self):
+
+        #add configuration to openresty
+        staticpath = j.clients.git.getContentPathFromURLorPath(
+            "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static")
+
+        j.servers.openresty.configs_add(j.sal.fs.joinPaths(self._dirpath,"web_config"),args={"staticpath":staticpath})
+
+
+        bcdb = self.bcdb
+
+        #the core packages, always need to be loaded
+        toml_path = j.clients.git.getContentPathFromURLorPath(
+                "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/base")
+        self.package_add(toml_path,bcdb=bcdb)
+        toml_path = j.clients.git.getContentPathFromURLorPath(
+                "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/chat")
+        self.package_add(toml_path,bcdb=bcdb)
+        toml_path = j.clients.git.getContentPathFromURLorPath(
+                "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/example")
+        self.package_add(toml_path,bcdb=bcdb)
+
+
+        # j.servers.openresty.start()
+        # j.servers.openresty.reload()
+
 
     def server_rack_get(self):
 
@@ -150,6 +165,7 @@ class DigitalMe(JSBASE):
     def test(self,manual=False):
         """
         js_shell 'j.servers.digitalme.test()'
+        js_shell 'j.servers.digitalme.test(manual=True)'
 
         :param manual means the server is run manually using e.g. js_shell 'j.servers.digitalme.start()'
 
@@ -159,7 +175,7 @@ class DigitalMe(JSBASE):
         cl = admincl.namespace_new("test",secret="1234")
 
         if manual:
-            namespace="test"
+            namespace="system"
             #if server manually started can use this
             secret="1234"
             gedisclient = j.clients.gedis.configure(namespace,namespace=namespace,port=8001,secret=secret,
@@ -168,9 +184,6 @@ class DigitalMe(JSBASE):
             #gclient will be gedis client
             gedisclient = self.start(addr=cl.addr,port=cl.port,namespace=cl.nsname, secret=cl.secret,background=True)
 
+        # ns=gedisclient.core.namespaces()
         j.shell()
 
-
-
-
-        j.shell()

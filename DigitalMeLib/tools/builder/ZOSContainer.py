@@ -45,6 +45,29 @@ class ZOSContainer(BASE):
         self._create()
 
 
+    def clean(self):
+        """
+
+        :return:
+        """
+
+        C="""
+        find / -name "*.pyc" -exec rm -rf {} \;
+        find / -name "*.pyo" -exec rm -rf {} \;
+        find / -name "*.bak" -exec rm -rf {} \;
+        find / -name "*.deb" -exec rm -rf {} \;
+        find / -name "*.log" -exec rm -rf {} \;
+        find /root/code -name "*.git" -exec rm -rf {} \;
+        find /root/code -name "*.vscode" -exec rm -rf {} \;
+        find /root/code -name "*.idea" -exec rm -rf {} \;
+        find / -name "*.log.xz" -exec rm -rf {} \;
+        rm -rf /tmp
+        rm -f /var/log/*
+        mkdir -p /tmp
+                
+        """
+
+
     @property
     def nics(self):
         """

@@ -159,6 +159,12 @@ class GedisCmds(JSBASE):
                 code+="%s\n"%line
                 continue
             raise RuntimeError()
+
+        # j.shell()
+        # if "schema_out" in args:
+        #     j.shell()
+        #     w
+
         return j.core.text.strip(code),j.core.text.strip(comment),j.core.text.strip(schema_in),\
             j.core.text.strip(schema_out),args
             

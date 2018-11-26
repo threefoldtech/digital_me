@@ -90,7 +90,6 @@ class Handler(JSBASE):
 
                 socket.namespace = nsname
                 if socket.namespace  not in j.servers.gedis.latest.namespaces:
-                    j.shell()
                     response.error("could not find namespace:%s"%socket.namespace)
                     continue
 

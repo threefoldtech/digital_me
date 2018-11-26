@@ -24,8 +24,8 @@ enable = true (B)
 
 """
 
-TOML_KEYS = ["docsite","blueprint","chatflow","actor","schema","recipe","docmacro","zrobotrepo","configobject"]
-TOML_KEYS_DIRS = ["docsite","blueprint","zrobotrepo"]
+TOML_KEYS = ["docsite","web","chatflow","actor","schema","recipe","docmacro","zrobotrepo","configobject"]
+TOML_KEYS_DIRS = ["docsite","web","zrobotrepo"]
 
 
 class Package(JSBASE):
@@ -148,9 +148,11 @@ class Package(JSBASE):
                         if key == "docsite":
                             dsname="%s_%s"%(self.name,basename)
                             j.tools.docsites.load(src2, dsname)
-                        elif key == "blueprint":
-                            if self.path not in j.servers.web.latest.loader.paths:
-                                j.servers.web.latest.loader.paths.append(self.path)
+                        # elif key == "blueprint":
+                        #     if self.path not in j.servers.web.latest.loader.paths:
+                        #         j.servers.web.latest.loader.paths.append(self.path)
+                        elif key == "web":
+                            j.servers.openresty.configs_add(src2,args={"path":src2,"name":basename})
                         elif key == "zrobotrepo":
                             j.shell()
                             w
