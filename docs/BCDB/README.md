@@ -3,7 +3,7 @@ BCDB `Block Chain Database` is a Database built with `Block Chain` concepts.
 
 ## Components
 ### Models 
-the model in BCDB is a class using [JumpScale Schema](/docs/schema/readme.md) it adds:
+the model in BCDB is a class using [JumpScale Schema](/docs/schema/README.md) it adds:
 - indexing capabilities 
     - to make data queries go faster you can use indexing with BCDB to the fields you will query with,
  this can be achieved easily by just adding `*` beside the field you want to index in the schema 
@@ -13,7 +13,7 @@ the model in BCDB is a class using [JumpScale Schema](/docs/schema/readme.md) it
         subjects = (LS)
         address = !schema.address
         ```
-        _if you are not familiar with the [JumpScale Schema](/docs/schema/readme.md), it's highly recomended to read
+        _if you are not familiar with the [JumpScale Schema](/docs/schema/README.md), it's highly recomended to read
         the schema documentation before proceeding to this part_  
         in the previous schema `name` will be indexing, we will demonstrate how to use that to do a query in the usage
         section
