@@ -90,10 +90,8 @@ class DigitalMe(JSBASE):
 
             process_strings=["j.servers.digitalme.start"]
 
-            p=j.servers.jsrun.start(name="digitalme",
-                cmd=cmd,reset=True,process_strings=process_strings,
-                ports=[8001]
-            )
+            p=j.tools.tmux.execute(name="digitalme",
+                cmd=cmd,reset=True,window="digitalme")
 
 
             gedisclient = j.clients.gedis.configure(namespace,namespace="system",port=8001,secret=secret,
