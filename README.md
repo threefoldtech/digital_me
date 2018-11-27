@@ -11,7 +11,7 @@ js_shell 'j.servers.digitalme.start()'
 ```
 
 ## Components
-- [Packages]('docs/packages/README.md)
-- [BCDB]('docs/BCDB/README.md)
-- [Schema]('docs/schema/README.md)
-- [Publishing Platform]('docs/schema/README.md')
+- [Packages](docs/packages/README.md)
+- [BCDB](docs/BCDB/README.md)
+- [Schema](docs/schema/README.md)
+- [Publishing Platform](docs/publishing_platform/README.md)
