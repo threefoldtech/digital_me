@@ -133,7 +133,7 @@ def chat(bot):
 """
         for rule in res:
             report += """|{rule_name}|{domains}|{backends}|{webgateway_name}| 
-""".format(rule_name=rule.rule_name, domains=",".join(rule.domains),
+""".format(rule_name=rule.rule_name, domains=rule.domain,
            backends=", ".join(rule.backends), webgateway_name=rule.webgateway_name)
         bot.md_show(report)
 

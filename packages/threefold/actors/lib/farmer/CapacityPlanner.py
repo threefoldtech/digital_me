@@ -209,6 +209,8 @@ class CapacityPlanner(JSBASE):
         """
         if not backends:
             backends = []
+        if not name:
+            name = domain
         robot = self.get_3bot_robot()
         data = {
             "webGateway": web_gateway_service,
