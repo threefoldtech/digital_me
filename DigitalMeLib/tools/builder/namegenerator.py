@@ -109,7 +109,7 @@ left = [
 
 # Please, for any amazing man that you add to the list, consider adding an equally amazing woman to it, and vice versa.
 right = [
- # Muhammad ibn Jābir al-Ḥarrānī al-Battānī was a founding father of astronomy. https:#en.wikipedia.org/wiki/Mu%E1%B8%A5ammad_ibn_J%C4%81bir_al-%E1%B8%A4arr%C4%81n%C4%AB_al-Batt%C4%81n%C4%AB
+ # Muhammad ibn Jbir al-arrn al-Battn was a founding father of astronomy. https:#en.wikipedia.org/wiki/Mu%E1%B8%A5ammad_ibn_J%C4%81bir_al-%E1%B8%A4arr%C4%81n%C4%AB_al-Batt%C4%81n%C4%AB
  "albattani",
 
  # Frances E. Allen, became the first female IBM Fellow in 1989. In 2006, she became the first female recipient of the ACM's Turing Award. https:#en.wikipedia.org/wiki/Frances_E._Allen
@@ -187,7 +187,7 @@ right = [
  # Anita Borg - Anita Borg was the founding director of the Institute for Women and Technology (IWT). https:#en.wikipedia.org/wiki/Anita_Borg
  "borg",
 
- # Satyendra Nath Bose - He provided the foundation for Bose–Einstein statistics and the theory of the Bose–Einstein condensate. - https:#en.wikipedia.org/wiki/Satyendra_Nath_Bose
+ # Satyendra Nath Bose - He provided the foundation for BoseEinstein statistics and the theory of the BoseEinstein condensate. - https:#en.wikipedia.org/wiki/Satyendra_Nath_Bose
  "bose",
 
  # Evelyn Boyd Granville - She was one of the first African-American woman to receive a Ph.D. in mathematics; she earned it in 1949 from Yale University. https:#en.wikipedia.org/wiki/Evelyn_Boyd_Granville
@@ -223,10 +223,10 @@ right = [
  # Subrahmanyan Chandrasekhar - Astrophysicist known for his mathematical theory on different stages and evolution in structures of the stars. He has won nobel prize for physics - https:#en.wikipedia.org/wiki/Subrahmanyan_Chandrasekhar
  "chandrasekhar",
 
- # Sergey Alexeyevich Chaplygin (Russian: Серге́й Алексе́евич Чаплы́гин; April 5, 1869 – October 8, 1942) was a Russian and Soviet physicist, mathematician, and mechanical engineer. He is known for mathematical formulas such as Chaplygin's equation and for a hypothetical substance in cosmology called Chaplygin gas, named after him. https:#en.wikipedia.org/wiki/Sergey_Chaplygin
+ # Sergey Alexeyevich Chaplygin (Russian:   ; April 5, 1869  October 8, 1942) was a Russian and Soviet physicist, mathematician, and mechanical engineer. He is known for mathematical formulas such as Chaplygin's equation and for a hypothetical substance in cosmology called Chaplygin gas, named after him. https:#en.wikipedia.org/wiki/Sergey_Chaplygin
  "chaplygin",
 
- # Émilie du Châtelet - French natural philosopher, mathematician, physicist, and author during the early 1730s, known for her translation of and commentary on Isaac Newton's book Principia containing basic laws of physics. https:#en.wikipedia.org/wiki/%C3%89milie_du_Ch%C3%A2telet
+ # milie du Chtelet - French natural philosopher, mathematician, physicist, and author during the early 1730s, known for her translation of and commentary on Isaac Newton's book Principia containing basic laws of physics. https:#en.wikipedia.org/wiki/%C3%89milie_du_Ch%C3%A2telet
  "chatelet",
 
  # Asima Chatterjee was an Indian organic chemist noted for her research on vinca alkaloids, development of drugs for treatment of epilepsy and malaria - https:#en.wikipedia.org/wiki/Asima_Chatterjee
@@ -250,7 +250,7 @@ right = [
  # Jane Colden - American botanist widely considered the first female American botanist - https:#en.wikipedia.org/wiki/Jane_Colden
  "colden",
 
- # Gerty Theresa Cori - American biochemist who became the third woman—and first American woman—to win a Nobel Prize in science, and the first woman to be awarded the Nobel Prize in Physiology or Medicine. Cori was born in Prague. https:#en.wikipedia.org/wiki/Gerty_Cori
+ # Gerty Theresa Cori - American biochemist who became the third womanand first American womanto win a Nobel Prize in science, and the first woman to be awarded the Nobel Prize in Physiology or Medicine. Cori was born in Prague. https:#en.wikipedia.org/wiki/Gerty_Cori
  "cori",
 
  # Seymour Roger Cray was an American electrical engineer and supercomputer architect who designed a series of computers that were the fastest in the world for decades. https:#en.wikipedia.org/wiki/Seymour_Cray
@@ -300,7 +300,7 @@ right = [
  # Albert Einstein invented the general theory of relativity. https:#en.wikipedia.org/wiki/Albert_Einstein
  "einstein",
 
- # Alexandra Asanovna Elbakyan (Russian: Алекса́ндра Аса́новна Элбакя́н) is a Kazakhstani graduate student, computer programmer, internet pirate in hiding, and the creator of the site Sci-Hub. Nature has listed her in 2016 in the top ten people that mattered in science, and Ars Technica has compared her to Aaron Swartz. - https:#en.wikipedia.org/wiki/Alexandra_Elbakyan
+ # Alexandra Asanovna Elbakyan (Russian:   ) is a Kazakhstani graduate student, computer programmer, internet pirate in hiding, and the creator of the site Sci-Hub. Nature has listed her in 2016 in the top ten people that mattered in science, and Ars Technica has compared her to Aaron Swartz. - https:#en.wikipedia.org/wiki/Alexandra_Elbakyan
  "elbakyan",
 
  # Taher A. ElGamal - Egyptian cryptographer best known for the ElGamal discrete log cryptosystem and the ElGamal digital signature scheme. https:#en.wikipedia.org/wiki/Taher_Elgamal
@@ -345,7 +345,7 @@ right = [
  # Galileo was a founding father of modern astronomy, and faced politics and obscurantism to establish scientific truth.  https:#en.wikipedia.org/wiki/Galileo_Galilei
  "galileo",
 
- # Évariste Galois - French mathematician whose work laid the foundations of Galois theory and group theory, two major branches of abstract algebra, and the subfield of Galois connections, all while still in his late teens. https:#en.wikipedia.org/wiki/%C3%89variste_Galois
+ # variste Galois - French mathematician whose work laid the foundations of Galois theory and group theory, two major branches of abstract algebra, and the subfield of Galois connections, all while still in his late teens. https:#en.wikipedia.org/wiki/%C3%89variste_Galois
  "galois",
 
  # Kadambini Ganguly - Indian physician, known for being the first South Asian female physician, trained in western medicine, to graduate in South Asia. https:#en.wikipedia.org/wiki/Kadambini_Ganguly
@@ -411,7 +411,7 @@ right = [
  # Heinrich Rudolf Hertz - German physicist who first conclusively proved the existence of the electromagnetic waves. https:#en.wikipedia.org/wiki/Heinrich_Hertz
  "hertz",
 
- # Jaroslav Heyrovský was the inventor of the polarographic method, father of the electroanalytical method, and recipient of the Nobel Prize in 1959. His main field of work was polarography. https:#en.wikipedia.org/wiki/Jaroslav_Heyrovsk%C3%BD
+ # Jaroslav Heyrovsk was the inventor of the polarographic method, father of the electroanalytical method, and recipient of the Nobel Prize in 1959. His main field of work was polarography. https:#en.wikipedia.org/wiki/Jaroslav_Heyrovsk%C3%BD
  "heyrovsky",
 
  # Dorothy Hodgkin was a British biochemist, credited with the development of protein crystallography. She was awarded the Nobel Prize in Chemistry in 1964. https:#en.wikipedia.org/wiki/Dorothy_Hodgkin
@@ -450,22 +450,22 @@ right = [
  # Katherine Coleman Goble Johnson - American physicist and mathematician contributed to the NASA. https:#en.wikipedia.org/wiki/Katherine_Johnson
  "johnson",
 
- # Irène Joliot-Curie - French scientist who was awarded the Nobel Prize for Chemistry in 1935. Daughter of Marie and Pierre Curie. https:#en.wikipedia.org/wiki/Ir%C3%A8ne_Joliot-Curie
+ # Irne Joliot-Curie - French scientist who was awarded the Nobel Prize for Chemistry in 1935. Daughter of Marie and Pierre Curie. https:#en.wikipedia.org/wiki/Ir%C3%A8ne_Joliot-Curie
  "joliot",
 
- # Karen Spärck Jones came up with the concept of inverse document frequency, which is used in most search engines today. https:#en.wikipedia.org/wiki/Karen_Sp%C3%A4rck_Jones
+ # Karen Sprck Jones came up with the concept of inverse document frequency, which is used in most search engines today. https:#en.wikipedia.org/wiki/Karen_Sp%C3%A4rck_Jones
  "jones",
 
  # A. P. J. Abdul Kalam - is an Indian scientist aka Missile Man of India for his work on the development of ballistic missile and launch vehicle technology - https:#en.wikipedia.org/wiki/A._P._J._Abdul_Kalam
  "kalam",
 
- # Sergey Petrovich Kapitsa (Russian: Серге́й Петро́вич Капи́ца; 14 February 1928 – 14 August 2012) was a Russian physicist and demographer. He was best known as host of the popular and long-running Russian scientific TV show, Evident, but Incredible. His father was the Nobel laureate Soviet-era physicist Pyotr Kapitsa, and his brother was the geographer and Antarctic explorer Andrey Kapitsa. - https:#en.wikipedia.org/wiki/Sergey_Kapitsa
+ # Sergey Petrovich Kapitsa (Russian:   ; 14 February 1928  14 August 2012) was a Russian physicist and demographer. He was best known as host of the popular and long-running Russian scientific TV show, Evident, but Incredible. His father was the Nobel laureate Soviet-era physicist Pyotr Kapitsa, and his brother was the geographer and Antarctic explorer Andrey Kapitsa. - https:#en.wikipedia.org/wiki/Sergey_Kapitsa
  "kapitsa",
 
  # Susan Kare, created the icons and many of the interface elements for the original Apple Macintosh in the 1980s, and was an original employee of NeXT, working as the Creative Director. https:#en.wikipedia.org/wiki/Susan_Kare
  "kare",
 
- # Mstislav Keldysh - a Soviet scientist in the field of mathematics and mechanics, academician of the USSR Academy of Sciences (1946), President of the USSR Academy of Sciences (1961–1975), three times Hero of Socialist Labor (1956, 1961, 1971), fellow of the Royal Society of Edinburgh (1968). https:#en.wikipedia.org/wiki/Mstislav_Keldysh
+ # Mstislav Keldysh - a Soviet scientist in the field of mathematics and mechanics, academician of the USSR Academy of Sciences (1946), President of the USSR Academy of Sciences (19611975), three times Hero of Socialist Labor (1956, 1961, 1971), fellow of the Royal Society of Edinburgh (1968). https:#en.wikipedia.org/wiki/Mstislav_Keldysh
  "keldysh",
 
  # Mary Kenneth Keller, Sister Mary Kenneth Keller became the first American woman to earn a PhD in Computer Science in 1965. https:#en.wikipedia.org/wiki/Mary_Kenneth_Keller
@@ -525,7 +525,7 @@ right = [
  # Ada Lovelace invented the first algorithm. https:#en.wikipedia.org/wiki/Ada_Lovelace (thanks James Turnbull)
  "lovelace",
 
- # Auguste and Louis Lumière - the first filmmakers in history - https:#en.wikipedia.org/wiki/Auguste_and_Louis_Lumi%C3%A8re
+ # Auguste and Louis Lumire - the first filmmakers in history - https:#en.wikipedia.org/wiki/Auguste_and_Louis_Lumi%C3%A8re
  "lumiere",
 
  # Mahavira - Ancient Indian mathematician during 9th century AD who discovered basic algebraic identities - https:#en.wikipedia.org/wiki/Mah%C4%81v%C4%ABra_(mathematician)
@@ -570,7 +570,7 @@ right = [
  # Carla Meninsky, was the game designer and programmer for Atari 2600 games Dodge 'Em and Warlords. https:#en.wikipedia.org/wiki/Carla_Meninsky
  "meninsky",
 
- # Ralph C. Merkle - American computer scientist, known for devising Merkle's puzzles - one of the very first schemes for public-key cryptography. Also, inventor of Merkle trees and co-inventor of the Merkle-Damgård construction for building collision-resistant cryptographic hash functions and the Merkle-Hellman knapsack cryptosystem. https:#en.wikipedia.org/wiki/Ralph_Merkle
+ # Ralph C. Merkle - American computer scientist, known for devising Merkle's puzzles - one of the very first schemes for public-key cryptography. Also, inventor of Merkle trees and co-inventor of the Merkle-Damgrd construction for building collision-resistant cryptographic hash functions and the Merkle-Hellman knapsack cryptosystem. https:#en.wikipedia.org/wiki/Ralph_Merkle
  "merkle",
 
  # Johanna Mestorf - German prehistoric archaeologist and first female museum director in Germany - https:#en.wikipedia.org/wiki/Johanna_Mestorf
@@ -615,7 +615,7 @@ right = [
  # Emmy Noether, German mathematician. Noether's Theorem is named after her. https:#en.wikipedia.org/wiki/Emmy_Noether
  "noether",
 
- # Poppy Northcutt. Poppy Northcutt was the first woman to work as part of NASA’s Mission Control. http:#www.businessinsider.com/poppy-northcutt-helped-apollo-astronauts-2014-12?op=1
+ # Poppy Northcutt. Poppy Northcutt was the first woman to work as part of NASAs Mission Control. http:#www.businessinsider.com/poppy-northcutt-helped-apollo-astronauts-2014-12?op=1
  "northcutt",
 
  # Robert Noyce invented silicone integrated circuits and gave Silicon Valley its name. - https:#en.wikipedia.org/wiki/Robert_Noyce
@@ -642,13 +642,13 @@ right = [
  # Rob Pike was a key contributor to Unix, Plan 9, the X graphic system, utf-8, and the Go programming language. https:#en.wikipedia.org/wiki/Rob_Pike
  "pike",
 
- # Henri Poincaré made fundamental contributions in several fields of mathematics. https:#en.wikipedia.org/wiki/Henri_Poincar%C3%A9
+ # Henri Poincar made fundamental contributions in several fields of mathematics. https:#en.wikipedia.org/wiki/Henri_Poincar%C3%A9
  "poincare",
 
  # Laura Poitras is a director and producer whose work, made possible by open source crypto tools, advances the causes of truth and freedom of information by reporting disclosures by whistleblowers such as Edward Snowden. https:#en.wikipedia.org/wiki/Laura_Poitras
  "poitras",
 
- # Tat’yana Avenirovna Proskuriakova (Russian: Татья́на Авени́ровна Проскуряко́ва) (January 23 [O.S. January 10] 1909 – August 30, 1985) was a Russian-American Mayanist scholar and archaeologist who contributed significantly to the deciphering of Maya hieroglyphs, the writing system of the pre-Columbian Maya civilization of Mesoamerica. https:#en.wikipedia.org/wiki/Tatiana_Proskouriakoff
+ # Tatyana Avenirovna Proskuriakova (Russian:   ) (January 23 [O.S. January 10] 1909  August 30, 1985) was a Russian-American Mayanist scholar and archaeologist who contributed significantly to the deciphering of Maya hieroglyphs, the writing system of the pre-Columbian Maya civilization of Mesoamerica. https:#en.wikipedia.org/wiki/Tatiana_Proskouriakoff
  "proskuriakova",
 
  # Claudius Ptolemy - a Greco-Egyptian writer of Alexandria, known as a mathematician, astronomer, geographer, astrologer, and poet of a single epigram in the Greek Anthology - https:#en.wikipedia.org/wiki/Ptolemy
@@ -675,7 +675,7 @@ right = [
  # Julia Hall Bowman Robinson - American mathematician renowned for her contributions to the fields of computability theory and computational complexity theory. https:#en.wikipedia.org/wiki/Julia_Robinson
  "robinson",
 
- # Wilhelm Conrad Röntgen - German physicist who was awarded the first Nobel Prize in Physics in 1901 for the discovery of X-rays (Röntgen rays). https:#en.wikipedia.org/wiki/Wilhelm_R%C3%B6ntgen
+ # Wilhelm Conrad Rntgen - German physicist who was awarded the first Nobel Prize in Physics in 1901 for the discovery of X-rays (Rntgen rays). https:#en.wikipedia.org/wiki/Wilhelm_R%C3%B6ntgen
  "roentgen",
 
  # Rosalind Franklin - British biophysicist and X-ray crystallographer whose research was critical to the understanding of DNA - https:#en.wikipedia.org/wiki/Rosalind_Franklin
@@ -705,10 +705,10 @@ right = [
  # William Shockley co-invented the transistor - https:#en.wikipedia.org/wiki/William_Shockley
  "shockley",
 
- # Lina Solomonovna Stern (or Shtern; Russian: Лина Соломоновна Штерн; 26 August 1878 – 7 March 1968) was a Soviet biochemist, physiologist and humanist whose medical discoveries saved thousands of lives at the fronts of World War II. She is best known for her pioneering work on blood–brain barrier, which she described as hemato-encephalic barrier in 1921. https:#en.wikipedia.org/wiki/Lina_Stern
+ # Lina Solomonovna Stern (or Shtern; Russian:   ; 26 August 1878  7 March 1968) was a Soviet biochemist, physiologist and humanist whose medical discoveries saved thousands of lives at the fronts of World War II. She is best known for her pioneering work on bloodbrain barrier, which she described as hemato-encephalic barrier in 1921. https:#en.wikipedia.org/wiki/Lina_Stern
  "shtern",
 
- # Françoise Barré-Sinoussi - French virologist and Nobel Prize Laureate in Physiology or Medicine; her work was fundamental in identifying HIV as the cause of AIDS. https:#en.wikipedia.org/wiki/Fran%C3%A7oise_Barr%C3%A9-Sinoussi
+ # Franoise Barr-Sinoussi - French virologist and Nobel Prize Laureate in Physiology or Medicine; her work was fundamental in identifying HIV as the cause of AIDS. https:#en.wikipedia.org/wiki/Fran%C3%A7oise_Barr%C3%A9-Sinoussi
  "sinoussi",
 
  # Betty Snyder - one of the original programmers of the ENIAC. https:#en.wikipedia.org/wiki/ENIAC - https:#en.wikipedia.org/wiki/Betty_Holberton
@@ -771,10 +771,10 @@ right = [
  # Sir Mokshagundam Visvesvaraya - is a notable Indian engineer.  He is a recipient of the Indian Republic's highest honour, the Bharat Ratna, in 1955. On his birthday, 15 September is celebrated as Engineer's Day in India in his memory - https:#en.wikipedia.org/wiki/Visvesvaraya
  "visvesvaraya",
 
- # Christiane Nüsslein-Volhard - German biologist, won Nobel Prize in Physiology or Medicine in 1995 for research on the genetic control of embryonic development. https:#en.wikipedia.org/wiki/Christiane_N%C3%BCsslein-Volhard
+ # Christiane Nsslein-Volhard - German biologist, won Nobel Prize in Physiology or Medicine in 1995 for research on the genetic control of embryonic development. https:#en.wikipedia.org/wiki/Christiane_N%C3%BCsslein-Volhard
  "volhard",
 
- # Cédric Villani - French mathematician, won Fields Medal, Fermat Prize and Poincaré Price for his work in differential geometry and statistical mechanics. https:#en.wikipedia.org/wiki/C%C3%A9dric_Villani
+ # Cdric Villani - French mathematician, won Fields Medal, Fermat Prize and Poincar Price for his work in differential geometry and statistical mechanics. https:#en.wikipedia.org/wiki/C%C3%A9dric_Villani
  "villani",
 
  # Marlyn Wescoff - one of the original programmers of the ENIAC. https:#en.wikipedia.org/wiki/ENIAC - https:#en.wikipedia.org/wiki/Marlyn_Meltzer
@@ -810,7 +810,7 @@ right = [
  # Ada Yonath - an Israeli crystallographer, the first woman from the Middle East to win a Nobel prize in the sciences. https:#en.wikipedia.org/wiki/Ada_Yonath
  "yonath",
 
- # Nikolay Yegorovich Zhukovsky (Russian: Никола́й Его́рович Жуко́вский, January 17 1847 – March 17, 1921) was a Russian scientist, mathematician and engineer, and a founding father of modern aero- and hydrodynamics. Whereas contemporary scientists scoffed at the idea of human flight, Zhukovsky was the first to undertake the study of airflow. He is often called the Father of Russian Aviation. https:#en.wikipedia.org/wiki/Nikolay_Yegorovich_Zhukovsky
+ # Nikolay Yegorovich Zhukovsky (Russian:   , January 17 1847  March 17, 1921) was a Russian scientist, mathematician and engineer, and a founding father of modern aero- and hydrodynamics. Whereas contemporary scientists scoffed at the idea of human flight, Zhukovsky was the first to undertake the study of airflow. He is often called the Father of Russian Aviation. https:#en.wikipedia.org/wiki/Nikolay_Yegorovich_Zhukovsky
  "zhukovsky",
 ]
 
