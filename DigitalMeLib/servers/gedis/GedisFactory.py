@@ -77,12 +77,12 @@ class GedisFactory(JSConfigBase):
         zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=False)
         bcdb = j.data.bcdb.get(zdb_cl,namespace="test")
         path = j.clients.git.getContentPathFromURLorPath(
-            "https://github.com/threefoldtech/digital_me/tree/development_960/packages/examples/models")
+            "https://github.com/threefoldtech/digital_me/tree/development_961/packages/examples/models")
         bcdb.models_add(path=path)
 
 
         path = j.clients.git.getContentPathFromURLorPath(
-            "https://github.com/threefoldtech/digital_me/tree/development_960/packages/examples/actors")
+            "https://github.com/threefoldtech/digital_me/tree/development_961/packages/examples/actors")
         gedis.actors_add(namespace="gedis_examples", path=path)
         gedis.models_add(namespace="gedis_examples", models=bcdb)
 
