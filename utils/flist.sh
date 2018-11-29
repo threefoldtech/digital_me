@@ -52,7 +52,6 @@ git init $HOME/code/config_test
 touch $HOME/code/config_test/.jsconfig
 js_config init --silent --path $HOME/code/config_test/ --key ~/.ssh/id_rsa
 
-redis-server --daemonize yes
 js_shell "j.servers.zdb.build()"
 js_shell "j.clients.zdb.testdb_server_start_client_get() "
 js_shell "j.tools.tmux.execute('js_shell \'j.servers.digitalme.start()\'')"
