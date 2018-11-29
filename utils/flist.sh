@@ -31,12 +31,12 @@ done
 pushd $HOME/code/github/threefoldtech
 
 # cloning source code
-for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me jumpscale_weblibs; do
+for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me jumpscale_weblibs 0-robot; do
     git clone https://github.com/threefoldtech/${target}
 done
 
 # install jumpscale
-for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
+for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me 0-robot; do
     cd $HOME/code/github/threefoldtech/${target}
     git checkout development_simple
     pip3 install -e .
