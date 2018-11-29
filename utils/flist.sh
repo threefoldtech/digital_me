@@ -40,7 +40,6 @@ for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me 0-robot; 
     cd $HOME/code/github/threefoldtech/${target}
     git checkout development_simple
     pip3 install -e .
-
 done
 
 #ssh generate
