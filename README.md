@@ -1,8 +1,16 @@
-# digital_me
+# Digital Me
+
+
+
+![digitalme](/digital_me.png)
+
+
 
 ## Installation:
 
 Digital me is installed as part of Jumpscale [see installation instructions here](https://github.com/threefoldtech/jumpscale_core) 
+
+
 ## Running
 
 you can run Digital_me using `js_shell`
