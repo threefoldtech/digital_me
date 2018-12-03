@@ -55,6 +55,7 @@ js_config init --silent --path $HOME/code/config_test/ --key ~/.ssh/id_rsa
 redis-server --daemonize yes
 js_shell "j.servers.zdb.build()"
 js_shell "j.clients.zdb.testdb_server_start_client_get() "
+js_shell "j.clients.redis_config.get(interactive=False) "
 js_shell "j.tools.tmux.execute('js_shell \'j.servers.digitalme.start()\'')"
 
 echo "Waiting digitalme to launch on 8000..."
