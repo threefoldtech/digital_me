@@ -62,7 +62,7 @@ echo "Waiting digitalme to launch on 8000..."
 while ! nc -z localhost 8000; do   
   sleep 10 # wait for 10 seconds before check again
 done
-
+cd $HOME/code/github/threefoldtech/digital_me
 #startup digitalme
 cp utils/startup.toml /.startup.toml
 tar -cpzf "/tmp/archives/jumpscale_simple.tar.gz" --exclude tmp --exclude dev --exclude sys --exclude proc  /
