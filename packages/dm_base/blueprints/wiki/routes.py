@@ -23,7 +23,7 @@ def index_sub(sub):
 
 @blueprint.route('/<path:subpath>')
 def wiki_route(subpath, methods=['GET', 'POST']):
-    
+    base_url = request.url.split('wiki')[0] + 'wiki'
     subpath=subpath.strip("/")
 
 
@@ -64,7 +64,7 @@ def wiki_route(subpath, methods=['GET', 'POST']):
                 )
 
     if "sidebar.md" in url:
-        res =  ds.sidebar_get(url)
+        res =  ds.sidebar_get(url, base_url=base_url)
         if res == None:
             raise RuntimeError("sidebar did not return result")
         return res

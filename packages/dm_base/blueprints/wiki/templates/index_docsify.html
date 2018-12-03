@@ -46,7 +46,7 @@
 
   <!-- <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.css"> -->
 
-  <script src="{{ url_for('static', filename='mermaid/mermaid.min.js')}}"</script>
+  <script src="{{ url_for('static', filename='mermaid/mermaid.min.js')}}"></script>
   
 
   <script>
@@ -59,6 +59,7 @@
       disqus: '//tf-foundation.disqus.com/embed.js',
       repo: 'https://github.com/threefoldfoundation/wiki_{{name}}',
       loadSidebar: true,
+      externalLinkTarget: '_self',
       markdown: {
         renderer: {
           code: function (code, lang) {
