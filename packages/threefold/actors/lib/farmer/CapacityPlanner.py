@@ -257,7 +257,7 @@ class CapacityPlanner(JSBASE):
         robot.services.find_or_create(ZEROTIER_TEMPLATE, management_network_id, data=zt_data)
 
         # This dirty hack is temporarily for authorizing zrobot into user's zt-network
-        robot_zos = j.clients.zos.get("robot_zos", data={"socket": "/tmp/redis.sock"})
+        robot_zos = j.clients.zos.get("robot_zos", data={"unixsocket": "/tmp/redis.sock"})
         for cont in robot_zos.containers.list():
             if cont.name == "ubuntu-zrobot":
                 for nic in cont.client.zerotier.list():
@@ -272,6 +272,8 @@ class CapacityPlanner(JSBASE):
                     zt_identity = cont.client.zerotier.info()["publicIdentity"]
                     zt_nw = zt_client.network_get(management_network_id)
                     zt_nw.member_add(zt_identity)
+                    if not j.tools.timer.execute_until(lambda: cont.mgmt_addr, 7200, 1):
+                        raise RuntimeError('Failed to get zt ip for traefik {}'.format(self.name))
                 break
         else:
             raise RuntimeError("No robot containers found")

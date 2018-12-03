@@ -31,16 +31,15 @@ done
 pushd $HOME/code/github/threefoldtech
 
 # cloning source code
-for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me jumpscale_weblibs; do
+for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me jumpscale_weblibs 0-robot; do
     git clone https://github.com/threefoldtech/${target}
 done
 
 # install jumpscale
-for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
+for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me 0-robot; do
     cd $HOME/code/github/threefoldtech/${target}
     git checkout development_simple
     pip3 install -e .
-
 done
 
 #ssh generate
@@ -56,12 +55,14 @@ js_config init --silent --path $HOME/code/config_test/ --key ~/.ssh/id_rsa
 redis-server --daemonize yes
 js_shell "j.servers.zdb.build()"
 js_shell "j.clients.zdb.testdb_server_start_client_get() "
+js_shell "j.clients.redis_config.get(interactive=False) "
 js_shell "j.tools.tmux.execute('js_shell \'j.servers.digitalme.start()\'')"
 
 echo "Waiting digitalme to launch on 8000..."
 while ! nc -z localhost 8000; do   
   sleep 10 # wait for 10 seconds before check again
 done
+cd $HOME/code/github/threefoldtech/digital_me
 #startup digitalme
 cp utils/startup.toml /.startup.toml
 tar -cpzf "/tmp/archives/jumpscale_simple.tar.gz" --exclude tmp --exclude dev --exclude sys --exclude proc  /
