@@ -41,19 +41,19 @@ class Farmer(JSBASE):
     @property
     def farmer_model(self):
         if not self._farmer_model:
-            self._farmer_model = self._bcdb.model_get("threefold.grid.farmer")
+            self._farmer_model = self.bcdb.model_get("threefold.grid.farmer")
         return self._farmer_model
 
     @property
     def node_model(self):
         if not self._node_model:
-            self._node_model = self._bcdb.model_get("threefold.grid.node")
+            self._node_model = self.bcdb.model_get("threefold.grid.node")
         return self._node_model
 
     @property
     def wgw_rule_model(self):
         if not self._wgw_rule_model:
-            self._wgw_rule_model = self._bcdb.model_get(
+            self._wgw_rule_model = self.bcdb.model_get(
                 "threefold.grid.webgateway_rule"
             )
         return self._wgw_rule_model
@@ -61,7 +61,7 @@ class Farmer(JSBASE):
     @property
     def wgw_model(self):
         if not self._wgw_model:
-            self._wgw_model = self._bcdb.model_get("threefold.grid.webgateway")
+            self._wgw_model = self.bcdb.model_get("threefold.grid.webgateway")
         return self._wgw_model
 
     def farmers_get(self, dummy, schema_out):
