@@ -115,26 +115,54 @@ class Handler(JSBASE):
                 continue
 
             params = {}
-
             if cmd.schema_in:
                 if len(request) < 2:
                     response.error("can not handle with request, not enough arguments")
                     continue
+                header = None
+                # If request length is > 2 we will expect a header
                 if len(request) > 2:
-                    cmd.schema_in.properties
-                    self.logger.debug("more than 1 input")
-                    response.error("more than 1 argument given, needs to be binary capnp message or json")
-                    continue
+                    try:
+                        header = j.data.serializers.json.loads(request[2])
+                    except:
+                        response.error("Invalid header was provided, the header should be a json object with the key he"
+                                       "ader, e.g: {'content_type':'json', 'response_type':'capnp'})")
 
-                try:
-                    # Try capnp
-                    id, data = j.data.serializers.msgpack.loads(request[1])
-                    o = cmd.schema_in.get(capnpbin=data)
-                    if id:
-                        o.id = id
-                except:
-                    # Try Json
-                    o = cmd.schema_in.get(data=j.data.serializers.json.loads(request[1]))
+                content_type = 'auto'
+                response_type = 'auto'
+                print("HEADER: ", header)
+                if header:
+                    content_type = header['content_type'] if 'content_type' in header else 'auto'
+                    response_type = header['response_type'] if 'response_type' in header else 'auto'
+                print("RESPONSE_TYPE = ", response_type)
+                if content_type.casefold() == 'auto':
+                    try:
+                        # Try capnp
+                        id, data = j.data.serializers.msgpack.loads(request[1])
+                        o = cmd.schema_in.get(capnpbin=data)
+                        if id:
+                            o.id = id
+                        content_type = 'capnp'
+                    except:
+                        # Try Json
+                        o = cmd.schema_in.get(data=j.data.serializers.json.loads(request[1]))
+                        content_type = 'json'
+
+                elif content_type.casefold() == 'json':
+                    try:
+                        o = cmd.schema_in.get(data=j.data.serializers.json.loads(request[1]))
+                    except:
+                        response.error("the content is not valid json while you provided content_type=json")
+                elif content_type.casefold() == 'capnp':
+                    try:
+                        id, data = j.data.serializers.msgpack.loads(request[1])
+                        o = cmd.schema_in.get(capnpbin=data)
+                        if id:
+                            o.id = id
+                    except:
+                        response.error("the content is not valid capnp while you provided content_type=capnp")
+                else:
+                    response.error("invalid content type was provided the valid types are ['json', 'capnp', 'auto']")
 
                 args = [a.strip() for a in cmd.cmdobj.args.split(',')]
                 if 'schema_out' in args:
@@ -179,8 +207,9 @@ class Handler(JSBASE):
             # self.logger.debug("response:{}:{}:{}".format(address, cmd, result))
 
             if cmd.schema_out:
-                result = result._data
-
+                if (response_type == 'auto' and content_type == 'capnp') or response_type == 'capnp':
+                    result = result._data
+            print("content_type: {}, response_type: {}".format(content_type, response_type))
             response.encode(result)
 
     def command_split(self,cmd,actor="system",namespace="system"):
