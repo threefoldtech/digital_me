@@ -8,7 +8,7 @@ from .ServerRack import ServerRack
 from .Package import Package
 import time
 from gevent import event, sleep
-
+import os
 JSBASE = j.application.JSBaseClass
 
 
@@ -63,7 +63,7 @@ class DigitalMe(JSBASE):
         examples:
 
         js_shell 'j.servers.digitalme.start()'
-        js_shell 'j.servers.digitalme.start(addr="localhost",port=9900,namespace="digitalme", secret="1234")'
+        js_shell 'j.servers.digitalme.start(background=True)'
 
         :param addr: addr of starting zerodb namespace
         :param port: port
@@ -74,25 +74,32 @@ class DigitalMe(JSBASE):
 
         """
 
+        #make sure we have redis running
+        j.clients.redis.core_get()
 
-        def install_zrobot():
-            path = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/0-robot")
-            j.sal.process.execute("cd %s;pip3 install -e ." % path)
+        # def install_zrobot():
+        #     path = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/0-robot")
+        #     j.sal.process.execute("cd %s;pip3 install -e ." % path)
+        #
+        # if "_zrobot" not in j.servers.__dict__.keys():
+        #     # means not installed yet
+        #     install_zrobot()
 
-        if "_zrobot" not in j.servers.__dict__.keys():
-            # means not installed yet
-            install_zrobot()
+
+
+
 
         if background:
 
-            cmd = "js_shell 'j.servers.digitalme.start(addr=\"%s\",port=%s,namespace=\"%s\", secret=\"%s\")'"%\
-                  (addr,port,namespace,secret)
-
-            process_strings=["j.servers.digitalme.start"]
-
-            p=j.tools.tmux.execute(name="digitalme",
-                cmd=cmd,reset=True,window="digitalme")
-
+            env={}
+            env["addr"]=addr
+            env["port"]=port
+            env["namespace"]=namespace
+            env["secret"]=secret
+            cmd_="js_shell 'j.servers.digitalme.start()"
+            cmd = j.tools.tmux.cmd_get(name="digitalme",pane="p13",cmd=cmd_, env=env,process_strings=["digitalme.start"])
+            cmd.stop()
+            cmd.start()
 
             gedisclient = j.clients.gedis.configure(namespace,namespace="system",port=8001,secret=secret,
                                                         host="localhost")
@@ -103,6 +110,16 @@ class DigitalMe(JSBASE):
 
 
         else:
+
+            if "addr" in os.environ:
+                addr = os.environ["addr"]
+            if "port" in os.environ:
+                port = int(os.environ["port"])
+            if "namespace" in os.environ:
+                namespace = os.environ["namespace"]
+            if "secret" in os.environ:
+                secret = os.environ["secret"]
+
 
             self.rack = self.server_rack_get()
 
@@ -119,6 +136,14 @@ class DigitalMe(JSBASE):
             self.web_reload()
 
             self.rack.start()
+
+        #get sockexec to run
+        cmd = j.tools.tmux.cmd_get(name="runner",pane="p14",cmd="rm -f /tmp/exec.sock;sockexec /tmp/exec.sock")
+        cmd.stop()
+        cmd.start()
+
+        j.servers.openresty.start()
+
 
     def web_reload(self):
 
