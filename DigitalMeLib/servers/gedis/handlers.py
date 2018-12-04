@@ -30,12 +30,11 @@ JSBASE = j.application.JSBaseClass
 #         print "Child process got message from pipe:\n\t'%s'" % reader.get()
 
 
-
 class Handler(JSBASE):
     def __init__(self, gedis_server):
         JSBASE.__init__(self)
-        self.gedis_server=gedis_server
-        self.cmds = {}            #caching of commands
+        self.gedis_server = gedis_server
+        self.cmds = {}  # caching of commands
         self.classes = self.gedis_server.classes
         self.cmds_meta = self.gedis_server.cmds_meta
         self.logger_enable()
@@ -60,11 +59,10 @@ class Handler(JSBASE):
 
         while True:
             request = parser.read_request()
-
-            self.logger.debug("%s:%s"%(socket.namespace,request))
+            self.logger.debug("%s:%s" % (socket.namespace, request))
 
             if request is None:
-                self.logger.debug("connectionlost or tcp test")
+                self.logger.debug("connection lost or tcp test")
                 break
 
             if not request:  # empty list request
@@ -75,22 +73,23 @@ class Handler(JSBASE):
             cmd = request[0]
             redis_cmd = cmd.decode("utf-8").lower()
 
-
-            #special command to put the client on right namespace
+            # special command to put the client on right namespace
             if redis_cmd == "select":
-                nsname=request[1].decode()
-                i=None
+                namespace = request[1].decode()
+                i = None
                 try:
-                    i=int(nsname)
+                    i = int(namespace)
                 except:
-                    if i is not None:
-                        #means is selection of DB in redis directly because is int
-                        response.encode("OK")
-                        continue
+                    pass
 
-                socket.namespace = nsname
-                if socket.namespace  not in j.servers.gedis.latest.namespaces:
-                    response.error("could not find namespace:%s"%socket.namespace)
+                if i is not None:
+                    # means is selection of DB in redis directly because is int
+                    response.encode("OK")
+                    continue
+
+                socket.namespace = namespace
+                if socket.namespace not in j.servers.gedis.latest.namespaces:
+                    response.error("could not find namespace:%s" % socket.namespace)
                     continue
 
                 self.logger.debug("NAMESPACE_%s_%s" % (address, socket.namespace))
@@ -105,16 +104,18 @@ class Handler(JSBASE):
                 response.encode("PONG")
                 continue
 
-            namespace, actor, command = self.command_split(redis_cmd,namespace=socket.namespace)
-            self.logger.debug("cmd:%s:%s:%s"%(namespace, actor, command))
+            namespace, actor, command = self.command_split(redis_cmd, namespace=socket.namespace)
+            self.logger.debug("cmd:%s:%s:%s" % (namespace, actor, command))
 
             cmd, err = self.command_obj_get(cmd=command,namespace=namespace,actor=actor)
-            if err is not "":
+            if err:
                 response.error(err)
-                self.logger.debug("error:%s"%err)
+                self.logger.debug("error:%s" % err)
                 continue
 
             params = {}
+            content_type = 'auto'
+            response_type = 'auto'
             if cmd.schema_in:
                 if len(request) < 2:
                     response.error("can not handle with request, not enough arguments")
@@ -125,16 +126,14 @@ class Handler(JSBASE):
                     try:
                         header = j.data.serializers.json.loads(request[2])
                     except:
-                        response.error("Invalid header was provided, the header should be a json object with the key he"
-                                       "ader, e.g: {'content_type':'json', 'response_type':'capnp'})")
-
-                content_type = 'auto'
-                response_type = 'auto'
-                print("HEADER: ", header)
+                        response.error("Invalid header was provided, "
+                                       "the header should be a json object with the key header, "
+                                       "e.g: {'content_type':'json', 'response_type':'capnp'})")
                 if header:
-                    content_type = header['content_type'] if 'content_type' in header else 'auto'
-                    response_type = header['response_type'] if 'response_type' in header else 'auto'
-                print("RESPONSE_TYPE = ", response_type)
+                    if 'content_type' in header:
+                        content_type = header['content_type']
+                    if 'response_type' in header:
+                        response_type = header['response_type']
                 if content_type.casefold() == 'auto':
                     try:
                         # Try capnp
@@ -168,7 +167,6 @@ class Handler(JSBASE):
                 if 'schema_out' in args:
                     args.remove('schema_out')
 
-
                 schema_dict = o._ddict
                 if len(args) == 1:
                     if args[0] in schema_dict:
@@ -177,7 +175,6 @@ class Handler(JSBASE):
                         params[args[0]] = o
                 else:
                     params.update(schema_dict)
-
 
             else:
                 if len(request) > 1:
@@ -212,145 +209,136 @@ class Handler(JSBASE):
             print("content_type: {}, response_type: {}".format(content_type, response_type))
             response.encode(result)
 
-    def command_split(self,cmd,actor="system",namespace="system"):
+    def command_split(self, cmd, actor="system", namespace="system"):
         self.logger.debug("cmd_start:%s:%s:%s" % (namespace, actor, cmd))
-        # from pudb import set_trace; set_trace()
-        splitted = cmd.split(".")
-        if len(splitted)==3:
-            namespace = splitted[0]
-            actor = splitted[1]
+        cmd_parts = cmd.split(".")
+        if len(cmd_parts) == 3:
+            namespace = cmd_parts[0]
+            actor = cmd_parts[1]
             if "__" in actor:
-                actor = actor.split("__",1)[1]
-            cmd = splitted[2]
-        elif len(splitted)==2:
-            actor = splitted[0]
+                actor = actor.split("__", 1)[1]
+            cmd = cmd_parts[2]
+
+        elif len(cmd_parts) == 2:
+            actor = cmd_parts[0]
             if "__" in actor:
-                actor = actor.split("__",1)[1]
-            cmd = splitted[1]
+                actor = actor.split("__", 1)[1]
+            cmd = cmd_parts[1]
             if actor == "system":
                 namespace = "system"
-        elif len(splitted) == 1:
+        elif len(cmd_parts) == 1:
             namespace = "system"
-            actor="system"
-            cmd = splitted[0]
+            actor = "system"
+            cmd = cmd_parts[0]
         else:
             raise RuntimeError("cmd not properly formatted")
 
-        return namespace,actor,cmd
+        return namespace, actor, cmd
 
+    def command_obj_get(self, namespace, actor, cmd):
+        self.logger.debug('command cache miss:%s %s %s' % (namespace, actor, cmd))
 
-    def command_obj_get(self, namespace,actor, cmd):
-        self.logger.debug('command cache miss:%s %s %s'%(namespace,actor,cmd))
+        key = "%s__%s" % (namespace, actor)
+        key_cmd = "%s__%s" % (key, cmd)
 
-
-        key="%s__%s"%(namespace,actor)
-        key_cmd = "%s__%s"%(key,cmd)
-
-        #caching so we don't have to eval every time
+        # caching so we don't have to eval every time
         if key_cmd in self.cmds:
             return self.cmds[key_cmd], ''
 
-        if namespace=="system" and key not in self.classes:
-            #we will now check if the info is in default namespace
+        if namespace == "system" and key not in self.classes:
+            # we will now check if the info is in default namespace
             key = "default__%s" % actor
-        if namespace=="default" and key not in self.classes:
-            #we will now check if the info is in default namespace
+        if namespace == "default" and key not in self.classes:
+            # we will now check if the info is in system namespace
             key = "system__%s" % actor
 
         if key not in self.classes:
-            j.shell()
-            return None, "Cannot find cmd with key:%s in classes" % (namespace)
+            return None, "Cannot find cmd with key:%s in classes" % key
 
         if key not in self.cmds_meta:
-            j.shell()
-            return None, "Cannot find cmd with key:%s in cmds_meta" % (namespace)
+            return None, "Cannot find cmd with key:%s in cmds_meta" % key
 
         meta = self.cmds_meta[key]
 
-        #check cmd exists in the metadata
-        if not cmd in meta.cmds:
-            j.shell()
+        # check cmd exists in the metadata
+        if cmd not in meta.cmds:
             return None, "Cannot find method with name:%s in namespace:%s" % (cmd, namespace)
 
         cmd_obj = meta.cmds[cmd]
 
         try:
             cl = self.classes[key]
-            m = eval("cl.%s" % (cmd))
+            cmd_method = getattr(cl, cmd)
         except Exception as e:
             return None, "Could not execute code of method '%s' in namespace '%s'\n%s" % (key, namespace, e)
 
-        cmd_obj.method = m
-
+        cmd_obj.method = cmd_method
         self.cmds[key_cmd] = cmd_obj
 
         return self.cmds[key_cmd], ""
 
-
-    def handle_websocket(self,socket, namespace):
-
-        message = socket.receive()
-        if not message:
-            return
-        message = json.loads(message)
-        namespace,actor,cmd = self.command_split(message["command"],namespace=namespace)
-        cmd, err = self.command_obj_get(namespace,actor,cmd)
-        if err:
-            socket.send(err)
-            return
-
-        res, err = self.handle_websocket_(cmd, message,namespace=namespace)
-        if err:
-            socket.send(err)
-            return
-
-        socket.send(json.dumps(res))
-
-
-    def handle_websocket_(self, cmd, message,namespace):
-
-        if cmd.schema_in:
-            if not message.get("args"):
-                return None, "need to have arguments, none given"
-
-            o = cmd.schema_in.get(data=j.data.serializers.json.loads(message["args"]))
-            args = [a.strip() for a in cmd.cmdobj.args.split(',')]
-            if 'schema_out' in args:
-                args.remove('schema_out')
-            params = {}
-            schema_dict = o._ddict
-            if len(args) == 1:
-                if args[0] in schema_dict:
-                    params.update(schema_dict)
-                else:
-                    params[args[0]] = o
-            else:
-                params.update(schema_dict)
-
-            if cmd.schema_out:
-                params["schema_out"] = cmd.schema_out
-        else:
-            if message.get("args"):
-                params = message["args"]
-                if cmd.schema_out:
-                    params.append(cmd.schema_out)
-            else:
-                params = None
-
-        try:
-            if params is None:
-                result = cmd.method()
-            elif j.data.types.list.check(params):
-                result = cmd.method(*params)
-            else:
-                result = cmd.method(**params)
-            return result, None
-
-        except Exception as e:
-            self.logger.debug("exception in redis server")
-            eco = j.errorhandler.parsePythonExceptionObject(e)
-            msg = str(eco)
-            msg += "\nCODE:%s:%s\n" % (cmd.namespace, cmd.name)
-            self.logger.debug(msg)
-            return None, e.args[0]
-
+    # def handle_websocket(self,socket, namespace):
+    #
+    #     message = socket.receive()
+    #     if not message:
+    #         return
+    #     message = json.loads(message)
+    #     namespace,actor,cmd = self.command_split(message["command"],namespace=namespace)
+    #     cmd, err = self.command_obj_get(namespace,actor,cmd)
+    #     if err:
+    #         socket.send(err)
+    #         return
+    #
+    #     res, err = self.handle_websocket_(cmd, message,namespace=namespace)
+    #     if err:
+    #         socket.send(err)
+    #         return
+    #
+    #     socket.send(json.dumps(res))
+    #
+    # def handle_websocket_(self, cmd, message,namespace):
+    #
+    #     if cmd.schema_in:
+    #         if not message.get("args"):
+    #             return None, "need to have arguments, none given"
+    #
+    #         o = cmd.schema_in.get(data=j.data.serializers.json.loads(message["args"]))
+    #         args = [a.strip() for a in cmd.cmdobj.args.split(',')]
+    #         if 'schema_out' in args:
+    #             args.remove('schema_out')
+    #         params = {}
+    #         schema_dict = o._ddict
+    #         if len(args) == 1:
+    #             if args[0] in schema_dict:
+    #                 params.update(schema_dict)
+    #             else:
+    #                 params[args[0]] = o
+    #         else:
+    #             params.update(schema_dict)
+    #
+    #         if cmd.schema_out:
+    #             params["schema_out"] = cmd.schema_out
+    #     else:
+    #         if message.get("args"):
+    #             params = message["args"]
+    #             if cmd.schema_out:
+    #                 params.append(cmd.schema_out)
+    #         else:
+    #             params = None
+    #
+    #     try:
+    #         if params is None:
+    #             result = cmd.method()
+    #         elif j.data.types.list.check(params):
+    #             result = cmd.method(*params)
+    #         else:
+    #             result = cmd.method(**params)
+    #         return result, None
+    #
+    #     except Exception as e:
+    #         self.logger.debug("exception in redis server")
+    #         eco = j.errorhandler.parsePythonExceptionObject(e)
+    #         msg = str(eco)
+    #         msg += "\nCODE:%s:%s\n" % (cmd.namespace, cmd.name)
+    #         self.logger.debug(msg)
+    #         return None, e.args[0]
