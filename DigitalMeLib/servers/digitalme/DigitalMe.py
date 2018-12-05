@@ -9,6 +9,10 @@ from .Package import Package
 import time
 from gevent import event, sleep
 import os
+import socket
+import netstr
+import sys
+import time
 JSBASE = j.application.JSBaseClass
 
 
@@ -57,25 +61,109 @@ class DigitalMe(JSBASE):
         if p.name not in self.packages:
             self.packages[p.name]=p
 
-    def start(self, addr="localhost",port=9900,namespace="digitalme", secret="1234",background=False):
+    def _run_exec(self,cmd):
+        #need better way to return the result, how to use the socket well???
+        # https://github.com/jprjr/sockexec
+        args = cmd.split(" ")
+        path = "/sandbox/var/exec.sock"
+        if not os.path.exists(path):
+            raise RuntimeError("cannot find exec socket path:%s"%path)
+        client = socket.socket(socket.AF_UNIX)
+        client.connect(path)
+        s=netstr.encode(str(len(args)).encode())
+        for cmd in args:
+            s+=netstr.encode(cmd.encode())
+        s+=netstr.encode(b"")
+        client.sendall(s)
+        while True:
+            r=client.recv(1024)
+            if r!=b'':
+                print(r.decode()) #doing line breaks, should not, also not using netstring for return, has too
+            time.sleep(0.01)
+
+
+    def _socket_check(self,path,msg=""):
+        if os.path.exists(path):
+            client = socket.socket(socket.AF_UNIX)
+            client.connect(path)
+            return True
+        return False
+
+
+    def start(self,secret,namespace="digitalme",restart=False,destroydata=False,zdbinternal=True):
         """
+        js_shell 'j.servers.digitalme.start(secret="1234")'
+        js_shell 'j.servers.digitalme.start(secret="1234",destroydata=True)'
 
-        examples:
 
-        js_shell 'j.servers.digitalme.start()'
-        js_shell 'j.servers.digitalme.start(background=True)'
+        the secret is the real secret of your digitalme, it needs also an ssh-agent loaded
+        the combination delivers all required security
 
-        :param addr: addr of starting zerodb namespace
-        :param port: port
-        :param namespace: name of the namespace
-        :param secret: the secret of the namespace
+        :param secret:
+        :param namespace: is the namespace as used on ZDB
+        :param destroydata: if used will remove all data before starting, be carefull
+        :param restart, will restart the tmux
         :return:
 
+        window in tmux: digitalme
+        pannels in tmux:
+           - 12 = redis
+           - 13 = zdb
+           - 14 = execsocket
+           - 21 = openresty
+           - 22 = digitalme
 
         """
+
+        if restart:
+            j.tools.panes_digitalme_create(reset=restart)
 
         #make sure we have redis running
         j.clients.redis.core_get()
+
+        if restart or not j.sal.nettools.tcpPortConnectionTest("localhost",8081):
+            j.servers.openresty.start()
+
+        # #get sockexec to run
+        if restart or not self._socket_check("/sandbox/var/exec.sock"):
+            cmd = j.tools.tmux.cmd_get(name="runner",pane="p14",cmd="rm -f /sandbox/var/exec.sock;sockexec /sandbox/var/exec.sock")
+            cmd.stop()
+            cmd.start()
+
+
+        secret = j.data.hash.md5_string(secret) #to make sure we don't have to store the secret as plain text somewhere
+
+        self.nacl =  j.data.nacl.get(name="digitalme",secret=j.data.hash.md5_string(secret+"digitalme")) #just to make sure secret in nacl is not same as namespace
+
+        if zdbinternal:
+            j.servers.zdb.adminsecret =  self.nacl.ssh_hash(secret+"admin")
+            j.servers.zdb.name = "digitalme"
+
+            if destroydata or restart:
+                j.servers.zdb.stop()
+                zdbrunning = False
+            else:
+                zdbrunning = j.servers.zdb.isrunning()
+
+            if not zdbrunning:
+                j.servers.zdb.start(destroydata=destroydata)
+
+            try:
+                cladmin = j.servers.zdb.client_admin_get()
+            except Exception as e:
+                if str(e).find("Access denied")!=-1:
+                    print("\nERROR:\n    cannot connect to ZDB, admin secret different, restart without ZDB init or destroy ZDB data\n")
+                    sys.exit(1)
+                raise e
+
+            if not cladmin.namespace_exists(namespace):
+                secretns = self.nacl.ssh_hash(namespace+secret)  #will generate a unique hash which will only be relevant when right ssh-agent loaded
+                zdbcl = cladmin.namespace_new(namespace, secret=secretns, maxsize=0, die=True)
+
+        # self._run_exec("find /")
+        # j.shell()
+        # ws
+
 
         # def install_zrobot():
         #     path = j.clients.git.getContentPathFromURLorPath("https://github.com/threefoldtech/0-robot")
@@ -87,69 +175,89 @@ class DigitalMe(JSBASE):
 
 
 
+        env={}
+        env["addr"]="localhost"
+        env["port"]="9900"
+        env["namespace"]=namespace
+        env["secret"]=secret
+        cmd_="js_shell 'j.servers.digitalme.start_from_zdb()'"
+        cmd = j.tools.tmux.cmd_get(name="digitalme",pane="p22",cmd=cmd_, env=env,process_strings=[])
 
-
-        if background:
-
-            env={}
-            env["addr"]=addr
-            env["port"]=port
-            env["namespace"]=namespace
-            env["secret"]=secret
-            cmd_="js_shell 'j.servers.digitalme.start()"
-            cmd = j.tools.tmux.cmd_get(name="digitalme",pane="p13",cmd=cmd_, env=env,process_strings=["digitalme.start"])
-            cmd.stop()
-            cmd.start()
-
-            gedisclient = j.clients.gedis.configure(namespace,namespace="system",port=8001,secret=secret,
-                                                        host="localhost")
-
-            assert gedisclient.system.ping() == b"PONG"
-
-            return gedisclient
-
-
-        else:
-
-            if "addr" in os.environ:
-                addr = os.environ["addr"]
-            if "port" in os.environ:
-                port = int(os.environ["port"])
-            if "namespace" in os.environ:
-                namespace = os.environ["namespace"]
-            if "secret" in os.environ:
-                secret = os.environ["secret"]
-
-
-            self.rack = self.server_rack_get()
-
-            geventserver = j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
-                                      adminsecret=secret, instance=namespace)
-
-            self.rack.add("gedis", geventserver.redis_server) #important to do like this, otherwise 2 servers started
-
-            zdbclient = j.clients.zdb.client_get(nsname=namespace, addr=addr, port=port, secret=secret, mode='seq')
-            key = "%s_%s_%s"%(addr,port,namespace)
-
-            self.bcdb = j.data.bcdb.new("digitalme_%s"%key, zdbclient=zdbclient, cache=True)
-
-            self.web_reload()
-
-            self.rack.start()
-
-        #get sockexec to run
-        cmd = j.tools.tmux.cmd_get(name="runner",pane="p14",cmd="rm -f /tmp/exec.sock;sockexec /tmp/exec.sock")
         cmd.stop()
         cmd.start()
 
-        j.servers.openresty.start()
+
+
+
+        gedisclient = j.clients.gedis.configure(namespace,namespace="system",port=8001,secret=secret,host="localhost")
+
+        assert gedisclient.system.ping() == b"PONG"
+
+        return gedisclient
+
+
+
+
+
+    def start_from_zdb(self, addr="localhost",port=9900,namespace="digitalme", secret="1234"):
+        """
+
+        examples:
+
+        js_shell 'j.servers.digitalme.start_from_zdb()'
+
+        :param addr: addr of starting zerodb namespace
+        :param port: port
+        :param namespace: name of the namespace
+        :param secret: the secret of the namespace
+
+        can also pass the arguments as env variables
+
+        :return:
+
+
+
+
+        """
+
+        if "addr" in os.environ:
+            addr = os.environ["addr"]
+        if "port" in os.environ:
+            port = int(os.environ["port"])
+        if "namespace" in os.environ:
+            namespace = os.environ["namespace"]
+        if "secret" in os.environ:
+            secret = os.environ["secret"]
+
+        if len(secret)!=32:
+            secret = j.data.hash.md5_string(secret)
+
+
+        self.nacl =  j.data.nacl.get(name="digitalme",secret=j.data.hash.md5_string(secret+"digitalme")) #just to make sure secret in nacl is not same as namespace
+
+        secretns = self.nacl.ssh_hash(namespace+secret)  #will generate a unique hash which will only be relevant when right ssh-agent loaded
+
+        self.zdbclient = j.clients.zdb.client_get(nsname=namespace, addr=addr, port=port, secret=secretns, mode='seq')
+
+        self.rack = self.server_rack_get()
+
+        geventserver = j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
+                                  adminsecret=secret, instance=namespace)
+
+        self.rack.add("gedis", geventserver.redis_server) #important to do like this, otherwise 2 servers started
+
+        key = "%s_%s_%s"%(addr,port,namespace)
+        self.bcdb = j.data.bcdb.new("digitalme_%s"%key, zdbclient=self.zdbclient, cache=True)
+
+        self.web_reload()
+
+        self.rack.start()
+
 
 
     def web_reload(self):
 
         #add configuration to openresty
-        staticpath = j.clients.git.getContentPathFromURLorPath(
-            "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static")
 
         j.servers.openresty.configs_add(j.sal.fs.joinPaths(self._dirpath,"web_config"),args={"staticpath":staticpath})
 
@@ -167,9 +275,6 @@ class DigitalMe(JSBASE):
                 "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/example")
         self.package_add(toml_path,bcdb=bcdb)
 
-
-        # j.servers.openresty.start()
-        # j.servers.openresty.reload()
 
 
     def server_rack_get(self):

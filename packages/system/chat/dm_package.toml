@@ -10,3 +10,6 @@ web_prefixes = "chatflows"
 giturl = "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/chat"
 dest = ""
 
+[[loaders]]
+giturl = "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static"
+dest = ""
