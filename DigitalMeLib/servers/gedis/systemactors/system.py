@@ -1,5 +1,3 @@
-
-
 from Jumpscale import j
 
 JSBASE = j.application.JSBaseClass
@@ -217,7 +215,7 @@ class system(JSBASE):
             val = splitted[1]
 
             if cmd == 'namespaces':
-                actors = g.actors_methods_get(namespace=val)
+                actors = g.actors_methods_list(namespace=val)
                 return j.data.serializers.json.dumps(actors).encode()
 
             return str(g.cmds_meta)
