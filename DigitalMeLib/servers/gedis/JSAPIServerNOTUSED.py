@@ -1,8 +1,10 @@
-from .handlers import WebsocketRequestHandler
-from geventwebsocket.handler import WebSocketHandler
 from gevent import pywsgi
+from geventwebsocket.handler import WebSocketHandler
 
-#THINK IS NOT USED AT THIS POINT
+from .handlers import WebsocketRequestHandler
+
+# THINK IS NOT USED AT THIS POINT
+
 
 class JSAPIServer():
     def __init__(self):
@@ -17,16 +19,18 @@ class JSAPIServer():
             #         start_response('200 OK', [('Content-Type', 'application/javascript;charset=utf-8'),('Access-Control-Allow-Origin','*')])
             #         return [self.code_js_client]
 
-
             # file_path = j.sal.fs.joinPaths(self.static_files_path, static_file)
             # if j.sal.fs.exists(file_path):
             #     self.static_files[static_file] = j.sal.fs.readFile(file_path).replace('%%host%%', host).encode('utf-8')
-            start_response('200 OK', [('Content-Type', 'application/javascript;charset=utf-8'),('Access-Control-Allow-Origin','*')])
+            start_response(
+                '200 OK',
+                [('Content-Type', 'application/javascript;charset=utf-8'),
+                 ('Access-Control-Allow-Origin', '*')])
             code_js = self.code_js_client
             host = environ.get('HTTP_HOST')
             #
-            code_js = code_js.replace("wss://","ws://")
-            code_js=code_js.replace('%%host%%', host).encode('utf-8')
+            code_js = code_js.replace("wss://", "ws://")
+            code_js = code_js.replace('%%host%%', host).encode('utf-8')
             return [code_js]
 
             # start_response('404 NOT FOUND', [])
@@ -35,8 +39,7 @@ class JSAPIServer():
         websocket = environ.get('wsgi.websocket')
         if not websocket:
             return []
-        addr = '{0}:{1}'.format(environ['REMOTE_ADDR'],environ['REMOTE_PORT'])
+        addr = '{0}:{1}'.format(environ['REMOTE_ADDR'], environ['REMOTE_PORT'])
         handler = WebsocketRequestHandler(self.instance, self.cmds, self.classes, self.cmds_meta)
         handler.handle(websocket, addr)
         return []
-

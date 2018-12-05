@@ -1,8 +1,10 @@
-from Jumpscale import j
-import gevent
 import sys
 import uuid
 from importlib import import_module
+
+import gevent
+
+from Jumpscale import j
 
 JSBASE = j.application.JSBaseClass
 
