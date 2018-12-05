@@ -1,8 +1,12 @@
-from Jumpscale import j
 import json
+
 from redis.exceptions import ConnectionError
+
+from Jumpscale import j
+
 # from geventwebsocket.exceptions import WebSocketError
-from .protocol import RedisResponseWriter, RedisCommandParser#, WebsocketsCommandParser
+from .protocol import (RedisCommandParser,  # , WebsocketsCommandParser
+                       RedisResponseWriter)
 
 JSBASE = j.application.JSBaseClass
 
@@ -79,7 +83,7 @@ class Handler(JSBASE):
                 i = None
                 try:
                     i = int(namespace)
-                except:
+                except BaseException:
                     pass
 
                 if i is not None:
@@ -107,7 +111,7 @@ class Handler(JSBASE):
             namespace, actor, command = self.command_split(redis_cmd, namespace=socket.namespace)
             self.logger.debug("cmd:%s:%s:%s" % (namespace, actor, command))
 
-            cmd, err = self.command_obj_get(cmd=command,namespace=namespace,actor=actor)
+            cmd, err = self.command_obj_get(cmd=command, namespace=namespace, actor=actor)
             if err:
                 response.error(err)
                 self.logger.debug("error:%s" % err)
@@ -125,7 +129,7 @@ class Handler(JSBASE):
                 if len(request) > 2:
                     try:
                         header = j.data.serializers.json.loads(request[2])
-                    except:
+                    except BaseException:
                         response.error("Invalid header was provided, "
                                        "the header should be a json object with the key header, "
                                        "e.g: {'content_type':'json', 'response_type':'capnp'})")
@@ -142,7 +146,7 @@ class Handler(JSBASE):
                         if id:
                             o.id = id
                         content_type = 'capnp'
-                    except:
+                    except BaseException:
                         # Try Json
                         o = cmd.schema_in.get(data=j.data.serializers.json.loads(request[1]))
                         content_type = 'json'
@@ -150,7 +154,7 @@ class Handler(JSBASE):
                 elif content_type.casefold() == 'json':
                     try:
                         o = cmd.schema_in.get(data=j.data.serializers.json.loads(request[1]))
-                    except:
+                    except BaseException:
                         response.error("the content is not valid json while you provided content_type=json")
                 elif content_type.casefold() == 'capnp':
                     try:
@@ -158,7 +162,7 @@ class Handler(JSBASE):
                         o = cmd.schema_in.get(capnpbin=data)
                         if id:
                             o.id = id
-                    except:
+                    except BaseException:
                         response.error("the content is not valid capnp while you provided content_type=capnp")
                 else:
                     response.error("invalid content type was provided the valid types are ['json', 'capnp', 'auto']")
@@ -181,7 +185,7 @@ class Handler(JSBASE):
                     params = request[1:]
 
             if cmd.schema_out:
-                params["schema_out"] = cmd.schema_out                        
+                params["schema_out"] = cmd.schema_out
 
             self.logger.debug("execute command callback:%s:%s" % (cmd, params))
             result = None
@@ -189,7 +193,7 @@ class Handler(JSBASE):
                 if params == {}:
                     result = cmd.method()
                 elif j.data.types.list.check(params):
-                    self.logger.debug("PARAMS:%s"%params)
+                    self.logger.debug("PARAMS:%s" % params)
                     result = cmd.method(*params)
                 else:
                     result = cmd.method(**params)

@@ -4,6 +4,7 @@ from Jumpscale import j
 
 JSBASE = j.application.JSBaseClass
 
+
 class core(JSBASE):
 
     def __init__(self):
@@ -13,7 +14,7 @@ class core(JSBASE):
     # def auth(self,secret):
     #     return "OK"
 
-    def namespaces(self,schema_out):
+    def namespaces(self, schema_out):
         """
 
         returns list of namespaces
@@ -22,6 +23,6 @@ class core(JSBASE):
         result = (LS)
         ```
         """
-        r=schema_out.new()
+        r = schema_out.new()
         r.namespaces = self.server.namespaces
         return r

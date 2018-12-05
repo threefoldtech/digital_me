@@ -1,7 +1,9 @@
 from logging import getLogger
-from Jumpscale import j
+
 from redis.connection import Encoder, PythonParser, SocketBuffer
 from redis.exceptions import ConnectionError
+
+from Jumpscale import j
 
 logger = getLogger(__name__)
 

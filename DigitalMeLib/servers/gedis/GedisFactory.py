@@ -2,9 +2,9 @@ import os
 
 from Jumpscale import j
 
-from .GedisServer import GedisServer
-from .GedisCmds import GedisCmds
 from .GedisChatBot import GedisChatBotFactory
+from .GedisCmds import GedisCmds
+from .GedisServer import GedisServer
 
 JSConfigBase = j.tools.configmanager.JSBaseClassConfigs
 
@@ -26,8 +26,7 @@ class GedisFactory(JSConfigBase):
         if data is None:
             data = {}
 
-        return super(GedisFactory, self).get(instance=instance, data=data, interactive=interactive)        
-
+        return super(GedisFactory, self).get(instance=instance, data=data, interactive=interactive)
 
     def geventserver_get(self, instance=""):
         """
@@ -40,8 +39,8 @@ class GedisFactory(JSConfigBase):
         server = self.get(instance=instance)
         return server.redis_server
 
-    def configure(self,instance="test",port=8889,
-                    host="localhost",ssl=False,adminsecret="",interactive=False,configureclient=True):
+    def configure(self, instance="test", port=8889,
+                  host="localhost", ssl=False, adminsecret="", interactive=False, configureclient=True):
 
         data = {
             "port": str(port),
@@ -54,8 +53,8 @@ class GedisFactory(JSConfigBase):
             j.clients.gedis.configure(instance=instance,
                                       host=host, port=port, secret=adminsecret, ssl=ssl, reset=True, get=False)
 
-        server=self.get(instance, data, interactive=interactive)
-        server.client_configure() #configures the client
+        server = self.get(instance, data, interactive=interactive)
+        server.client_configure()  # configures the client
         return server
 
     def _cmds_get(self, key, capnpbin):
@@ -63,7 +62,7 @@ class GedisFactory(JSConfigBase):
         Used in client only, starts from capnpbin (python client)
         """
         namespace, name = key.split("__")
-        return GedisCmds(namespace=namespace,name=name, capnpbin=capnpbin)
+        return GedisCmds(namespace=namespace, name=name, capnpbin=capnpbin)
 
     def test_server_start(self):
         """
@@ -75,11 +74,10 @@ class GedisFactory(JSConfigBase):
         gedis = self.get(instance="test")
 
         zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=False)
-        bcdb = j.data.bcdb.get(zdb_cl,namespace="test")
+        bcdb = j.data.bcdb.get(zdb_cl, namespace="test")
         path = j.clients.git.getContentPathFromURLorPath(
             "https://github.com/threefoldtech/digital_me/tree/development_960/packages/examples/models")
         bcdb.models_add(path=path)
-
 
         path = j.clients.git.getContentPathFromURLorPath(
             "https://github.com/threefoldtech/digital_me/tree/development_960/packages/examples/actors")
@@ -88,9 +86,7 @@ class GedisFactory(JSConfigBase):
 
         gedis.start()
 
-
-
-    def test(self,zdb_start=True):
+    def test(self, zdb_start=True):
         """
         js_shell 'j.servers.gedis.test(zdb_start=False)'
         """
@@ -115,7 +111,7 @@ class GedisFactory(JSConfigBase):
         )
 
         res = j.sal.nettools.waitConnectionTest("localhost", int(gedis.config.data["port"]), timeoutTotal=1000)
-        if res == False:
+        if not res:
             raise RuntimeError("Could not start gedis server on port:%s" % int(gedis.config.data["port"]))
         self.logger.info("gedis server '%s' started" % gedis.instance)
         print("[*] testing echo")
@@ -160,7 +156,6 @@ class GedisFactory(JSConfigBase):
         print("**DONE**")
 
         # j.shell()
-
 
     # def chatbot_test(self):
     #     """
@@ -208,4 +203,3 @@ class GedisFactory(JSConfigBase):
 #         #                                instance=instance)
 #
 #         self.logger.info("gedis app now in: '%s'\n    do:\n    cd %s;sh start.sh" % (dest, dest))
-
