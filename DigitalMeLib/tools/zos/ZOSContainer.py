@@ -1,7 +1,8 @@
 from Jumpscale import j
-
+from watchdog.observers import Observer
+from .MyFileSystemEventHandler import MyFileSystemEventHandler
 JSBASE = j.application.JSBaseClass
-
+import time
 class ZOSContainer(JSBASE):
 
     def __init__(self,zos,data):
@@ -38,32 +39,32 @@ class ZOSContainer(JSBASE):
             self._node=node
         return self._node
 
-    def sync(self):
+    def sync(self, monitor=False,paths=["$CODEDIR/github/threefoldtech/jumpscale_core",
+                                        "$CODEDIR/github/threefoldtech/jumpscale_lib",
+                                        "$CODEDIR/github/threefoldtech/jumpscale_prefab",
+                                        "$CODEDIR/github/threefoldtech/digital_me"]):
         """
         sync all code to the remote destinations, uses config as set in jumpscale.toml
 
         """
-        j.shell()
+        self.node.sync(paths=paths)
+        self.sync_paths = paths
+        if monitor:
+            self._monitor(paths=paths)
 
-
-
-    def monitor(self):
+    def _monitor(self,paths):
         """
         look for changes in directories which are being pushed & if found push to remote nodes
 
         js_shell 'j.tools.develop.monitor()'
-
         """
 
-        # self.sync()
-        # nodes = self.nodes.getall()
-        # paths = j.tools.develop.codedirs.getActiveCodeDirs()
-
-        event_handler = MyFileSystemEventHandler()
+        event_handler = MyFileSystemEventHandler(zoscontainer=self)
         observer = Observer()
-        for source in self.getActiveCodeDirs():
+        for source in paths:
             self.logger.info("monitor:%s" % source)
-            observer.schedule(event_handler, source.path, recursive=True)
+            source2 = j.tools.prefab.local.core.replace(source)
+            observer.schedule(event_handler, source2, recursive=True)
         observer.start()
         try:
             while True:

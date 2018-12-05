@@ -7,13 +7,26 @@ from watchdog.observers import Observer
 
 
 class MyFileSystemEventHandler(FileSystemEventHandler, JSBASE):
-    def __init__(self):
+    def __init__(self,zoscontainer):
         JSBASE.__init__(self)
+        self.zoscontainer = zoscontainer
         self.logger_enable()
-        if j.tools.develop.node_active is not None:
-            self.nodes = [j.tools.develop.node_active]
-        else:
-            self.nodes = j.tools.develop.nodes.getall()
+        self.sync_paths_src=[]
+        self.sync_paths_dest=[]
+        for item in self.zoscontainer.sync_paths:
+
+            self.sync_paths_src.append(j.tools.prefab.local.core.replace(item))
+            self.sync_paths_dest.append(self.zoscontainer.node.prefab.core.replace(item))
+
+    def path_dest_get(self,src):
+        nr=0
+        for item in self.sync_paths_src:
+            dest = self.sync_paths_dest[nr]
+            if src.startswith(item):
+                dest = j.sal.fs.joinPaths(dest,j.sal.fs.pathRemoveDirPart(src,item))
+                return dest
+            nr+=1
+        raise RuntimeError("did not find:%s"%src)
 
     def handler(self, event, action="copy"):
         self.logger.debug("%s:%s" % (event, action))
@@ -27,45 +40,42 @@ class MyFileSystemEventHandler(FileSystemEventHandler, JSBASE):
                 return
             if event.event_type == "modified":
                 return
-            j.tools.develop.sync()
+            self.zoscontainer.sync(paths=self.zoscontainer.sync_paths,monitor=False)
         else:
+
             error = False
-            for node in self.nodes:
-                if node.selected == False:
-                    continue
-                if error is False:
-                    if changedfile.find("/.git/") != -1:
-                        return
-                    elif changedfile.find("/__pycache__/") != -1:
-                        return
-                    elif changedfile.endswith(".pyc"):
-                        return
-                    else:
-                        destpart = changedfile.split("code/", 1)[-1]
-                        dest = j.sal.fs.joinPaths(
-                            node.prefab.core.dir_paths['CODEDIR'], destpart)
-                    e = ""
-                    if action == "copy":
-                        self.logger.debug("copy: %s %s:%s" % (changedfile, node, dest))
-                        try:
-                            node.sftp.put(changedfile, dest)
-                        except Exception as e:
-                            self.logger.debug("** ERROR IN COPY, WILL SYNC ALL")
-                            self.logger.debug(str(e))
+            node = self.zoscontainer.node
+            if error is False:
+                if changedfile.find("/.git") != -1:
+                    return
+                elif changedfile.find("/__pycache__/") != -1:
+                    return
+                elif changedfile.endswith(".pyc"):
+                    return
+                dest = self.path_dest_get(changedfile)
+                e = ""
+
+                if action == "copy":
+                    self.logger.debug("copy: %s %s:%s" % (changedfile, node, dest))
+                    try:
+                        node.sftp.put(changedfile, dest)
+                    except Exception as e:
+                        self.logger.debug("** ERROR IN COPY, WILL SYNC ALL")
+                        self.logger.debug(str(e))
+                        error = True
+                elif action == "delete":
+                    self.logger.debug("delete: %s %s:%s" % (changedfile, node, dest))
+                    try:
+                        node.sftp.remove(dest)
+                    except Exception as e:
+                        if "No such file" in str(e):
+                            return
+                        else:
                             error = True
-                    elif action == "delete":
-                        self.logger.debug("delete: %s %s:%s" % (changedfile, node, dest))
-                        try:
-                            node.sftp.remove(dest)
-                        except Exception as e:
-                            if "No such file" in str(e):
-                                return
-                            else:
-                                error = True
-                                # raise RuntimeError(e)
-                    else:
-                        raise j.exceptions.RuntimeError(
-                            "action not understood in filesystemhandler on sync:%s" % action)
+                            # raise RuntimeError(e)
+                else:
+                    raise j.exceptions.RuntimeError(
+                        "action not understood in filesystemhandler on sync:%s" % action)
 
                 if error:
                     try:

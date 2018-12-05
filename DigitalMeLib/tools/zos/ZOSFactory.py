@@ -71,9 +71,10 @@ class ZOSFactory(JSBASE):
         """
 
         print(self.list)
-        zos = self.zos_get()
+        zos = j.tools.zos.zos_get()
         print(zos.container_list_hr)
 
         c = zos.container_get()
-        n = c.node
-        j.shell()
+        c.sync(monitor=True)
+
+        # j.shell()
