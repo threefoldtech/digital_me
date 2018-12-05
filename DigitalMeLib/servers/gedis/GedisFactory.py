@@ -1,8 +1,5 @@
-import os
-
 from Jumpscale import j
 
-from .GedisChatBot import GedisChatBotFactory
 from .GedisCmds import GedisCmds
 from .GedisServer import GedisServer
 
@@ -23,25 +20,44 @@ class GedisFactory(JSConfigBase):
         self._js_client_template = None
 
     def get(self, instance='main', data=None, interactive=False):
-        if data is None:
-            data = {}
+        """
+        Get a gedis server instance
 
-        return super(GedisFactory, self).get(instance=instance, data=data, interactive=interactive)
 
-    def geventserver_get(self, instance=""):
+        :param instance: intance name, defaults to 'main'
+        :param instance: str, optional
+        :param data: configuration data, example:
+                    host = "0.0.0.0"
+                    port = 9900
+                    ssl = false
+                    adminsecret_ = ""
+        :param data: dict, optional
+        :param interactive: if True and the instance doesn't exist
+                            open a ncurs form to fill the configuration,
+                            defaults to False
+        :param interactive: bool, optional
+        :return: Gedis server object
+        :rtype: GedisServer
+        """
+        return super(GedisFactory, self).get(instance=instance, data=data or {}, interactive=interactive)
+
+    def geventserver_get(self, instance="main"):
         """
         return redis_server
 
         j.servers.gedis.geventserver_get("test")
-
-
         """
+        # FIXME: this should not be needed. it is used to allow to
+        # add the gevent server used by gedis to the digital me "rack"
+        # instead the digitalme rack should take the GedisServer directly
         server = self.get(instance=instance)
         return server.redis_server
 
-    def configure(self, instance="test", port=8889,
-                  host="localhost", ssl=False, adminsecret="", interactive=False, configureclient=True):
-
+    def configure(self, instance="test", port=8889, host="localhost",
+                  ssl=False, adminsecret="", configureclient=True):
+        """
+        Helper method to configure a server instance
+        """
         data = {
             "port": str(port),
             "host": host,
@@ -49,12 +65,9 @@ class GedisFactory(JSConfigBase):
             "ssl": ssl,
         }
 
+        server = self.get(instance, data, interactive=False)
         if configureclient:
-            j.clients.gedis.configure(instance=instance,
-                                      host=host, port=port, secret=adminsecret, ssl=ssl, reset=True, get=False)
-
-        server = self.get(instance, data, interactive=interactive)
-        server.client_configure()  # configures the client
+            server.client_configure()
         return server
 
     def _cmds_get(self, key, capnpbin):
@@ -64,142 +77,90 @@ class GedisFactory(JSConfigBase):
         namespace, name = key.split("__")
         return GedisCmds(namespace=namespace, name=name, capnpbin=capnpbin)
 
-    def test_server_start(self):
-        """
-        this method is only used when not used in digitalme
-        js_shell 'j.servers.gedis.test_server_start()'
-
-        """
-
-        gedis = self.get(instance="test")
-
-        zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=False)
-        bcdb = j.data.bcdb.get(zdb_cl, namespace="test")
-        path = j.clients.git.getContentPathFromURLorPath(
-            "https://github.com/threefoldtech/digital_me/tree/development_960/packages/examples/models")
-        bcdb.models_add(path=path)
-
-        path = j.clients.git.getContentPathFromURLorPath(
-            "https://github.com/threefoldtech/digital_me/tree/development_960/packages/examples/actors")
-        gedis.actors_add(namespace="gedis_examples", path=path)
-        gedis.models_add(namespace="gedis_examples", models=bcdb)
-
-        gedis.start()
-
-    def test(self, zdb_start=True):
-        """
-        js_shell 'j.servers.gedis.test(zdb_start=False)'
-        """
-        raise RuntimeError()
-        if zdb_start:
-            # remove configuration of the gedis factory
-            self.delete("test")
-            cl = j.clients.zdb.testdb_server_start_client_get(reset=True)
-
-        gedis = self.configure(instance="test", port=8888, host="localhost", ssl=False,
-                               adminsecret="123456", interactive=False)
-
-        print("START GEDIS IN TMUX")
-        cmd = "js_shell 'j.servers.gedis.test_server_start()'"
-        j.tools.tmux.execute(
-            cmd,
-            session='main',
-            window='gedis_test',
-            pane='main',
-            session_reset=False,
-            window_reset=True
-        )
-
-        res = j.sal.nettools.waitConnectionTest("localhost", int(gedis.config.data["port"]), timeoutTotal=1000)
-        if not res:
-            raise RuntimeError("Could not start gedis server on port:%s" % int(gedis.config.data["port"]))
-        self.logger.info("gedis server '%s' started" % gedis.instance)
-        print("[*] testing echo")
-
-        cl = gedis.client_get(namespace="gedis_examples")
-        assert cl.gedis_examples.echo("s") == b"s"
-        print("- done")
-        print("[*] testing set with schemas")
-        # print("[1] schema_in as schema url")
-        #
-        # wallet_out1 = cl.gedis_examples.example1(addr="testaddr")
-        # assert wallet_out1.addr == "testaddr"
-        # print("[1] Done")
-        print("[2] schema_in as inline schema with url")
-        wallet_schema = j.data.schema.get("jumpscale.example.wallet")
-        wallet_in = wallet_schema.new()
-        wallet_in.addr = "testaddr"
-        wallet_in.jwt = "testjwt"
-        wallet_out = cl.gedis_examples.example2(wallet_in)
-
-        assert wallet_in.addr == wallet_out.addr
-        assert wallet_in.jwt == wallet_out.jwt
-        print("[2] Done")
-
-        print("[3] inline schema in and inline schema out")
-        res = cl.gedis_examples.example3(a='a', b=True, c='2')
-        assert res.a == 'a'
-        assert res.b is True
-        assert res.c == 2
-
-        print("[3] Done")
-        print("[4] inline schema for schema out with url")
-        res = cl.gedis_examples.example4(wallet_in)
-        assert res.result.addr == wallet_in.addr
-        assert res.custom == "custom"
-        print("[4] Done")
-
-        s = j.clients.gedis.configure("system", port=cl.config.data["port"], namespace="system", secret="123456")
-
-        assert s.system.ping().lower() == b"pong"
-
-        print("**DONE**")
-
-        # j.shell()
-
-    # def chatbot_test(self):
+    # def test_server_start(self):
     #     """
-    #     js_shell 'j.servers.gedis.chatbot_test()'
-    #     """
-    #     bot = GedisChatBotFactory()
-    #     bot.test()
-    #     #TODO:*1 not working
+    #     this method is only used when not used in digitalme
+    #     js_shell 'j.servers.gedis.test_server_start()'
 
-#     def new(
-#             self,
-#             instance="test",
-#             port=8889,
-#             host="localhost",
-#             ssl=False,
-#             adminsecret="",
-# ]        ):
-#         """
-#         creates new server on path, if not specified will be current path
-#         will start from example app
-#
-#         js_shell 'j.servers.gedis.new(path="{{DIRS.TMPDIR}}/jumpscale/gedisapp/",reset=True)'
-#
-#         """
-#
-#         if path == "":
-#             path = j.sal.fs.getcwd()
-#         else:
-#             path = j.tools.jinja2.text_render(path)
-#
-#         if reset:
-#             j.sal.fs.removeDirTree(path)
-#
-#         if j.sal.fs.exists("%s/actors" % path) or j.sal.fs.exists("%s/schema" % path):
-#             raise RuntimeError("cannot do new app because app or schema dir does exist.")
-#
-#         # src = j.clients.git.getContentPathFromURLorPath(
-#         #     "https://github.com/threefoldtech/jumpscale_lib/tree/development/apps/template")
-#         # dest = path
-#         # self.logger.info("copy templates to:%s" % dest)
-#
-#         gedis = self.configure(instance=instance, port=port, host=host, ssl=ssl, adminsecret=adminsecret)
-#
-#         # j.tools.jinja2.copy_dir_render(src, dest, reset=reset, j=j, name="aname", config=gedis.config.data,
-#         #                                instance=instance)
-#
-#         self.logger.info("gedis app now in: '%s'\n    do:\n    cd %s;sh start.sh" % (dest, dest))
+    #     """
+    #     gedis = self.get(instance="test")
+
+    #     # zdb_cl = j.clients.zdb.testdb_server_start_client_get(reset=False)
+    #     zdb_cl = j.clients.zdb.testdb_server_start_client_admin_get(reset=False)
+    #     bcdb = j.data.bcdb.new('test', zdb_cl)
+    #     path = j.clients.git.getContentPathFromURLorPath(
+    #         "https://github.com/threefoldtech/digital_me/tree/development_960/packages/examples/models")
+    #     bcdb.models_add(path=path)
+
+    #     path = j.clients.git.getContentPathFromURLorPath(
+    #         "https://github.com/threefoldtech/digital_me/tree/development_960/packages/examples/actors")
+    #     gedis.actors_add(namespace="gedis_examples", path=path)
+    #     gedis.models_add(namespace="gedis_examples", models=bcdb)
+
+    #     gedis.start()
+
+    # def test(self, zdb_start=True):
+    #     """
+    #     js_shell 'j.servers.gedis.test(zdb_start=False)'
+    #     """
+    #     if zdb_start:
+    #         # remove configuration of the gedis factory
+    #         self.delete("test")
+    #         cl = j.clients.zdb.testdb_server_start_client_admin_get(reset=True)
+
+    #     gedis = self.configure(instance="test", port=8888, host="localhost", ssl=False,
+    #                            adminsecret="123456", interactive=False)
+
+    #     print("START GEDIS IN TMUX")
+    #     cmd = "js_shell 'j.servers.gedis.test_server_start()'"
+    #     j.tools.tmux.execute(
+    #         cmd,
+    #         window='gedis_test',
+    #         pane='main',
+    #         reset=True,
+    #     )
+
+    #     res = j.sal.nettools.waitConnectionTest("localhost", int(gedis.config.data["port"]), timeoutTotal=1000)
+    #     if not res:
+    #         raise RuntimeError("Could not start gedis server on port:%s" % int(gedis.config.data["port"]))
+    #     self.logger.info("gedis server '%s' started" % gedis.instance)
+    #     print("[*] testing echo")
+
+    #     cl = gedis.client_get(namespace="gedis_examples")
+    #     assert cl.gedis_examples.echo("s") == b"s"
+    #     print("- done")
+    #     print("[*] testing set with schemas")
+    #     # print("[1] schema_in as schema url")
+    #     #
+    #     # wallet_out1 = cl.gedis_examples.example1(addr="testaddr")
+    #     # assert wallet_out1.addr == "testaddr"
+    #     # print("[1] Done")
+    #     print("[2] schema_in as inline schema with url")
+    #     wallet_schema = j.data.schema.get("jumpscale.example.wallet")
+    #     wallet_in = wallet_schema.new()
+    #     wallet_in.addr = "testaddr"
+    #     wallet_in.jwt = "testjwt"
+    #     wallet_out = cl.gedis_examples.example2(wallet_in)
+
+    #     assert wallet_in.addr == wallet_out.addr
+    #     assert wallet_in.jwt == wallet_out.jwt
+    #     print("[2] Done")
+
+    #     print("[3] inline schema in and inline schema out")
+    #     res = cl.gedis_examples.example3(a='a', b=True, c='2')
+    #     assert res.a == 'a'
+    #     assert res.b is True
+    #     assert res.c == 2
+
+    #     print("[3] Done")
+    #     print("[4] inline schema for schema out with url")
+    #     res = cl.gedis_examples.example4(wallet_in)
+    #     assert res.result.addr == wallet_in.addr
+    #     assert res.custom == "custom"
+    #     print("[4] Done")
+
+    #     s = j.clients.gedis.configure("system", port=cl.config.data["port"], namespace="system", secret="123456")
+
+    #     assert s.system.ping().lower() == b"pong"
+
+    #     print("**DONE**")
