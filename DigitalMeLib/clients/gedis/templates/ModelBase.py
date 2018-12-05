@@ -4,36 +4,38 @@ from Jumpscale import j
 
 JSBASE = j.application.JSBaseClass
 
-SCHEMA="""
+SCHEMA = """
 {{obj.text}}
 """
 
+
 class model(JSBASE):
-    
-    def __init__(self,client):
-        JSBASE.__init__(self)        
+
+    def __init__(self, client):
+        JSBASE.__init__(self)
         self.name = "{{obj.name}}"
         self.url = "{{obj.url}}"
         self.schema = j.data.schema.get(url=self.url)
         self.client = client
         self.redis = client.redis
 
-    def set(self,obj):
-        bdata=j.data.serializers.msgpack.dumps([obj.id,obj.data])
-        res = self.redis.execute_command("model_%s.set"%self.name,bdata)
-        id,_= j.data.serializers.msgpack.loads(res)
+    def set(self, obj):
+        bdata = j.data.serializers.msgpack.dumps([obj.id, obj.data])
+        res = self.redis.execute_command("model_%s.set" % self.name, bdata)
+        id, _ = j.data.serializers.msgpack.loads(res)
         obj.id = id
         return obj
 
-    def get(self,id):
-        res = self.redis.execute_command("model_%s.get"%self.name,str(id))
-        id,data=j.data.serializers.msgpack.loads(res)
-        obj=self.schema.get(capnpbin=data)
+    def get(self, id):
+        res = self.redis.execute_command("model_%s.get" % self.name, str(id))
+        id, data = j.data.serializers.msgpack.loads(res)
+        obj = self.schema.get(capnpbin=data)
         obj.id = id
         return obj
 
     def find(self, total_items_in_page=20, page_number=1, only_fields=[], {{find_args}}):
-        items = self.redis.execute_command("model_%s.find"%self.name, total_items_in_page, page_number, only_fields, {{kwargs}})
+        items = self.redis.execute_command("model_%s.find" %
+                                           self.name, total_items_in_page, page_number, only_fields, {{kwargs}})
         items = j.data.serializers.msgpack.loads(items)
         result = []
 
@@ -48,6 +50,6 @@ class model(JSBASE):
         return self.schema.new()
 
     def __str__(self):
-        return "MODEL%s"%self.url
+        return "MODEL%s" % self.url
 
     __repr__ = __str__

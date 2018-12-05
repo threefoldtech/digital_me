@@ -2,8 +2,9 @@ import imp
 import os
 import sys
 
-from Jumpscale import j
 from redis.connection import ConnectionError
+
+from Jumpscale import j
 
 TEMPLATE = """
 host = "127.0.0.1"
@@ -66,7 +67,7 @@ class GedisClient(JSConfigBase):
         cmds_meta = j.data.serializers.msgpack.loads(cmds_meta)
 
         for key, capnpbin in cmds_meta["cmds"].items():
-            if not "__model_" in key:
+            if "__model_" not in key:
                 self.cmds_meta[key] = j.servers.gedis._cmds_get(key, capnpbin).cmds
 
     def generate(self, reset=False):

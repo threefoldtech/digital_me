@@ -1,7 +1,8 @@
 from Jumpscale import j
 
-JSConfigBase = j.tools.configmanager.JSBaseClassConfigs
 from .GedisClient import GedisClient
+
+JSConfigBase = j.tools.configmanager.JSBaseClassConfigs
 
 
 class GedisClientCmds():
@@ -42,10 +43,10 @@ class GedisClientFactory(JSConfigBase):
         self._template_code_client = None
         self._code_model_template = None
 
-    def get(self,instance='main',data={},reset=False,configureonly=False):
+    def get(self, instance='main', data={}, reset=False, configureonly=False):
 
-        client = JSConfigBase.get(self,instance=instance, data=data, reset=reset,
-                                                     configureonly=configureonly)
+        client = JSConfigBase.get(self, instance=instance, data=data, reset=reset,
+                                  configureonly=configureonly)
         if configureonly:
             print("CONFIGURE ONLY")
             return
@@ -57,8 +58,6 @@ class GedisClientFactory(JSConfigBase):
             cl.__dict__.update(cl._client.cmds.__dict__)
             return cl
 
-
-
     def configure(
         self,
         instance="main",
@@ -69,7 +68,7 @@ class GedisClientFactory(JSConfigBase):
         ssl=False,
         ssl_cert_file="",
         reset=False, get=True
-        ):
+    ):
 
         data = {}
 
@@ -82,4 +81,3 @@ class GedisClientFactory(JSConfigBase):
 
         if get:
             return self.get(instance=instance, data=data, reset=reset)
-
