@@ -78,7 +78,8 @@ setup(
         'dnslib',
         'pycountry',
         'graphene>=2.0',
-        'flask_graphql'
+        'flask_graphql',
+        'nltk==3.3'
         # 'flask_sqlalchemy'
     ],
     cmdclass={
