@@ -15,21 +15,14 @@ class chatbot(JSBASE):
         # check self.chatbot.chatflows for the existing chatflows
         # all required commands are here
 
-    def work_get(self, sessionid, schema_out):
+    def work_get(self, sessionid):
         """
         ```in
         sessionid = "" (S)
         ```
-        ```out
-        cat = "" (S)
-        msg = "" (S)
-        error = "" (S)
-        options = L(S)
-        ```
-
         """
         res = self.chatbot.session_work_get(sessionid)
-        return res
+        return j.data.serializers.json.dumps(res)
 
     def work_report(self, sessionid, result):
         """
@@ -37,10 +30,6 @@ class chatbot(JSBASE):
         sessionid = "" (S)
         result = "" (S)
         ```
-
-        ```out
-        ```
-
         """
         self.chatbot.session_work_set(sessionid, result)
         return
@@ -50,4 +39,21 @@ class chatbot(JSBASE):
         pass
 
     def ping(self):
-        return 'PONG' 
+        return 'PONG'
+
+    def session_new(self, topic, schema_out):
+        """
+        ```in
+        topic = ""
+        ```
+        ```out
+        session_id = ""
+        ```
+        :param topic: Chat bot topic (chatflow file name)
+        :param schema_out:
+        :return:
+        """
+
+        out = schema_out.new()
+        out.session_id = j.servers.gedis.latest.chatbot.session_new(topic)
+        return out

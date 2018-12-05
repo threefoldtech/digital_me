@@ -2,7 +2,7 @@
 
 enable = true
 #unique name with dot notation for the package
-name = "digitalme.chat"
+name = "digitalme_chat"
 
 web_prefixes = "chatflows"
 
