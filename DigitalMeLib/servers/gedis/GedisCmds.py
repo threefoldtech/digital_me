@@ -118,7 +118,8 @@ def method_source_process(txt):
             if "self" in lstrip:
                 if "," in lstrip:
                     arg0, arg1 = lstrip.split(",", 1)
-                    args = arg1.split(")", 1)
+                    args = arg1.split(")", 1)[:-1]
+                    args = [j.core.text.strip(a) for a in args]
                 else:
                     args = ""
             else:
