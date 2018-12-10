@@ -1,4 +1,10 @@
-import {default as client} from '/chat/jsclient.js';
+import {default as client} from 'gedis_client.js';
+let EXEC_OBJ = {
+    "namespace": "digitalme_chat",
+    "actor": "chatbot",
+    "header": {"response_type": "json"},
+}
+
 var stringContentGenerate = function (message, kwargs){
     return `
     <h4>${message}</h4>
@@ -192,9 +198,13 @@ var generateSlide = function(res) {
         $(this).attr("disabled", "disabled");
         $("#spinner").toggle();
         $(".form-box").toggle({"duration": 400});
-		client.base_chat.work_report(SESSIONID, value).then(function(res){
+        EXEC_OBJ['command'] = "work_report";
+        EXEC_OBJ['args']['result'] = value;
+		client.execute(EXEC_OBJ).then(function(res){
+		    EXEC_OBJ['command'] = "work_get";
+		    delete EXEC_OBJ['args']['result'];
 		    // Ignore work_report response and wait for getting next question
-		    client.base_chat.work_get(SESSIONID).then(function(res){
+		    client.execute(EXEC_OBJ).then(function(res){
                 res = JSON.parse(res);
                 generateSlide(res);
             });
@@ -202,7 +212,15 @@ var generateSlide = function(res) {
 	});
 }
 
-client.base_chat.work_get(SESSIONID).then(function(res){
+EXEC_OBJ["command"] = "session_new";
+// TOPIC is set through etlua template
+EXEC_OBJ["args"] = {"topic": TOPIC};
+client.execute(EXEC_OBJ).then(function(res){
     res = JSON.parse(res);
-	generateSlide(res);
+    EXEC_OBJ['command'] = "work_get";
+    EXEC_OBJ['args'] = {"sessionid": res['session_id']}
+    client.execute(EXEC_OBJ).then(function(res){
+        res = JSON.parse(res);
+	    generateSlide(res);
+	});
 });

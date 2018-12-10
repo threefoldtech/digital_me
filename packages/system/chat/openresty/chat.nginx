@@ -1,0 +1,12 @@
+location /chat {
+    default_type text/html;
+    content_by_lua_block {
+        require("lapis").serve("chat.lapis.app")
+    }
+}
+
+location /chat/ws {
+    content_by_lua_block {
+        require("chat.lapis.websocket")
+    }
+}

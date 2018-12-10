@@ -9,11 +9,11 @@
         <title>Zero ChatBot</title>
 
         <!-- CSS -->
-        <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:400,100,300,500">
-        <link rel="stylesheet" href="/static/bootstrap3/css/bootstrap.min.css">
-        <link rel="stylesheet" href="/static/fontawesome4/css/fontawesome.min.css">
-		<link rel="stylesheet" href="/chat/static/css/form-elements.css">
-        <link rel="stylesheet" href="/chat/static/css/style.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,100,300,500">
+        <link rel="stylesheet" href="/static/weblibs/bootstrap3/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/static/weblibs/fontawesome4/css/fontawesome.min.css">
+		<link rel="stylesheet" href="/static/chat/css/form-elements.css">
+        <link rel="stylesheet" href="/static/chat/css/style.css">
     </head>
 
     <body>
@@ -71,7 +71,10 @@
                 </div>
             </div>
         </div>
-        <script>var SESSIONID={{session_id}}</script>
+        <script>
+            var SERVER = '<%= url %>/chat/ws';
+            var TOPIC= '<%= topic %>';
+        </script>
         <!-- Javascript -->
         <script src="/static/jquery/jquery.min.js"></script>
         <script src="/static/bootstrap3/js/bootstrap.min.js"></script>
@@ -79,9 +82,7 @@
         <script src="/static/retina/retina.min.js"></script>
         <script src="/static/showdown/showdown.min.js"></script>
         <script src="/chat/static/js/validators.js"></script>
-        <script type="module" src="/chat/static/js/bot_client.js"></script>
         <script src="/chat/static/js/scripts.js"></script>
-
+        <script type="module" src="/chat/static/js/bot_client.js"></script>
     </body>
-
 </html>

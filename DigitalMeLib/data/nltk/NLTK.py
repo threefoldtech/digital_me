@@ -2,7 +2,6 @@
 from Jumpscale import j
 
 import nltk
-from nameparser.parser import HumanName
 from pprint import pprint as print
 from unidecode import unidecode
 from nltk.tokenize import wordpunct_tokenize

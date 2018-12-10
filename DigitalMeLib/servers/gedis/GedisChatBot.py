@@ -1,68 +1,104 @@
 from Jumpscale import j
 import gevent
 import sys
+import uuid
 from importlib import import_module
 
 JSBASE = j.application.JSBaseClass
 
 
 class GedisChatBotFactory(JSBASE):
-    def __init__(self,ws):
+    def __init__(self):
         JSBASE.__init__(self)
-        self.ws = ws
-        self.sessions = {}  # open chatsessions
-        self.chat_flows = {}  # are the flows to run, code being executed to talk with user
-        # self.chatflows_load()
-        self.sessions_id_latest = 0
+        self.sessions = {}  # all chat sessions
+        self.chat_flows = {}  # are the flows to run, code being executed to interact with user
 
     def session_new(self, topic, **kwargs):
         """
-        returns the last session id
+        creates new user session with the specified topic (chatflow)
+        :param topic: the topic of chat bot session (chatflow)
+        :param kwargs: any extra kwargs that needs to be passed to the session object
+                       (i.e. can be used for passing any query parameters)
+        :return: created session id
         """
-        self.sessions_id_latest += 1
+        session_id = str(uuid.uuid4())
         topic_method = self.chat_flows[topic]
-        bot = GedisChatBotSession(self.sessions_id_latest, topic_method, **kwargs)
-        self.sessions[str(self.sessions_id_latest)] = bot
-        return self.sessions_id_latest
+        session = GedisChatBotSession(session_id, topic_method, **kwargs)
+        self.sessions[session_id] = session
+        return session_id
 
-    def session_work_get(self, sessionid):
-        bot = self.sessions[sessionid]
+    def session_work_get(self, session_id):
+        """
+        Blocking method responsible for waiting for new questions added to the queue
+        by the chatflow using helper methods (ask_string, ask_integer, ....)
+        :param session_id: user session id
+        :return: new question dict
+        """
+        bot = self.sessions[session_id]
         return bot.q_out.get(block=True)
 
-    def session_work_set(self, sessionid, val):
-        bot = self.sessions[sessionid]
-        return bot.q_in.put(val)
+    def session_work_set(self, session_id, val):
+        """
+        receives user's answer and set it into `q_in` queue to be consumed afterwards by helper methods
+        (ask_string, ask_int, ....) to be able to continue execution
+        :param session_id: user session id
+        :param val: answer sent by the user
+        :return:
+        """
+        bot = self.sessions[session_id]
+        bot.q_in.put(val)
+        return
 
     def chatflows_load(self, chatflows_dir):
         """
-        look for the chat flows exist in chatflow_dir to load them all under self.chat_flows
+        looks for the chat flows exist in `chatflows_dir` to import and load them under self.chat_flows
+        :param chatflows_dir: the dir path need to look for chatflows into it
         """
         for chatflow in j.sal.fs.listFilesInDir(chatflows_dir, recursive=True, filter="*.py", followSymlinks=True):
-            dpath = j.sal.fs.getDirName(chatflow)
-            if dpath not in sys.path:
-                sys.path.append(dpath)
+            dir_path = j.sal.fs.getDirName(chatflow)
+            if dir_path not in sys.path:
+                sys.path.append(dir_path)
             self.logger.info("chat:%s" % chatflow)
-            modulename = j.sal.fs.getBaseName(chatflow)[:-3]
-            if modulename.startswith("_"):
+            module_name = j.sal.fs.getBaseName(chatflow)[:-3]
+            if module_name.startswith("_"):
                 continue
-            loaded_module = import_module(modulename)
-            self.chat_flows[modulename] = loaded_module.chat
-
-    def test(self):
-        gevent.spawn(test, factory=self)
-        gevent.sleep(100)
+            loaded_chatflow = import_module(module_name)
+            # Each chatflow file must have `chat` method which contains all logic/questions
+            self.chat_flows[module_name] = loaded_chatflow.chat
 
 
 class GedisChatBotSession(JSBASE):
-    def __init__(self, sessionid, topic_method, **kwargs):
+    """
+    Contains the basic helper methods for asking questions
+    It also have the main queues q_in, q_out that are used to pass questions and answers between browser and server
+    """
+
+    def __init__(self, session_id, topic_method, **kwargs):
+        """
+        :param session_id: user session id created by ChatBotFactory session_new method
+        :param topic_method: the bot topic (chatflow)
+        :param kwargs: any extra kwargs that is passed while creating the session
+                       (i.e. can be used for passing any query parameters)
+        """
         JSBASE.__init__(self)
-        self.sessionid = sessionid
+        self.session_id = session_id
         self.q_out = gevent.queue.Queue()  # to browser
         self.q_in = gevent.queue.Queue()  # from browser
-        self.greenlet = gevent.spawn(topic_method, bot=self)
         self.kwargs = kwargs
+        gevent.spawn(topic_method, bot=self)
+
+    # ###################################
+    # Helper methods for asking questions
+    # ###################################
 
     def string_ask(self, msg, **kwargs):
+        """
+        helper method to generate a question that expects a string answer.
+        html generated in the client side will use `<input type="text"/>`
+        :param msg: the question message
+        :param kwargs: dict of possible extra options like (validate, reset, ...etc)
+        :return: the user answer for the question
+        """
         self.q_out.put({
             "cat": "string_ask",
             "msg": msg,
@@ -71,6 +107,13 @@ class GedisChatBotSession(JSBASE):
         return self.q_in.get()
 
     def password_ask(self, msg, **kwargs):
+        """
+        helper method to generate a question that expects a password answer.
+        html generated in the client side will use `<input type="password"/>`
+        :param msg: the question message
+        :param kwargs: dict of possible extra options like (validate, reset, ...etc)
+        :return: the user answer for the question
+        """
         self.q_out.put({
             "cat": "password_ask",
             "msg": msg,
@@ -79,6 +122,13 @@ class GedisChatBotSession(JSBASE):
         return self.q_in.get()
 
     def text_ask(self, msg, **kwargs):
+        """
+        helper method to generate a question that expects a text answer.
+        html generated in the client side will use `<textarea></textarea>`
+        :param msg: the question message
+        :param kwargs: dict of possible extra options like (validate, reset, ...etc)
+        :return: the user answer for the question
+        """
         self.q_out.put({
             "cat": "text_ask",
             "msg": msg,
@@ -87,6 +137,13 @@ class GedisChatBotSession(JSBASE):
         return self.q_in.get()
 
     def int_ask(self, msg, **kwargs):
+        """
+        helper method to generate a question that expects an integer answer.
+        html generated in the client side will use `<input type="number"/>`
+        :param msg: the question message
+        :param kwargs: dict of possible extra options like (validate, reset, ...etc)
+        :return: the user answer for the question
+        """
         self.q_out.put({
             "cat": "int_ask",
             "msg": msg,
@@ -95,6 +152,14 @@ class GedisChatBotSession(JSBASE):
         return self.q_in.get()
 
     def md_show(self, msg, **kwargs):
+        """
+        a special helper method to send markdown content to the bot instead of questions.
+        usually used for sending info messages to the bot.
+        html generated in the client side will use javascript markdown library to convert it
+        :param msg: the question message
+        :param kwargs: dict of possible extra options like (reset)
+        :return:
+        """
         self.q_out.put({
             "cat": "md_show",
             "msg": msg,
@@ -103,6 +168,13 @@ class GedisChatBotSession(JSBASE):
         return self.q_in.get()
 
     def redirect(self, msg, **kwargs):
+        """
+        a special helper method to redirect the user to a specific url.
+        there is no html generated, It just make use of javascript `window.location` api to redirect the user.
+        :param msg: the url
+        :param kwargs: not used yet
+        :return:
+        """
         self.q_out.put({
             "cat": "redirect",
             "msg": msg,
@@ -110,6 +182,14 @@ class GedisChatBotSession(JSBASE):
         })
 
     def multi_choice(self, msg, options, **kwargs):
+        """
+        helper method to generate a question that can have multi answers from set of choices.
+        html generated in the client side will use `<input type="checkbox" name="value[]" value="${value}">`
+        :param msg: the question message
+        :param options: list of strings contains the options
+        :param kwargs: dict of possible extra options like (validate, reset, ...etc)
+        :return: the user answers for the question
+        """
         self.q_out.put({
             "cat": "multi_choice",
             "msg": msg,
@@ -119,6 +199,15 @@ class GedisChatBotSession(JSBASE):
         return self.q_in.get()
 
     def single_choice(self, msg, options, **kwargs):
+        """
+        helper method to generate a question that can have single answer from set of choices.
+        html generated in the client side will use `<input type="checkbox" name="value" value="${value}">`
+        :param msg: the question message
+        :param options: list of strings contains the options
+        :param kwargs: dict of possible extra options like (validate, reset, ...etc)
+        :return: the user answer for the question
+        """
+
         self.q_out.put({
             "cat": "single_choice",
             "msg": msg,
@@ -128,6 +217,15 @@ class GedisChatBotSession(JSBASE):
         return self.q_in.get()
 
     def drop_down_choice(self, msg, options, **kwargs):
+        """
+        helper method to generate a question that can have single answer from set of choices.
+        the only difference between this method and `single_choice` is that the html generated in the client side
+        will use `<select> <option value="${value}">${value}</option> ... </select>`
+        :param msg: the question message
+        :param options: list of strings contains the options
+        :param kwargs: dict of possible extra options like (validate, reset, ...etc)
+        :return: the user answer for the question
+        """
         self.q_out.put({
             "cat": "drop_down_choice",
             "msg": msg,
