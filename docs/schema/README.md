@@ -24,8 +24,23 @@ you can define the schema url like that.
 | Integer| I | can only be Integer numbers| 1, 2, 200, 1000 |
 | Float  | F | just like the primitive float | 1.123, 1.0, 100.99 |
 | Boolean| B | can only be True of False | True, False |
+| mobile |tel| can be set any mobile number| '+32 475.99.99.99' |
+| email |email| can be set any email | 'changeme@example.com' |
+| ipport |ipport| can be set only port  | 53  |
+| ipaddress |ipaddr| can be set any IP Adress | '192.168.1.1' |
+| ipaddressrange |iprange| can be set any IP Adress with range | '192.168.1.1/24' |
 | Date   | D | date | 20/11/2018, +4h. see [date supported formats](#date_supported_formats)|
 | Numeric| N | can store any numeric data including currencies | 1, 1.12, 10 USD, 90%, 10.5 EUR| 
+| guid| guid | can store any guid   | '5b316587-7162-4bf1-99e6-fe53d9577cd0'| 
+| dict| dict | can store any dict type   | {"key":"value"} | 
+| yaml| yaml | can store any yaml    | example: - test1 |
+| multiline| multiline | string but with multiple lines   | 'example \n\n example2'|
+| hash| h | hash is 2 value list, represented as 2 times 4 bytes   | (0, 0)|
+| set| set | Generic set type'   | [1,2,3,4]|
+| percent| p | to deal with percentages < 1 we multiply with 100 before storing   | 99 which would be 99% |
+| url| u | Generic url type   | 'www.example.com'|
+
+
 
 
 ### <a name="date_supported_formats"></a> Date supported formats
@@ -66,6 +81,47 @@ name = (S)
 subjects = (LS)
 address = !schema.address
 ```
+### How to use schema 
+```
+schema = """
+        @url = despiegk.test
+        llist2 = "" (LS) #L means = list, S=String        
+        nr = 4
+        date_start = 0 (D)
+        description = ""
+        token_price = "10 USD" (N)
+        llist = "1,2,3" (LI)
+        llist1 = "1,2,3" (L)
+        """
+```
+## to get schema from schema_text
+```paython
+schema_test = j.data.schema.get(schema_text_path=schema)
+schema_object = schema_test.get()
+```
+## to add data using schema
+```paython
+schema_object.token_price = "20 USD"
+schema_object.llist.append(1)
+schema_object.description = "something"
+```
+### for a full example of using schema see the following [test script](schema_test.py)
+
+
+## Schema Test
+### run all tests
+```python
+ js_shell 'j.data.schema.test()'
+```
+### run specific test
+```python
+js_shell 'j.data.schema.test(name="base")'
+js_shell 'j.data.schema.test(name="capnp_schema")'
+js_shell 'j.data.schema.test(name="embedded_schema")'
+js_shell 'j.data.schema.test(name="lists")'
+js_shell 'j.data.schema.test(name="load_data")'
+```
+
 
 
 
