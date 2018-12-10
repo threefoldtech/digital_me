@@ -55,7 +55,7 @@ class GedisServer(StreamServer, JSConfigBase):
         self.web_client_code = None
         self.code_generated_dir = j.sal.fs.joinPaths(j.dirs.VARDIR, "codegen", "gedis", self.instance, "server")
 
-        self.chatbot = GedisChatBotFactory(ws=self)
+        self.chatbot = GedisChatBotFactory()
 
         self.namespaces = ["system","default"]
 
