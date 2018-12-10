@@ -5,8 +5,8 @@ Which means you only need to define the server interface and the client will aut
 
 Currently we support client generation for python and javascript.
 
-Gedis can works directly on top a of a tcp connection or over websocket.
-The data are binary encoded during transfer using capnp.  
+Gedis can works directly on top a of a tcp connection or over websocket if a web proxy is available (openresty, caddy,...)
+The data may be binary encoded using capnp or not during transfer, it is decided based on the client need
 The communication protocol used is [RESP](https://redis.io/topics/protocol)
 
 ## Actors
@@ -110,11 +110,3 @@ client.actor.ping()
 ```
 
 **to see more usage examples please read the tests in [gedis_factory class](DigitalMeLib/servers/gedis/GedisFactory.py)**
-
-### Get a javaScript Client
-
-A JavaScript Client similar to the python one is also generated so you can use it in your frontend in the same way
-
-```python
-    js_code = j.servers.gedis.latest.code_js_client
-```
