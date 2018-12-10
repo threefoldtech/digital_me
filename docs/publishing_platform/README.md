@@ -40,7 +40,7 @@ You need to write `blueprint` routes in order to make some functions for your we
 
 ```python
 import flask 
-from blueprints import *
+from blueprints.(The name of the folder directory inside blueprints) import *
 from Jumpscale import j
 ```
 - Load login manager.
@@ -86,37 +86,60 @@ Call your routes in the html using jinja :
     {{ doc.part_get(cat="block", nr=2).text | safe }}
     ```
 
-###Example Website
+### Example Website
 
 - inside the route file 
 ```python
 from flask import render_template, redirect, send_file
-from blueprints.simpleblogsite import *
+from blueprints.hello import *
 from Jumpscale import j
-
 login_manager = j.servers.web.latest.loader.login_manager
 
 j.tools.docsites.load(
     "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/docsites_examples/simpleblogsite",
-    name="simpleblogsite")
+    name="man_explore")
 
-ds = j.tools.docsites.docsite_get("simpleblogsite")
-name = "simpleblogsite"
-default_blog = "man_explore"
+ds = j.tools.docsites.docsite_get("man_explore")
 
 @blueprint.route('/')
-@blueprint.route('/index')
+@blueprint.route('/hello')
 def route_default():
-    return redirect('/%s/index.html' % name)
+    doc = ds.doc_get("man_explore")
+    return render_template('hello.html', ds=ds, doc=doc)
+
 ``` 
 
-- Create md file and type " Hello World" as the message we need in our website.
+- Load the data of the website from the (man_explore) docsite(md file).
 
+- Crete __init.py__ file and write this code inside it
+```python
 
-- Create your html file inside Templates folder in the project and write this
+from flask import Blueprint
+from Jumpscale import j
+
+name =  j.sal.fs.getDirName(__file__,True)
+print("NAME::: ", name)
+blueprint = Blueprint(
+    '%s_blueprint'%name,
+    __name__,
+    url_prefix="/%s"%name,
+    template_folder='templates',
+    static_folder='static'
+)
+
+```
+
+- Create your html file inside templates folder in the project and write this
 
 ```html
- <p>{{ doc.part_get(cat="block", nr=0).text | safe }}</p>
+<!DOCTYPE html>
+<html lang="en">  
+
+<body>
+<h2 class="mt-0">{{ doc.part_get(cat="header", nr=0).title}}</h2>
+</body>
+
+</html>
  ```
  
-- Run your code and you should see hello world in requested page.
+- Run your code using this command (js_shell 'j.servers.digitalme.start()').
