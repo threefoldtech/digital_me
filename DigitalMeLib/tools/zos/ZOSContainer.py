@@ -32,7 +32,8 @@ class ZOSContainer(JSBASE):
             data["active"]=True
             data["selected"]=True
 
-            sshclient = j.clients.ssh.new(addr=self.address, port=self.port_ssh, instance=name, keyname="", timeout=5, allow_agent=True)
+            sshclient = j.clients.ssh.new(addr=self.address, port=self.port_ssh, instance=name, keyname="",
+                                            timeout=5, allow_agent=True)
 
             node = j.tools.nodemgr.get(name,data=data)
 
@@ -47,21 +48,25 @@ class ZOSContainer(JSBASE):
         sync all code to the remote destinations, uses config as set in jumpscale.toml
 
         """
-        self.node.sync(paths=paths)
-        self.sync_paths = paths
+        paths_return = self.node.sync(paths=paths,add_dont_pull=True)
         if monitor:
-            self._monitor(paths=paths)
+            self._monitor(paths=paths_return)
 
     def _monitor(self,paths):
         """
         look for changes in directories which are being pushed & if found push to remote nodes
 
+        paths is [path1, path2,...] or [["/src",'/dest'],["/src2",'/dest2']]
+
         js_shell 'j.tools.develop.monitor()'
+
         """
 
-        event_handler = MyFileSystemEventHandler(zoscontainer=self)
+        event_handler = MyFileSystemEventHandler(paths=paths,zoscontainer=self)
         observer = Observer()
         for source in paths:
+            if j.data.types.list.check(source):
+                source=source[0]
             self.logger.info("monitor:%s" % source)
             source2 = j.tools.prefab.local.core.replace(source)
             observer.schedule(event_handler, source2, recursive=True)

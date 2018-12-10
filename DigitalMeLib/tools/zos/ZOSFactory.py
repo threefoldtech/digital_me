@@ -14,6 +14,21 @@ class ZOSFactory(JSBASE):
         self._list = []
         self.logger_enable()
 
+    def build(self):
+        """
+        js_shell 'j.tools.zos.build()'
+        :return:
+        """
+        path=j.clients.git.getContentPathFromURLorPath("git@github.com:threefoldtech/zos.git")
+        script="""
+        set -ex
+        cd $PATH
+        bash build.sh
+        """
+        args={"PATH":path}
+        script = j.core.text.strip(script,args=args)
+        j.tools.prefab.local.core.execute_bash(script,profile=False)
+
     def _exec(self,cmd):
         cmd="zos %s" % cmd
         self.logger.debug(cmd)

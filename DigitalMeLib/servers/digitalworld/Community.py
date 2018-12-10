@@ -8,15 +8,15 @@ from gevent import spawn
 import gevent
 
 from .Coordinator import Coordinator
-from .Service import Service
+from .ServiceBase import Service
 
 SCHEMA = """
-@url = digital.me.state
+@url = world.service.state.state
 @name = DMState
 state = "new,init,active,error" (S)  #needs to become enumeration, so no mistakes can be made, now string
-actions = "" (LO) !digital.me.action
+actions = "" (LO) !world.service.state.action
 
-@url = digital.me.action
+@url = world.service.state.action
 @name = DMAction
 name = ""
 time_ask = 0 (D)            #when was it asked to start
@@ -74,15 +74,6 @@ class Community(JSBASE):
 
 
 
-    def error_raise(self,msg,e=None,cat=""):
-        msg="ERROR in %s\n"%self
-        msg+="msg\n"
-        if "input" in cat:
-            raise j.exceptions.Input(msg)
-        else:
-            raise RuntimeError(msg)
-
-
 
     def knowledge_learn(self,path=""):
         """
@@ -98,10 +89,10 @@ class Community(JSBASE):
             path = j.clients.git.getContentPathFromURLorPath(url)
         if path is "":
             path = "%s/%s"%(self._path, "actors_example")
-        
+
         tocheck = j.sal.fs.listFilesInDir(path, recursive=True, filter="service_*.py",followSymlinks=True)
-        tocheck += j.sal.fs.listFilesInDir(path, recursive=True, filter="coordinator_*.py",followSymlinks=True) 
-        
+        tocheck += j.sal.fs.listFilesInDir(path, recursive=True, filter="coordinator_*.py",followSymlinks=True)
+
         for classpath in  tocheck:
             dpath = j.sal.fs.getDirName(classpath)
             if dpath not in sys.path:
@@ -116,7 +107,7 @@ class Community(JSBASE):
             except Exception as e:
                 self.error_raise("could not import module:%s"%modulename,e)
 
-            
+
             if modulename.startswith("service_"):
                 name = modulename[8:]
                 self.service_dna[name] = self._module_fix(module,name,"service")
@@ -147,7 +138,7 @@ class Community(JSBASE):
                 continue
             if line.startswith("@"):
                 raise RuntimeError("Schema:\n%s\nshould not define name & url at start, will be added automatically."%name)
-            if "digital.me.state" in line:
+            if "world.service.state.state" in line:
                 continue
             if line.startswith("name =") or line.startswith("name="):
                 continue
@@ -162,7 +153,7 @@ class Community(JSBASE):
         SCHEMA2="@url = %s.%s\n"% (cat,".".join(splitted))
         SCHEMA2+="@name = %s\n"% "_".join(splitted)
         SCHEMA2+=schema1
-        SCHEMA2+="stateobj = (O) !digital.me.state\n"
+        SCHEMA2+="stateobj = (O) !world.service.state.state\n"
 
         #default properties
         if "description = " not in SCHEMA2:

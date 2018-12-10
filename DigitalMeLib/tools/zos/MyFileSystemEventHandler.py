@@ -7,16 +7,24 @@ from watchdog.observers import Observer
 
 
 class MyFileSystemEventHandler(FileSystemEventHandler, JSBASE):
-    def __init__(self,zoscontainer):
+    def __init__(self,paths,zoscontainer):
         JSBASE.__init__(self)
         self.zoscontainer = zoscontainer
+        self.paths = paths
         self.logger_enable()
         self.sync_paths_src=[]
         self.sync_paths_dest=[]
-        for item in self.zoscontainer.sync_paths:
-
-            self.sync_paths_src.append(j.tools.prefab.local.core.replace(item))
-            self.sync_paths_dest.append(self.zoscontainer.node.prefab.core.replace(item))
+        for source in self.paths:
+            if not j.data.types.list.check(source):
+                dest=source
+            else:
+                source,dest=source #get list to 2 separate ones
+            if ":" in source:
+                raise RuntimeError("cannot have : in source")
+            self.sync_paths_src.append(j.tools.prefab.local.core.replace(source))
+            self.sync_paths_dest.append(j.tools.prefab.local.core.replace(dest))
+            #THERE IS ISSUE WITH PATHS when not sandbox
+            # self.sync_paths_dest.append(self.zoscontainer.node.prefab.core.replace(dest))
 
     def path_dest_get(self,src):
         nr=0
