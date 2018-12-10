@@ -45,7 +45,6 @@ class GedisServer(JSConfigBase):
         self.cmds_meta = {}  # is the metadata of the actor
         self.classes = {}  # the code as set by the gediscmds class = actor cmds
         self.schema_urls = []  # used at python client side
-        self.code_js_client = None  # generated code for javascript client #FIXME: probably not needed to keep it in memory like this
 
         self.ssl_priv_key_path = None
         self.ssl_cert_path = None
@@ -102,14 +101,6 @@ class GedisServer(JSConfigBase):
                 spawn=Pool(),
                 handle=handler.handle_redis
             )
-
-    # CODE GENERATION
-    def code_generate_webclient(self):
-        # generate web client
-        commands = list(self.cmds_meta.values())
-        self.code_js_client = j.tools.jinja2.template_render("%s/templates/client.js" % j.servers.gedis._dirpath,
-                                                             commands=commands)
-
     ########################POPULATION OF SERVER#########################
 
     def models_add(self, models, namespace="default"):

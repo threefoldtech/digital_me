@@ -18,7 +18,6 @@ class system(JSBASE):
         if self.server.config.data["adminsecret_"] == secret:
             return "OK"
 
-        j.shell()
         return "AUTHERROR"
 
     def ping_bool(self):
@@ -137,35 +136,6 @@ class system(JSBASE):
 
         return
 
-    # def test(self,name,nr,schema_out):
-    #     """
-    #     some test method, which returns something easy
-    #
-    #     ```in
-    #     name = ""
-    #     nr = 0 (I)
-    #     ```
-    #
-    #     ```out
-    #     name = ""
-    #     nr = 0 (I)
-    #     list_int = (LI)
-    #     ```
-    #
-    #     """
-    #     o=schema_out.new()
-    #     o.name = name
-    #     o.nr = nr
-    #     # o.list_int = [1,2,3]
-    #
-    #     return o
-    #
-    # def test_nontyped(self,name,nr):
-    #     return [name,nr]
-
-    def get_web_client(self):
-        return j.servers.gedis.latest.web_client_code
-
     def _options(self, args, nr_args=1):
         res = []
         res2 = {}
@@ -205,24 +175,6 @@ class system(JSBASE):
 
     def ttl(self, *args):
         return -1
-
-    def get(self, *args):
-        g = j.servers.gedis.latest
-        key = args[0].decode()
-        splitted = key.split(":")
-        if len(splitted) == 2:
-            cmd = splitted[0].lower()
-            val = splitted[1]
-
-            if cmd == 'namespaces':
-                actors = g.actors_methods_list(namespace=val)
-                return j.data.serializers.json.dumps(actors).encode()
-
-            return str(g.cmds_meta)
-
-        j.shell()
-        w
-        return b"THIS IS A TEST"
 
     def hlen(self, *args):
         return 10
