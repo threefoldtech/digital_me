@@ -1,13 +1,13 @@
-from setuptools import setup, find_packages
-from setuptools.command.install import install as _install
-from setuptools.command.develop import develop as _develop
 import os
 
+from setuptools import find_packages, setup
+from setuptools.command.develop import develop as _develop
+from setuptools.command.install import install as _install
 
 
 def _post_install(libname, libpath):
     os.environ["JSRELOAD"] = "1"
-    from Jumpscale import j 
+    from Jumpscale import j
 
 
 class install(_install):
@@ -82,6 +82,7 @@ setup(
         'nltk==3.3'
         # 'flask_sqlalchemy'
     ],
+    scripts=['cmd/dm'],
     cmdclass={
         'install': install,
         'develop': develop,

@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+from gevent import monkey
+monkey.patch_all()
+
+import click
+from Jumpscale import j
+
+
+
+@click.group()
+def entry_point():
+    pass
+
+
+@click.group()
+def server():
+    pass
+
+
+@server.command()
+@click.option('--zdb-addr', help='Address of 0-db used as backend', default='localhost')
+@click.option('--zdb-port', help='Listening port of 0-db used as backend', default=9900)
+@click.option('--zdb-namespace', help='0-db namespace to use', default='digitalme')
+@click.option('--zdb-secret', help='0-db password if any', default='')
+def start(zdb_addr, zdb_port, zdb_namespace, zdb_secret):
+    j.servers.digitalme.start(addr=zdb_addr, port=zdb_port, namespace=zdb_namespace,
+                              secret=zdb_secret, background=False)
+
+
+entry_point.add_command(server)
+
+if __name__ == "__main__":
+    entry_point()
