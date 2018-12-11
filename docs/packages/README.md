@@ -51,7 +51,7 @@ is list of prefixes on which flask will respond, needed to let the packages lazy
 
 ## packages are stored in
 
-- j.dirs.DATADIR + "dm_packages" + $PACKAGENAME
+- j.dirs.VARDIR + "dm_packages" + $PACKAGENAME
 
 ## schema used to store a package metadata
 
