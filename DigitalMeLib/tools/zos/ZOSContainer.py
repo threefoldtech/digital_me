@@ -22,6 +22,9 @@ class ZOSContainer(JSBASE):
             if inside==22:
                 self.port_ssh = outside
 
+        if self.port_ssh is None:
+            raise RuntimeError("Cannot do zoscontainer: port_ssh is None:%s"%self.address)
+
     @property
     def node(self):
         if self._node==None:
@@ -31,7 +34,6 @@ class ZOSContainer(JSBASE):
             data["sshclient"]= name
             data["active"]=True
             data["selected"]=True
-
             sshclient = j.clients.ssh.new(addr=self.address, port=self.port_ssh, instance=name, keyname="",
                                             timeout=5, allow_agent=True)
 

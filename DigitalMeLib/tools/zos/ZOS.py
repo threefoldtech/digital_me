@@ -35,12 +35,12 @@ class ZOS(JSBASE):
     def _containerlist(self):
         return [item["name"] for item in self.list_data]
 
-    def container_get(self,name=""):
+    def container_get(self,name="kds3"):
         if name=="":
             data=self.container_last_data
         else:
             for item in self.container_list_data:
-                j.shell()
-                w
+                if item["name"]==name:
+                    data=item
         return ZOSContainer(zos=self,data=data)
 
