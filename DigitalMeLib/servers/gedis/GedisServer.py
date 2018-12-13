@@ -207,14 +207,14 @@ class GedisServer(StreamServer, JSConfigBase):
     ##########################CLIENT FROM SERVER #######################
 
     def client_get(self,namespace="default"):
-    
+
         data ={}
         data["host"] = self.config.data["host"]
         data["port"] = self.config.data["port"]
         data["adminsecret_"] = self.config.data["adminsecret_"]
         data["ssl"] = self.config.data["ssl"]
         data["namespace"] = namespace
-        
+
         return j.clients.gedis.get(instance=self.instance, data=data, reset=False,configureonly=False)
 
     def client_configure(self,namespace="default"):

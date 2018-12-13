@@ -1,8 +1,5 @@
-
 enable = true
-#unique name with dot notation for the package
-name = "digitalme.base"
-
+name = "digitalme_base" #unique name for the package
 web_prefixes = "base,home,chat/session/food_get,root,status,user,wiki"
 
 [[loaders]]

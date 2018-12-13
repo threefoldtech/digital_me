@@ -1,9 +1,5 @@
-
-
 enable = true
-#unique name with dot notation for the package
-name = "digitalme_chat"
-
+name = "digitalme_chat" #unique name for the package
 web_prefixes = "chatflows"
 
 [[loaders]]

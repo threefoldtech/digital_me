@@ -1,9 +1,5 @@
-
-
 enable = true
-#unique name with dot notation for the package
-name = "digitalme.example"
-
+name = "digitalme_example" # unique name for the package
 web_prefixes = "example"
 
 [[loaders]]

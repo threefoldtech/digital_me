@@ -1,0 +1,27 @@
+enable = true
+name = "digitalme_threefold"
+
+
+[[loaders]]
+dest = "docsites/foundation"
+giturl = "https://github.com/threefoldfoundation/info_foundation/blob/development"
+
+[[loaders]]
+dest = "docsites/grid"
+giturl = "https://github.com/threefoldfoundation/info_grid/blob/development"
+
+[[loaders]]
+dest = "docsites/tokens"
+giturl = "https://github.com/threefoldfoundation/info_tokens/blob/development"
+
+[[loaders]]
+dest = "docsites/tech"
+giturl = "https://github.com/threefoldfoundation/info_tech/blob/development"
+
+[[loaders]]
+dest = "docsites/tools"
+giturl = "https://github.com/threefoldfoundation/info_tools/blob/master"
+
+[[loaders]]
+dest = ""
+giturl = "https://github.com/threefoldtech/digital_me/tree/development960/packages/threefold"
