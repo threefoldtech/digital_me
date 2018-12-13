@@ -28,6 +28,23 @@ to organize the models stored in the database, the database is divided into name
 in order to get BCDB to work you should provide a Backend client, A `Backend Client` is a `Jumpscale client` 
 for a key value store (ZDB, Redis or ETCD) which will be used to save the data
 
+## How to start a BCDB
+You can run BCDB with two options:  
+- with ZDB as a backend:
+   in this case you should have a zdb server running and a client for it  
+   example:   
+```python
+zdb_cl = j.clients.zdb.client_get(addr='localhost', port='9900', mode="seq", secret="XXX", nsname="mynamespace")
+# Then you can start your bcdb
+bcdb = j.data.bcdb.new("bcbd_name", zdb_cl)
+```
+- or you can start it with the integrated key value store implemented with sqlite, in this case you don't need to
+ provide a zdb client  
+ example:
+ ```python
+bcdb = j.data.bcdb.new("bcbd_name")
+```
+    
 ## Usage
 ```python
 # Define the Schema
