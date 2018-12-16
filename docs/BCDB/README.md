@@ -86,3 +86,46 @@ qres = model.index.select(model.index.name == "foo")
 # if you want to get the full model you need to get it fom the model using the ID
 queried_object = model.get(qres[0].id)
 ```
+
+## ACL
+BCDB provides ACL (Access Control list) out of the box for all models created.
+you can use this ACL to define who can access what from your data, tak a look on the following example to learn
+ how to use it.
+ ```python
+# first we will define users and groups to be used in the acl
+user1 = bcdb.user.new()
+user1.name = "user1"
+user1.email = "user1@user.com"
+user1.dm_id = "user1@dm"
+user1.save()
+
+group1 = bcdb.group.new() 
+group1.name = "group1"  
+group1.user_members = [user1.id]
+group1.save()
+
+# Define a schema
+schema = """
+    @url = test5.acl
+    name = "" 
+    an_id = 0
+    """
+    
+# get model from schema    
+model = bcdb.model_get_from_schema(schema)
+
+# Create a new object
+test1 = model.new()
+test1.name = "test"
+# add read right to user1
+test1.acl.rights_set(userids = [user1.id], rights="r")
+# now the user1 has read only access to this record
+assert test1.acl.rights_check(userid=user1.id, rights="r")
+assert not test1.acl.rights_check(userid=user1.id, rights="w")
+# add write right to group1
+test1.acl.rights_set(groupids=[group1.id], rights="w")
+
+
+
+
+```
