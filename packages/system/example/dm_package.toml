@@ -1,8 +1,11 @@
 enable = true
 name = "digitalme_example" # unique name for the package
-web_prefixes = "example"
 
 [[loaders]]
-giturl = "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/example"
+giturl = "https://github.com/threefoldtech/digital_me/tree/{{JS_BRANCH}}/packages/system/example"
 dest = ""
+
+[[arg]]
+key = "JS_BRANCH"
+val = "development_960"
 

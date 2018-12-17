@@ -1,6 +1,5 @@
 enable = true
 name = "digitalme_chat" #unique name for the package
-web_prefixes = "chatflows"
 
 [[loaders]]
 giturl = "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/chat"

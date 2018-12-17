@@ -1,19 +1,15 @@
-
-[main]
+name = "digitalme_base" #unique name for the package
 enable = true
-#unique name with dot notation for the package
-name = "threefold.grid"
 
-[[loader]]
-#is the location where to pull information from and walk over it
+[[loaders]]
+giturl = "https://github.com/threefoldtech/digital_me/tree/{{JS_BRANCH}}/packages/system/base"
+dest = ""
+
+[[loaders]]
 giturl = "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static"
-#location where to link the info too (is inside package)
-dest = "/blueprints/mysite/static/"
-enable = true
+dest = "blueprints/base/static"
 
-#are arguments which will be known inside full digital me and this config file as well to be used
-#will be substituted using jinja2 template instructions e.g. {{JS9_BRANCH}}
-[[arg]]
+
+[[args]]
 key = "JS_BRANCH"
 val = "development_960"
-

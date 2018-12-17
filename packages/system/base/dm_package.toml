@@ -1,11 +1,16 @@
 enable = true
 name = "digitalme_base" #unique name for the package
-web_prefixes = "base,home,chat/session/food_get,root,status,user,wiki"
 
 [[loaders]]
-giturl = "https://github.com/threefoldtech/digital_me/tree/development960/packages/system/base"
+giturl = "https://github.com/threefoldtech/digital_me/tree/{{JS_BRANCH}}/packages/system/base"
 dest = ""
 
 [[loaders]]
 giturl = "https://github.com/threefoldtech/jumpscale_weblibs/tree/master/static"
 dest = "blueprints/base/static"
+
+
+[[args]]
+key = "JS_BRANCH"
+val = "development_960"
+

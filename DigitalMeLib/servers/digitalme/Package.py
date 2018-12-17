@@ -3,11 +3,10 @@ from Jumpscale import j
 JSBASE = j.application.JSBaseClass
 SCHEMA_PACKAGE = """
 @url =  jumpscale.digitalme.package
-name = "UNKNOWN" (S)           #official name of the package, there can be no overlap (can be dot notation)
+name = "UNKNOWN" (S)           #official name of the package, there can be no overlap
 enable = true (B)
-web_prefixes = "" (LS)
 args = (LO) !jumpscale.digitalme.package.arg
-loaders= (LO) !jumpscale.digitalme.package.loader
+loaders = (LO) !jumpscale.digitalme.package.loader
 
 @url =  jumpscale.digitalme.package.arg
 key = "" (S)
@@ -22,7 +21,7 @@ enable = true (B)
 
 """
 
-TOML_KEYS = ["docsites", "web", "chatflows", "actors", "schemas", "recipes", "docmacros", "zrobotrepo", "configobject"]
+TOML_KEYS = ["docsites", "web", "chatflows", "actors", "schemas", "recipes", "docmacros", "zrobotrepo"]
 TOML_KEYS_DIRS = ["docsites", "web", "zrobotrepo"]
 
 
@@ -123,7 +122,7 @@ class Package(JSBASE):
         j.sal.fs.createDir(path)
 
         for loader in self.data.loaders:
-            code_path = self.text_replace(j.clients.git.getContentPathFromURLorPath(loader.giturl))
+            code_path = j.clients.git.getContentPathFromURLorPath(self.text_replace(loader.giturl))
             if not j.sal.fs.exists(code_path):
                 raise RuntimeError("did not find code_path:%s" % code_path)
 
@@ -212,6 +211,6 @@ class Package(JSBASE):
     def args(self):
         if self._args is None:
             self._args = {}
-            for key, val in self.data.args:
-                self._args[key] = val
+            for arg in self.data.args:
+                self._args[arg.key] = arg.val
         return self._args
