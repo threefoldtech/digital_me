@@ -1,50 +1,112 @@
 # Gedis
-Gedis is a [Gevent server](http://www.gevent.org/servers.html) using [Redis Protocol](https://redis.io/topics/protocol)
-and [BCDB](/doc/BCDB/README.md) to provide fast and easy to use API
+
+Gedis is a RPC framework that provide automatic generation of client side code at runtime.
+Which means you only need to define the server interface and the client will automatically receive the code it needs to talk to the server at connection time.
+
+Currently we support client generation for python and javascript.
+
+Gedis can works directly on top a of a tcp connection or over websocket if a web proxy is available (openresty, caddy,...)
+The data may be binary encoded using capnp or not during transfer, it is decided based on the client need
+The communication protocol used is [RESP](https://redis.io/topics/protocol)
 
 ## Actors
-Actors are the place where you put your application logic, it's like endpoints in a restful api, it takes a request 
-with specific data and returns a response, however you don't directly send data to it, it's the generated client role
 
-## what is the generated client
-Gedis uses Redis protocol to send data over the socket connection, so here comes the role of the generated client, 
-it provides a simple way to deal with the gedis server without caring about how to serialize your in or out data.
+The RPC interface are define by creating a python class. All the public methods of the class will be exposed as remote RPC call that clients can call. We name such a class an `actor`.
 
-## How to use
+### Actor methods
 
-- First you need to have an actor that contains one or more action, each action has a `schema_in` which represents the 
-request data structure and a `schema_out` which represents the response data structure.   
-_if you are not familiar with the [JumpScale Schema](/docs/schema/README.md), it's highly recomended to read
- the schema documentation before proceeding to this part_  
- see an Example Actor [here](packages/extra/examples/actors/gedis_examples.py)
- 
-- Now you can start gedis server and get the client from it
+An actor method signature can have no or multiple arguments.  
+If you don't need any type validation, you can just use normal arguments. example:
+
 ```python
-
-# Start gedis test server in tmux
-cmd = "js_shell 'j.servers.gedis.test_server_start()'"
-j.tools.tmux.execute(
-    cmd,
-    session='main',
-    window='gedis_test',
-    pane='main',
-    session_reset=False,
-    window_reset=True
-)
-
-#then get a gedis client
-client = j.clients.gedis.get("test")
-
-# then you will see that the registered actors are loaded in the client 
-# so you can perform actions directly using the client 
-client.gedis_examples.echo("s")
-
+def foo(arg1, arg2):
+    result = do_smth(args1, args2)
+    return result
 ```
+
+This actor method will receive what is sent by the client without any data format validation. The user needs to validate the data format manually.
+
+If you want to enforce data validation automatically, you can use the [DigitalMe Schema](../schema/README.md).
+To define which schema is expected you need to write a docstring to your method. example:
+
+```python
+def foo(self, wallet, schema_out):
+    """
+    ```in
+    wallet = (O) !jumpscale.example.wallet
+    ```
+
+    ```out
+    !jumpscale.example.wallet
+    ```
+    """
+    w = schema_out.new()
+
+    w.ipaddr = wallet['ipaddr']
+    w.addr = wallet['addr']
+    w.jwt = wallet['jwt']
+    return w
+```
+
+This actor method has 2 arguments, `wallet` and `schema_out`. With the docstring we ask gedis to validate that `wallet` is actually a valid instance of the schema named `jumpscale.example.wallet`. We also define the type of the return value with the `schema_out` argument and the docstring which specify that schema_out is also an instance of the `jumpscale.example.wallet`.
+
+When defining docstring like this, if the data received or sent back doesn't validate the schema, an error will be raised.
+
+## Automatic client generation
+
+Gedis doesn't requires to generate client stub or anything like that. During the connection, the client will receive the generated code for the actor from the server directly.
+This make the deployment and update of you client really easy since you don't have to give specific client code to your users. All the magic happens transparently when you connect to a server.
+
+## Quick start
+
+### Define server interface
+
+Creation of an actor at `/tmp/actor.py`:
+
+```python
+from Jumpscale import j
+
+JSBASE = j.application.JSBaseClass
+
+class actor(JSBASE):
+
+    def __init__(self):
+        JSBASE.__init__(self)
+
+    def ping(self):
+        return "pong"
+```
+
+Creation of the gedis service and load our actor:
+
+```python
+# configure the server
+server = j.servers.gedis.configure(instance='test', port=8889, host='0.0.0.0', ssl=False, adminsecret='')
+# load a single actor
+server.actor_add('/tmp/actor.py', namespace='demo')
+# you can also load a directory that contains multiple actor files
+# let's imagine you have a directory structure like
+# tree test_actor/
+# test_actor/
+# ├── actor2.py
+# ├── actor.py
+# you can load all the actors with
+server.actors_add('/tmp/test_actor', namespace='demo')
+
+# start the server
+server.start()
+```
+
+### Get a python client
+
+```python
+# create a client
+# during the connection, the client will receive the generated code for the actor
+client = j.clients.gedis.configure(instance='test', host='192.168.10.10', port=8889, namespace='demo', ssl=False)
+
+# use the client
+client.actor.ping()
+# result will be b'pong'
+```
+
 **to see more usage examples please read the tests in [gedis_factory class](DigitalMeLib/servers/gedis/GedisFactory.py)**
-
-
-## JavaScript Client
-A JavaScript Client similar to the python one is also generated so you can use it in your frontend in the same way
-```python
-    js_code = j.servers.gedis.latest.code_js_client
-```

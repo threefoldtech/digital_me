@@ -18,6 +18,7 @@ class chatbot(JSBASE):
         ```in
         session_id = "" (S)
         ```
+        command responsible for getting new questions from chatbot session questions queue
         :param session_id: User's session id to be identified by server
         :return
         """
@@ -26,6 +27,7 @@ class chatbot(JSBASE):
 
     def work_report(self, session_id, result):
         """
+        command responsible for setting answers into chatbot session answers queue
         ```in
         session_id = "" (S)
         result = "" (S)
@@ -42,9 +44,10 @@ class chatbot(JSBASE):
         ```out
         session_id = ""
         ```
+        starts a new session for the specified topic
         :param topic: Chat bot topic (chatflow file name)
         :param schema_out:
-        :return:
+        :return: the new session id
         """
         out = schema_out.new()
         out.session_id = j.servers.gedis.latest.chatbot.session_new(topic)

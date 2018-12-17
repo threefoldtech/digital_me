@@ -1,65 +1,37 @@
-
 from Jumpscale import j
-import inspect
-import imp
-
-import os
 
 JSBASE = j.application.JSBaseClass
 
+
 class GedisCmd(JSBASE):
-    def __init__(self,cmds,cmd):
+    def __init__(self, namespace, cmd):
         """
-        these are the cmds which get executed by the gevent server handler for gedis (cmds coming from websockets or redis interface)
+        these are the cmds which get executed by the gevent server handler for gedis
+        (cmds coming from websockets or redis interface)
         """
         JSBASE.__init__(self)
 
         self.cmdobj = cmd
         self.data = cmd._data
-        self.cmds = cmds
-        self.server = self.cmds.server
+        self.namespace = namespace
         self.name = cmd.name
 
-        if not cmd.schema_in.strip()=="":
-            if cmd.schema_in.startswith("!"):
-                url=cmd.schema_in.strip("!").strip()
-                self.schema_in = j.data.schema.get(url=url)
-            else:
-                self.schema_in=j.data.schema.get(cmd.schema_in,url=self.namespace+".%s.in"%cmd.name)
-            self.schema_in.objclass
-        else:
-            self.schema_in = None
-
-        if cmd.schema_out:
-            if cmd.schema_out.startswith("!"):
-                url=cmd.schema_out.strip("!").strip()
-                self.schema_out = j.data.schema.get(url=url)
-            else:
-                self.schema_out = j.data.schema.get(cmd.schema_out,url=self.namespace+".%s.out"%cmd.name)
-            self.schema_out.objclass
-        else:
-            self.schema_out = None
-
+        self.schema_in = _load_schema(self.namespace, cmd.name, cmd.schema_in)
+        self.schema_out = _load_schema(self.namespace, cmd.name, cmd.schema_out)
         self._method = None
-
-
-
-    @property
-    def namespace(self):
-        return self.cmds.data.namespace
 
     @property
     def args(self):
-        if self.schema_in==None:
+        if self.schema_in is None:
             return self.cmdobj.args
-        else:
-            out= ""
-            for prop in self.schema_in.properties + self.schema_in.lists:
-                d=prop.default_as_python_code
-                out += "%s=%s, "%(prop.name,d)
-            out = out.rstrip().rstrip(",").rstrip()
-            out += ",schema_out=None"
-            return out
+
+        out = ""
+        for prop in self.schema_in.properties + self.schema_in.lists:
+            d = prop.default_as_python_code
+            out += "%s=%s, " % (prop.name, d)
+        out = out.rstrip().rstrip(",").rstrip()
+        out += ",schema_out=None"
+        return out
 
     @property
     def args_client(self):
@@ -74,18 +46,18 @@ class GedisCmd(JSBASE):
             args = eval(self.cmdobj.args)
             if ':' in args:
                 args.remove(':')
-            return ","+ ','.join(args)
+            return "," + ','.join(args)
         else:
-            if len(self.schema_in.properties + self.schema_in.lists)==0:
+            if len(self.schema_in.properties + self.schema_in.lists) == 0:
                 return ""
             else:
                 if len(arguments) == 1 and len(self.schema_in.properties + self.schema_in.lists) > 1:
                     out = ",id=0,"
                 else:
                     out = ","
-            for prop in  self.schema_in.properties + self.schema_in.lists:
-                d=prop.default_as_python_code
-                out += "%s=%s, "%(prop.name,d)
+            for prop in self.schema_in.properties + self.schema_in.lists:
+                d = prop.default_as_python_code
+                out += "%s=%s, " % (prop.name, d)
             out = out.rstrip().rstrip(",").rstrip().rstrip(",")
             return out
 
@@ -100,7 +72,6 @@ class GedisCmd(JSBASE):
             return ""
         return t
 
-
     @property
     def code_indent(self):
         return j.core.text.indent(self.cmdobj.code)
@@ -111,7 +82,7 @@ class GedisCmd(JSBASE):
 
     @property
     def comment_indent2(self):
-        return j.core.text.indent(self.cmdobj.comment,nspaces=8).rstrip()
+        return j.core.text.indent(self.cmdobj.comment, nspaces=8).rstrip()
 
     @property
     def method_generated(self):
@@ -119,13 +90,24 @@ class GedisCmd(JSBASE):
         is a real python method, can be called, here it gets loaded & interpreted
         """
         if self._method is None:
-            j.shell()
-            self._method =j.tools.jinja2.code_python_render( obj_key="action",
-                                path="%s/templates/actor_command_server.py"%j.servers.gedis.path,obj=self,
-                                objForHash=self._data)
+            self._method = j.tools.jinja2.code_python_render(
+                obj_key="action", path="%s/templates/actor_command_server.py" %
+                j.servers.gedis.path, obj=self, objForHash=self._data)
         return self._method
 
     def __repr__(self):
-        return '%s:%s' % (str(self.cmds).rstrip(".py"),self.name)
+        return '%s:%s' % (self.namespace, self.name)
 
     __str__ = __repr__
+
+
+def _load_schema(namespace, name, schema_str):
+    schema = None
+    if schema_str:
+        if schema_str.startswith("!"):
+            url = schema_str.strip("!").strip()
+            schema = j.data.schema.get(url=url)
+        else:
+            schema = j.data.schema.get(schema_str, url=namespace + ".%s.out" % name)
+        schema.objclass  # FIXME property with side effects ?
+    return schema
