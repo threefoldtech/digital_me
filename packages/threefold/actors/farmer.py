@@ -4,16 +4,13 @@ from jose import jwt
 JSBASE = j.application.JSBaseClass
 
 
-class Farmer(JSBASE):
+class farmer(JSBASE):
     """
-    This class functions are actually registered in
-
+    Farmer actors
     """
 
     def __init__(self):
         JSBASE.__init__(self)
-        # j.tools.threefold_farmer.zdb = j.clients.zdb.testdb_server_start_client_admin_get(reset=False, secret="123456")
-        # self._bcdb = j.tools.threefold_farmer.bcdb
         self._bcdb = j.data.bcdb.bcdb_instances["default"]
         self._farmer_model = None
         self._node_model = None
@@ -74,7 +71,8 @@ class Farmer(JSBASE):
         out.res = list({n.location.country for n in nodes if n.location.country})
         return out
 
-    def node_find(self, country, farmer_name, cores_min_nr, mem_min_mb, ssd_min_gb, hd_min_gb, nr_max,node_zos_id, schema_out):
+    def node_find(self, country, farmer_name, cores_min_nr, mem_min_mb,
+                  ssd_min_gb, hd_min_gb, nr_max, node_zos_id, schema_out):
         """
         ```in
         country = "" (S)
@@ -294,7 +292,7 @@ class Farmer(JSBASE):
         domains = [] (LS)
         backends = [] (LS)
         ```
-        
+
         will configure the a virtual_host in the selected web gateway
         :param rule_name: the rule name for this config to be referred to afterwards
         :param jwttoken: jwt for authentication

@@ -1,4 +1,3 @@
-
 @url = threefold.grid.reservation
 threebot_id* = ""         #the user who bought the capacity
 payment_secret = ""       #when time is there for renewal the farmer robot will ask the 3bot for payment, needs this secret
