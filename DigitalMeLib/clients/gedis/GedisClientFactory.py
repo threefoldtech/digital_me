@@ -1,6 +1,6 @@
 from Jumpscale import j
 
-JSConfigBase = j.tools.configmanager.JSBaseClassConfigs
+JSConfigBase = j.application.JSFactoryBaseClass
 from .GedisClient import GedisClient
 
 

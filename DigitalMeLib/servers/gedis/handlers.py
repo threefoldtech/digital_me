@@ -38,7 +38,7 @@ class Handler(JSBASE):
         self.cmds = {}            #caching of commands
         self.classes = self.gedis_server.classes
         self.cmds_meta = self.gedis_server.cmds_meta
-        self.logger_enable()
+        self._logger_enable()
 
     def handle_redis(self, socket, address):
 
@@ -48,28 +48,28 @@ class Handler(JSBASE):
         try:
             self._handle_redis(socket, address, parser, response)
         except ConnectionError as err:
-            self.logger.info('connection error: {}'.format(str(err)))
+            self._logger.info('connection error: {}'.format(str(err)))
         finally:
             parser.on_disconnect()
-            self.logger.info('close connection from {}'.format(address))
+            self._logger.info('close connection from {}'.format(address))
 
     def _handle_redis(self, socket, address, parser, response):
 
-        self.logger.info('connection from {}'.format(address))
+        self._logger.info('connection from {}'.format(address))
         socket.namespace = "system"
 
         while True:
             request = parser.read_request()
 
-            self.logger.debug("%s:%s"%(socket.namespace,request))
+            self._logger.debug("%s:%s"%(socket.namespace,request))
 
             if request is None:
-                self.logger.debug("connectionlost or tcp test")
+                self._logger.debug("connectionlost or tcp test")
                 break
 
             if not request:  # empty list request
                 # self.response.error('Empty request body .. probably this is a (TCP port) checking query')
-                self.logger.debug("EMPTYLIST")
+                self._logger.debug("EMPTYLIST")
                 continue
 
             cmd = request[0]
@@ -93,7 +93,7 @@ class Handler(JSBASE):
                     response.error("could not find namespace:%s"%socket.namespace)
                     continue
 
-                self.logger.debug("NAMESPACE_%s_%s" % (address, socket.namespace))
+                self._logger.debug("NAMESPACE_%s_%s" % (address, socket.namespace))
                 response.encode("OK")
                 continue
 
@@ -106,12 +106,12 @@ class Handler(JSBASE):
                 continue
 
             namespace, actor, command = self.command_split(redis_cmd,namespace=socket.namespace)
-            self.logger.debug("cmd:%s:%s:%s"%(namespace, actor, command))
+            self._logger.debug("cmd:%s:%s:%s"%(namespace, actor, command))
 
             cmd, err = self.command_obj_get(cmd=command,namespace=namespace,actor=actor)
             if err is not "":
                 response.error(err)
-                self.logger.debug("error:%s"%err)
+                self._logger.debug("error:%s"%err)
                 continue
 
             params = {}
@@ -186,25 +186,25 @@ class Handler(JSBASE):
             if cmd.schema_out:
                 params["schema_out"] = cmd.schema_out                        
 
-            self.logger.debug("execute command callback:%s:%s" % (cmd, params))
+            self._logger.debug("execute command callback:%s:%s" % (cmd, params))
             result = None
             try:
                 if params == {}:
                     result = cmd.method()
                 elif j.data.types.list.check(params):
-                    self.logger.debug("PARAMS:%s"%params)
+                    self._logger.debug("PARAMS:%s"%params)
                     result = cmd.method(*params)
                 else:
                     result = cmd.method(**params)
-                # self.logger.debug("Callback done and result {} , type {}".format(result, type(result)))
+                # self._logger.debug("Callback done and result {} , type {}".format(result, type(result)))
             except Exception as e:
-                self.logger.debug("exception in redis server")
+                self._logger.debug("exception in redis server")
                 j.errorhandler.try_except_error_process(e, die=False)
                 msg = str(e)
                 msg += "\nCODE:%s:%s\n" % (cmd.namespace, cmd.name)
                 response.error(msg)
                 continue
-            # self.logger.debug("response:{}:{}:{}".format(address, cmd, result))
+            # self._logger.debug("response:{}:{}:{}".format(address, cmd, result))
 
             if cmd.schema_out:
                 if (response_type == 'auto' and content_type == 'capnp') or response_type == 'capnp':
@@ -213,7 +213,7 @@ class Handler(JSBASE):
             response.encode(result)
 
     def command_split(self,cmd,actor="system",namespace="system"):
-        self.logger.debug("cmd_start:%s:%s:%s" % (namespace, actor, cmd))
+        self._logger.debug("cmd_start:%s:%s:%s" % (namespace, actor, cmd))
         # from pudb import set_trace; set_trace()
         splitted = cmd.split(".")
         if len(splitted)==3:
@@ -240,7 +240,7 @@ class Handler(JSBASE):
 
 
     def command_obj_get(self, namespace,actor, cmd):
-        self.logger.debug('command cache miss:%s %s %s'%(namespace,actor,cmd))
+        self._logger.debug('command cache miss:%s %s %s'%(namespace,actor,cmd))
 
 
         key="%s__%s"%(namespace,actor)
@@ -347,10 +347,10 @@ class Handler(JSBASE):
             return result, None
 
         except Exception as e:
-            self.logger.debug("exception in redis server")
+            self._logger.debug("exception in redis server")
             eco = j.errorhandler.parsePythonExceptionObject(e)
             msg = str(eco)
             msg += "\nCODE:%s:%s\n" % (cmd.namespace, cmd.name)
-            self.logger.debug(msg)
+            self._logger.debug(msg)
             return None, e.args[0]
 

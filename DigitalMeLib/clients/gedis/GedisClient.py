@@ -14,7 +14,7 @@ ssl = false
 sslkey = ""
 """
 
-JSConfigBase = j.tools.configmanager.JSBaseClassConfig
+JSConfigBase = j.application.JSBaseClass
 
 
 class Models():
@@ -85,7 +85,7 @@ class GedisClient(JSConfigBase):
                 schemas_meta = self.redis.execute_command("core_schemas_get",self.namespace)
                 return schemas_meta
 
-            schemas_meta = self.cache.get("core_schemas_get", method=do, retry=4, die=True)
+            schemas_meta = self._cache.get("core_schemas_get", method=do, retry=4, die=True)
 
             schemas_meta = j.data.serializers.msgpack.loads(schemas_meta)
             for key,txt in schemas_meta.items():
@@ -133,7 +133,7 @@ class GedisClient(JSConfigBase):
                     cmds_name_lower = cmds_name_lower.split("__",1)[1]
 
                 self.cmds.__dict__[cmds_name_lower] =cl(client=self,cmds=cmds.cmds)
-                self.logger.debug("cmds:%s"%name)
+                self._logger.debug("cmds:%s"%name)
 
         return self._cmds
 
@@ -156,9 +156,9 @@ class GedisClient(JSConfigBase):
             if d['ssl']:
                 if not self.config.data['sslkey']:
                     ssl_certfile = j.sal.fs.joinPaths(os.path.dirname(self.code_generated_dir), 'ca.crt')
-                self.logger.info("redisclient: %s:%s (ssl:True  cert:%s)"%(addr, port, ssl_certfile))
+                self._logger.info("redisclient: %s:%s (ssl:True  cert:%s)"%(addr, port, ssl_certfile))
             else:
-                self.logger.info("redisclient: %s:%s " % (addr, port))
+                self._logger.info("redisclient: %s:%s " % (addr, port))
 
             self._redis = j.clients.redis.get(
                 ipaddr=addr,

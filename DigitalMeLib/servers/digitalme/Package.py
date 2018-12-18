@@ -35,7 +35,7 @@ class Package(JSBASE):
         self.bcdb=bcdb
 
         # self._loaded = [] #key is processed by j.core.text.strip_to_ascii_dense
-        self.logger_enable()
+        self._logger_enable()
 
         if path_config:
             self.toml_load(path_config)
@@ -110,7 +110,7 @@ class Package(JSBASE):
                     src = j.sal.fs.joinPaths(code_path,key)
                     if not j.sal.fs.exists(src):
                         src+="s"
-                    # self.logger.debug("scan:%s"%src)
+                    # self._logger.debug("scan:%s"%src)
                     if j.sal.fs.exists(src) and j.sal.fs.isDir(src):
                         #found an item we need to link
                         if key in TOML_KEYS_DIRS:
@@ -139,7 +139,7 @@ class Package(JSBASE):
 
         for key in TOML_KEYS:
             src = j.sal.fs.joinPaths(self.path,key+"s")
-            self.logger.debug("load:%s"%src)
+            self._logger.debug("load:%s"%src)
             if j.sal.fs.exists(src):
                 if key in TOML_KEYS_DIRS:
                     #items are dirs inside

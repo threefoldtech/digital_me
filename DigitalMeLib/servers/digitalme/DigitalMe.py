@@ -298,8 +298,7 @@ class DigitalMe(JSBASE):
         :param manual means the server is run manually using e.g. js_shell 'j.servers.digitalme.start()'
 
         """
-
-        admincl = j.clients.zdb.testdb_server_start_client_admin_get()  # starts & resets a zdb in seq mode with name test
+        admincl = j.servers.zdb.start_test_instance(destroydata=True)
         cl = admincl.namespace_new("test",secret="1234")
 
         if manual:

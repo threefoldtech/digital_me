@@ -6,7 +6,7 @@ from .GedisServer import GedisServer
 from .GedisCmds import GedisCmds
 from .GedisChatBot import GedisChatBotFactory
 
-JSConfigBase = j.tools.configmanager.JSBaseClassConfigs
+JSConfigBase = j.application.JSFactoryBaseClass
 
 
 class GedisFactory(JSConfigBase):
@@ -117,7 +117,7 @@ class GedisFactory(JSConfigBase):
         res = j.sal.nettools.waitConnectionTest("localhost", int(gedis.config.data["port"]), timeoutTotal=1000)
         if res == False:
             raise RuntimeError("Could not start gedis server on port:%s" % int(gedis.config.data["port"]))
-        self.logger.info("gedis server '%s' started" % gedis.instance)
+        self._logger.info("gedis server '%s' started" % gedis.instance)
         print("[*] testing echo")
 
         cl = gedis.client_get(namespace="gedis_examples")
@@ -192,7 +192,7 @@ class GedisFactory(JSConfigBase):
 #             path = j.tools.jinja2.text_render(path)
 #
 #         if reset:
-#             j.sal.fs.removeDirTree(path)
+#             j.sal.fs.remove(path)
 #
 #         if j.sal.fs.exists("%s/actors" % path) or j.sal.fs.exists("%s/schema" % path):
 #             raise RuntimeError("cannot do new app because app or schema dir does exist.")
@@ -200,12 +200,12 @@ class GedisFactory(JSConfigBase):
 #         # src = j.clients.git.getContentPathFromURLorPath(
 #         #     "https://github.com/threefoldtech/jumpscale_lib/tree/development/apps/template")
 #         # dest = path
-#         # self.logger.info("copy templates to:%s" % dest)
+#         # self._logger.info("copy templates to:%s" % dest)
 #
 #         gedis = self.configure(instance=instance, port=port, host=host, ssl=ssl, adminsecret=adminsecret)
 #
 #         # j.tools.jinja2.copy_dir_render(src, dest, reset=reset, j=j, name="aname", config=gedis.config.data,
 #         #                                instance=instance)
 #
-#         self.logger.info("gedis app now in: '%s'\n    do:\n    cd %s;sh start.sh" % (dest, dest))
+#         self._logger.info("gedis app now in: '%s'\n    do:\n    cd %s;sh start.sh" % (dest, dest))
 

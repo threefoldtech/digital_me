@@ -11,7 +11,7 @@ class TBot(JSBASE):
     def __init__(self, zoscontainer):
         JSBASE.__init__(self)
         self.zoscontainer = zoscontainer
-        self.logger_enable()
+        self._logger_enable()
 
     @property
     def name(self):

@@ -11,7 +11,7 @@ class MyFileSystemEventHandler(FileSystemEventHandler, JSBASE):
         JSBASE.__init__(self)
         self.zoscontainer = zoscontainer
         self.paths = paths
-        self.logger_enable()
+        self._logger_enable()
         self.sync_paths_src=[]
         self.sync_paths_dest=[]
         for source in self.paths:
@@ -37,7 +37,7 @@ class MyFileSystemEventHandler(FileSystemEventHandler, JSBASE):
         raise RuntimeError("did not find:%s"%src)
 
     def handler(self, event, action="copy"):
-        self.logger.debug("%s:%s" % (event, action))
+        self._logger.debug("%s:%s" % (event, action))
         changedfile = event.src_path
         if event.is_directory:
             if changedfile.find("/.git") != -1:
@@ -64,15 +64,15 @@ class MyFileSystemEventHandler(FileSystemEventHandler, JSBASE):
                 e = ""
 
                 if action == "copy":
-                    self.logger.debug("copy: %s %s:%s" % (changedfile, node, dest))
+                    self._logger.debug("copy: %s %s:%s" % (changedfile, node, dest))
                     try:
                         node.sftp.put(changedfile, dest)
                     except Exception as e:
-                        self.logger.debug("** ERROR IN COPY, WILL SYNC ALL")
-                        self.logger.debug(str(e))
+                        self._logger.debug("** ERROR IN COPY, WILL SYNC ALL")
+                        self._logger.debug(str(e))
                         error = True
                 elif action == "delete":
-                    self.logger.debug("delete: %s %s:%s" % (changedfile, node, dest))
+                    self._logger.debug("delete: %s %s:%s" % (changedfile, node, dest))
                     try:
                         node.sftp.remove(dest)
                     except Exception as e:
@@ -87,7 +87,7 @@ class MyFileSystemEventHandler(FileSystemEventHandler, JSBASE):
 
                 if error:
                     try:
-                        self.logger.debug(e)
+                        self._logger.debug(e)
                     except BaseException:
                         pass
                     node.sync()

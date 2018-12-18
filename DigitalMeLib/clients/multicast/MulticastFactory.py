@@ -1,7 +1,7 @@
 from Jumpscale import j
 from .MulticastClient import MulticastClient
 
-JSConfigBase = j.tools.configmanager.JSBaseClassConfigs
+JSConfigBase = j.application.JSFactoryBaseClass
 
 
 class MulticastFactory(JSConfigBase):

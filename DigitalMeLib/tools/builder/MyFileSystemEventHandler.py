@@ -9,14 +9,14 @@ from watchdog.observers import Observer
 class MyFileSystemEventHandler(FileSystemEventHandler, JSBASE):
     def __init__(self):
         JSBASE.__init__(self)
-        self.logger_enable()
+        self._logger_enable()
         if j.tools.develop.node_active is not None:
             self.nodes = [j.tools.develop.node_active]
         else:
             self.nodes = j.tools.develop.nodes.getall()
 
     def handler(self, event, action="copy"):
-        self.logger.debug("%s:%s" % (event, action))
+        self._logger.debug("%s:%s" % (event, action))
         changedfile = event.src_path
         if event.is_directory:
             if changedfile.find("/.git") != -1:
@@ -46,15 +46,15 @@ class MyFileSystemEventHandler(FileSystemEventHandler, JSBASE):
                             node.prefab.core.dir_paths['CODEDIR'], destpart)
                     e = ""
                     if action == "copy":
-                        self.logger.debug("copy: %s %s:%s" % (changedfile, node, dest))
+                        self._logger.debug("copy: %s %s:%s" % (changedfile, node, dest))
                         try:
                             node.sftp.put(changedfile, dest)
                         except Exception as e:
-                            self.logger.debug("** ERROR IN COPY, WILL SYNC ALL")
-                            self.logger.debug(str(e))
+                            self._logger.debug("** ERROR IN COPY, WILL SYNC ALL")
+                            self._logger.debug(str(e))
                             error = True
                     elif action == "delete":
-                        self.logger.debug("delete: %s %s:%s" % (changedfile, node, dest))
+                        self._logger.debug("delete: %s %s:%s" % (changedfile, node, dest))
                         try:
                             node.sftp.remove(dest)
                         except Exception as e:
@@ -69,7 +69,7 @@ class MyFileSystemEventHandler(FileSystemEventHandler, JSBASE):
 
                 if error:
                     try:
-                        self.logger.debug(e)
+                        self._logger.debug(e)
                     except BaseException:
                         pass
                     node.sync()

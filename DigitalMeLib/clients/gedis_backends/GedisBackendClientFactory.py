@@ -1,7 +1,7 @@
 from Jumpscale import j
 from .GunClient import GunClient
 
-JSConfigBase = j.tools.configmanager.JSBaseClassConfigs
+JSConfigBase = j.application.JSFactoryBaseClass
 
 ALLOWED_TYPES = {
     'gun': GunClient

@@ -23,12 +23,12 @@ if ! grep -q ^en_US /etc/locale.gen; then
     export LANGUAGE=en_US.UTF-8
 fi
 
-for target in /usr/local $HOME/opt $HOME/.ssh $HOME/opt/cfg $HOME/opt/bin $HOME/code $HOME/code/github $HOME/code/github/threefoldtech $HOME/code/github/threefoldtech/jumpscale_weblibs $HOME/opt/var/capnp $HOME/opt/var/log $HOME/jumpscale/cfg; do
+for target in /usr/local {DIR_HOME}/opt {DIR_HOME}/.ssh {DIR_HOME}/opt/cfg {DIR_HOME}/opt/bin {DIR_HOME}/code {DIR_HOME}/code/github {DIR_HOME}/code/github/threefoldtech {DIR_HOME}/code/github/threefoldtech/jumpscale_weblibs {DIR_HOME}/opt/var/capnp {DIR_HOME}/opt/var/log {DIR_HOME}/jumpscale/cfg; do
     mkdir -p $target
     sudo chown -R $USER:$USER $target
 done
 
-pushd $HOME/code/github/threefoldtech
+pushd {DIR_HOME}/code/github/threefoldtech
 
 # cloning source code
 for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me jumpscale_weblibs; do
@@ -37,7 +37,7 @@ done
 
 # install jumpscale
 for target in jumpscale_core jumpscale_lib jumpscale_prefab digital_me ; do
-    cd $HOME/code/github/threefoldtech/${target}
+    cd {DIR_HOME}/code/github/threefoldtech/${target}
     git checkout development_simple
     pip3 install -e .
 
@@ -48,10 +48,10 @@ ssh-keygen -f ~/.ssh/id_rsa -P ''
 eval `ssh-agent -s`
 ssh-add ~/.ssh/id_rsa
 # initialize jumpscale config manager
-mkdir -p $HOME/code/config_test
-git init $HOME/code/config_test
-touch $HOME/code/config_test/.jsconfig
-js_config init --silent --path $HOME/code/config_test/ --key ~/.ssh/id_rsa
+mkdir -p {DIR_HOME}/code/config_test
+git init {DIR_HOME}/code/config_test
+touch {DIR_HOME}/code/config_test/.jsconfig
+js_config init --silent --path {DIR_HOME}/code/config_test/ --key ~/.ssh/id_rsa
 
 redis-server --daemonize yes
 js_shell "j.servers.zdb.build()"

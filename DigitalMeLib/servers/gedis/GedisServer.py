@@ -9,7 +9,7 @@ from .handlers import Handler
 from .GedisChatBot import GedisChatBotFactory
 from .GedisCmds import GedisCmds
 
-JSConfigBase = j.tools.configmanager.JSBaseClassConfig
+JSConfigBase = j.application.JSBaseClass
 
 
 
@@ -59,7 +59,7 @@ class GedisServer(StreamServer, JSConfigBase):
 
         self.namespaces = ["system","default"]
 
-        self.logger_enable()
+        self._logger_enable()
 
 
         # hook to allow external servers to find this gedis
@@ -132,9 +132,9 @@ class GedisServer(StreamServer, JSConfigBase):
                 models=models.models.values()
         for model in models:
             mname =  "model_%s.py" % (model.schema.key)
-            self.logger.info("generate model: %s" % mname)
+            self._logger.info("generate model: %s" % mname)
             dest = j.sal.fs.joinPaths(self.code_generated_dir,mname)
-            self.logger.debug(dest)
+            self._logger.debug(dest)
             if reset or not j.sal.fs.exists(dest):
                 # find_args = ''.join(["{0}={1},".format(p.name, p.default_as_python_code) for p in table.schema.properties if p.index]).strip(',')
                 # kwargs = ''.join(["{0}={0},".format(p.name, p.name) for p in table.schema.properties if p.index]).strip(',')
@@ -175,7 +175,7 @@ class GedisServer(StreamServer, JSConfigBase):
             self.namespaces.append(namespace)
         if not j.sal.fs.exists(path):
             raise RuntimeError("cannot find actor:%s"%path)
-        self.logger.debug("actor_add:%s:%s"%(namespace,path))
+        self._logger.debug("actor_add:%s:%s"%(namespace,path))
         name = j.sal.fs.getBaseName(path)[:-3]
         if namespace in name and name.startswith("model"):
             name="model_%s"%name.split(namespace, 1)[1].strip("_")
@@ -248,9 +248,9 @@ class GedisServer(StreamServer, JSConfigBase):
             path = os.path.dirname(self.code_generated_dir)
             res = j.sal.ssl.ca_cert_generate(path)
             if res:
-                self.logger.info("generated sslkeys for gedis in %s" % path)
+                self._logger.info("generated sslkeys for gedis in %s" % path)
             else:
-                self.logger.info('using existing key and cerificate for gedis @ %s' % path)
+                self._logger.info('using existing key and cerificate for gedis @ %s' % path)
             key = j.sal.fs.joinPaths(path, 'ca.key')
             cert = j.sal.fs.joinPaths(path, 'ca.crt')
             return key, cert
@@ -267,7 +267,7 @@ class GedisServer(StreamServer, JSConfigBase):
         # t = threading.Thread(target=self.websocket_server.serve_forever)
         # t.setDaemon(True)
         # t.start()
-        # self.logger.info("start Server on {0} - PORT: {1} - WEBSOCKETS PORT: {2}".format(self.host, self.port, self.websockets_port))
+        # self._logger.info("start Server on {0} - PORT: {1} - WEBSOCKETS PORT: {2}".format(self.host, self.port, self.websockets_port))
 
         # j.shell()
         print("RUNNING")
@@ -296,7 +296,7 @@ class GedisServer(StreamServer, JSConfigBase):
         for h in self._sig_handler:
             h.cancel()
 
-        self.logger.info('stopping server')
+        self._logger.info('stopping server')
         self.redis_server.stop()
 
 

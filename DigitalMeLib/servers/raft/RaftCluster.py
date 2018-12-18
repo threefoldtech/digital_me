@@ -9,7 +9,7 @@ giturl = ""
 cmd = ""
 """
 
-JSConfigBase = j.tools.configmanager.JSBaseClassConfig
+JSConfigBase = j.application.JSBaseClass
 
 
 class RaftCluster(JSConfigBase):

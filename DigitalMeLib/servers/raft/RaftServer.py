@@ -43,9 +43,9 @@ class RaftServer(JSBASE):
 
 
         
-        self.logger.debug("port:%s"%self.port)
-        self.logger.debug("members:%s"%remotes)
-        # self.logger.debug("secret:%s"%secret)
+        self._logger.debug("port:%s"%self.port)
+        self._logger.debug("members:%s"%remotes)
+        # self._logger.debug("secret:%s"%secret)
 
         self.syncobj = SyncObj('localhost:%s' % port, remotes, consumers=[self.dict1], conf=cfg)
 
@@ -62,7 +62,7 @@ class RaftServer(JSBASE):
         self.start()
 
     def onReady(self):
-        self.logger.debug("READY")
+        self._logger.debug("READY")
         print(self.dict1.items())
         # self.start()
 
@@ -79,9 +79,9 @@ class RaftServer(JSBASE):
     def start(self):
         c = self.dict1.get('test:%s' % self.port)
         if c == None:
-            self.logger.debug("initial value for:%s" % self.port)
+            self._logger.debug("initial value for:%s" % self.port)
             self.dict1.set('test:%s' % self.port, 0, sync=True)
-            self.logger.debug("initial value DONE:%s" % self.port)
+            self._logger.debug("initial value DONE:%s" % self.port)
 
         speed = 0.1
 

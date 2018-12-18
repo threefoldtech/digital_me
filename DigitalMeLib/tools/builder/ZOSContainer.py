@@ -1,47 +1,44 @@
 from Jumpscale import j
-import re
-from io import StringIO
 import os
-import locale
-
-from .BASE import BASE
-
-schema = """
-@url = zos.container.config
-date_start = 0 (D)
-description = ""
-name = ""
-authorized = False (B)
-pid = 0 (I)
-container_id = 0 (I) 
-progress = (LS)
-flist = ""
-nics = (LO) !zos.container.nic
-sshport = 0 (I)
-
-@url = zos.container.nic
-type = "default"
- 
-"""
 
 import time
 
-class ZOSContainer(BASE):
+class ZOSContainer(j.application.JSBaseConfigClass):
 
-    def __init__(self, zos,name):
+    _SCHEMATEXT = """
+    @url = zos.container.config
+    date_start = 0 (D)
+    description = ""
+    name = ""
+    authorized = False (B)
+    pid = 0 (I)
+    container_id = 0 (I) 
+    progress = (LS)
+    flist = ""
+    nics = (LO) !zos.container.nic
+    sshport = 0 (I)
+    
+    @url = zos.container.nic
+    type = "default"    
+    """
+
+    def __init__(self,zos,name):
+
+        j.application.JSBaseConfigClass.__init__(self)
+
         self.zos = zos
+        self.name = name
         self.zosclient = zos.zosclient
-        # self._node = node
-        self._container_id = None
+
+
+    def _init(self):
+
         self._container = None
-
         self._node_connected = False
-        self._schema = j.data.schema.get(schema)
-        self._redis_key="config:zos:container:%s"%name
 
-        BASE.__init__(self,redis=zos._redis,name=name,schema=schema)
+    def _init_new(self):
 
-        self.model.flist = "https://hub.grid.tf/tf-bootable/ubuntu:18.04.flist"
+        self.flist = "https://hub.grid.tf/tf-bootable/ubuntu:18.04.flist"
         self._create()
 
 
@@ -69,7 +66,7 @@ class ZOSContainer(BASE):
 
 
     @property
-    def nics(self):
+    def nics_dict(self):
         """
         e.g.
 
@@ -82,7 +79,7 @@ class ZOSContainer(BASE):
         :return:
         """
         nics_ret = []
-        for nic in self.model.nics:
+        for nic in self.nics:
             d = {"type":nic.type}
             nics_ret.append(d)
         return nics_ret
@@ -92,10 +89,6 @@ class ZOSContainer(BASE):
         return self.zos.zos_private_address
 
 
-    @property
-    def name(self):
-        return self.model.name
-
     def start(self):
         self.api
 
@@ -104,21 +97,21 @@ class ZOSContainer(BASE):
 
     def _create(self):
         print('creating builder container...')
-        self.model.progress=[] #make sure we don't remember old stuff
+        self.progress=[] #make sure we don't remember old stuff
         self.model_save()
 
-        self.logger.warning("A")
-        self.model.nics=[]
+        self._logger.warning("A")
+        self.nics=[]
         #TODO: something wrong here, it keeps on adding nics, have no idea why
-        if len(self.model.nics) == 0:
-            self.logger.warning("ADDNIC")
-            nic = self.model.nics.new()
+        if len(self.nics) == 0:
+            self._logger.warning("ADDNIC")
+            nic = self.nics.new()
             nic.type = "default"
             self.model_save()
         # j.shell()
 
-        self.logger.info("create container: %s %s sshport:%s \nnics:\n%s"%
-                         (self.name,self.model.flist,self.sshport,self.nics))
+        self._logger.info("create container: %s %s sshport:%s \nnics:\n%s"%
+                         (self.name,self.flist,self.sshport,self.nics_dict))
 
 
         def getAgentPublicKeys():
@@ -135,17 +128,17 @@ class ZOSContainer(BASE):
         # zos client here is node client WHICH doesn't support config parameter.
         try:
             if self.zos._zostype == 'vbox':
-                self.model.sshport = self.sshport + 20
+                self.sshport = self.sshport + 20
                 self.model_save()
             self._container_id = self.zosclient.client.container.create(name=self.name,
                                             hostname=self.name,
-                                            root_url=self.model.flist,
-                                            nics=self.nics,
-                                            port={self.model.sshport: 22},
+                                            root_url=self.flist,
+                                            nics=self.nics_dict,
+                                            port={self.sshport: 22},
                                             config={"/root/.ssh/authorized_keys":keys}).get()
 
             #TODO ONLY IF VBOX
-            self.zosclient.client.nft.open_port(self.model.sshport)
+            self.zosclient.client.nft.open_port(self.sshport)
 
             # RUN SSHD
             container_client = self.zosclient.client.container.client(self._container_id)
@@ -158,7 +151,7 @@ class ZOSContainer(BASE):
                 self.zosclient.client.container.terminate(self._container_id)
             print(e)
             if self.zos._zostype == 'vbox':
-                self.model.sshport = self.sshport - 20
+                self.sshport = self.sshport - 20
                 self.model_save()
             import sys
             sys.exit()
@@ -167,9 +160,9 @@ class ZOSContainer(BASE):
         info = self.zosclient.client.container.list()[str(self._container_id)]['container']
         while "pid" not in info:
             time.sleep(0.1)
-            self.logger.debug("waiting for container to start")
-        self.model.pid = info["pid"]
-        self.model.container_id = str(self._container_id)
+            self._logger.debug("waiting for container to start")
+        self.pid = info["pid"]
+        self.container_id = str(self._container_id)
         self.model_save()
         assert self.zosclient.client.container.client(self._container_id).ping()
 
@@ -186,7 +179,7 @@ class ZOSContainer(BASE):
     
     @property
     def info(self):
-        # assert self.model.port == self.container.info
+        # assert self.port == self.container.info
         return self.container.info
 
     @property
@@ -212,7 +205,7 @@ class ZOSContainer(BASE):
         self.start()
 
 
-        if self.model.authorized is False:
+        if self.authorized is False:
 
             sshclient = j.clients.ssh.new(addr=self.zos_private_address, port=self.sshport, instance=self.name,
                                           die=True, login="root",passwd='rooter',
@@ -230,17 +223,17 @@ class ZOSContainer(BASE):
                         continue
                     raise e
 
-            self.logger.info("ssh connected")
+            self._logger.info("ssh connected")
             key = j.clients.sshkey.list()[0]
 
             sshclient.ssh_authorize(user="root", key=key)
 
-            self.model.authorized = True
+            self.authorized = True
             self.model_save()
 
-            self.logger.info('container deployed')
-            self.logger.info("to connect to it do: 'ssh root@%s -p %s' (password: rooter)" % (self.zos_private_address,self.model.port))
-            self.logger.info("can also connect using js_node toolset, recommended: 'js_node ssh -i %s'"%self.name)
+            self._logger.info('container deployed')
+            self._logger.info("to connect to it do: 'ssh root@%s -p %s' (password: rooter)" % (self.zos_private_address,self.port))
+            self._logger.info("can also connect using js_node toolset, recommended: 'js_node ssh -i %s'"%self.name)
         if j.clients.ssh.get('builder').sshkey:
             key_path =j.clients.ssh.get('builder').sshkey.path
             keyname_paths=os.path.split(key_path)
@@ -248,7 +241,7 @@ class ZOSContainer(BASE):
         else:
             keyname =''
         sshclient = j.clients.ssh.new(addr=self.zos_private_address,
-                                      port=self.model.port, instance=self.name,
+                                      port=self.port, instance=self.name,
                                       die=True, login="root", keyname=keyname,
                                       stdout=True, allow_agent=True,
                                       use_paramiko=True)
@@ -262,20 +255,20 @@ class ZOSContainer(BASE):
         #CHECK IF VBZOS if yes use port per SSH connection because is same ip addr
         #CHECK IF ZOS direct (no VB), then is zerotier addr with std ssh port...
         if self.zos._zostype == 'vbox':
-            if self.model.sshport == 0:
-                if self.zos.model.sshport_last==0:
-                self.zos.model.sshport_last=6000
+            if self.sshport == 0:
+                if self.zos.sshport_last==0:
+                self.zos.sshport_last=6000
                 else:
-                    self.zos.model.sshport_last+=1
-                self.model.sshport = self.zos.model.sshport_last
+                    self.zos.sshport_last+=1
+                self.sshport = self.zos.sshport_last
 
-        return self.model.sshport
+        return self.sshport
 
     # def zero_os_private(self, node):
-    #     self.logger.debug("resolving private virtualbox address")
+    #     self._logger.debug("resolving private virtualbox address")
     #
     #     private = j.clients.virtualbox.zero_os_private_address(node)
-    #     self.logger.info("virtualbox machine private address: %s" % private)
+    #     self._logger.info("virtualbox machine private address: %s" % private)
     #
     #     node = j.clients.zos.get('builder_private', data={'host': private})
     #     node.client.ping()

@@ -31,7 +31,7 @@ def get_replace_list(replace_items):
 replace_list=get_replace_list(replace_items)
 
 def file_replace_items(path,replace_list):
-    C = j.sal.fs.fileGetContents(path)
+    C = j.sal.fs.readFile(path)
     for ffind,replace in replace_list:
         C = C.replace(ffind,replace)
     pathdest=path.replace("/original/","/%s_"%name)

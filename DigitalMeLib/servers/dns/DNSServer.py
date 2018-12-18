@@ -52,7 +52,7 @@ class DNSServer(DatagramServer, JSBASE):
 
 
     def handle(self, data, address):
-        # self.logger.debug('%s: got %r' % (address[0], data))
+        # self._logger.debug('%s: got %r' % (address[0], data))
         if data==b"PING":
             self.sendback(b"PONG", address)
         else:
@@ -66,7 +66,7 @@ class DNSServer(DatagramServer, JSBASE):
         try:
             self.socket.sendto(data, address)
         except Exception as e:
-            self.logger.error("error in communication:%s"%e)
+            self._logger.error("error in communication:%s"%e)
 
 
     def resolve(self,qname,type="A"):
@@ -78,15 +78,15 @@ class DNSServer(DatagramServer, JSBASE):
                     resp = j.tools.dnstools.default.resolver.query(name,type)
                 except Exception as e:
                     if "NoAnswer" in str(e):
-                        self.logger.warning("did not find:%s"%qname)
+                        self._logger.warning("did not find:%s"%qname)
                         return []
-                    self.logger.error("could not resolve:%s (%s)"%(e,qname))
+                    self._logger.error("could not resolve:%s (%s)"%(e,qname))
                     return []
                 for rr in resp:
                     if type == "A":
                         res.append( rr.address)
                     elif type == "AAAA":
-                        self.logger.debug("AAAA")
+                        self._logger.debug("AAAA")
                         res.append( rr.address)
                     else:
                         res.append(str(rr.target))
@@ -99,15 +99,15 @@ class DNSServer(DatagramServer, JSBASE):
                     return ["192.168.1.1"]
                 #TODO: need to get DNS records from a source
         
-        res = self.cache.get(key="resolve_%s_%s"%(qname,type),method=do,expire=600, qname=qname,type=type)
-        self.cache.reset() #basically don't use cache, just for debugging later should disable this line
+        res = self._cache.get(key="resolve_%s_%s"%(qname,type),method=do,expire=600, qname=qname,type=type)
+        self._cache.reset() #basically don't use cache, just for debugging later should disable this line
         return res
 
     def dns_response(self,data):
         
         request = dnslib.DNSRecord.parse(data)
 
-        self.logger.debug ("request:%s"%request)
+        self._logger.debug ("request:%s"%request)
 
         reply = dnslib.DNSRecord(dnslib.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
 
@@ -121,10 +121,10 @@ class DNSServer(DatagramServer, JSBASE):
         if qt in ["A","MX","NS","AAAA"]:
             for item in addrs:
                 reply.add_answer(dnslib.RR(rname=qname, rtype=self.rtypes[qt], rclass=1, ttl=self.TTL, rdata=self.rdatatypes[qt](item)))
-                self.logger.debug("DNS reply:%s:%s"%(qt,reply))
+                self._logger.debug("DNS reply:%s:%s"%(qt,reply))
         else:
             #TODO:*1 add the other record types e.g. SOA & txt & ...
-            self.logger.error("did not find type:\n%s"%request)
+            self._logger.error("did not find type:\n%s"%request)
         
 
         return reply.pack()

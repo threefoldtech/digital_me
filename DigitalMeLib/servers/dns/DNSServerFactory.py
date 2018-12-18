@@ -32,7 +32,7 @@ class DNSServerFactory(JSBASE):
             else:
                 cmd = "js_shell 'j.servers.dns.start(background=False,port=%s)'"%port
             j.tools.tmux.execute(cmd, session='main', window='dnsserver',pane='main', session_reset=False, window_reset=True)
-            self.logger.info("waiting for uidserver to start on port %s"%port)
+            self._logger.info("waiting for uidserver to start on port %s"%port)
             res = j.sal.nettools.waitConnectionTest("localhost",port)
         else:
             s = self.get(port=port)

@@ -7,7 +7,7 @@ TEMPLATE = """
 port = 8123
 """
 
-JSConfigBase = j.tools.configmanager.JSBaseClassConfig
+JSConfigBase = j.application.JSBaseClass
 
 
 class MulticastClient(JSConfigBase):

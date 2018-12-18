@@ -4,7 +4,7 @@ import websockets
 from .utils import newuid, new_node, ham_mix
 from Jumpscale import j
 
-JSConfigBase = j.tools.configmanager.JSBaseClassConfig
+JSConfigBase = j.application.JSBaseClass
 
 def format_put_request(soul, **kwargs):
     ch = {

@@ -20,7 +20,7 @@ class TFBotFactory(JSBASE):
         self.__jslocation__ = "j.tools.tfbot"
         JSBASE.__init__(self)
         self._tbots={}
-        self.logger_enable()
+        self._logger_enable()
 
     def zos_cmd_install(self):
         """

@@ -1,5 +1,5 @@
 from Jumpscale import j
-import msgpack
+
 
 
 from .Coordinator import Coordinator
@@ -154,7 +154,7 @@ class MemUsageTest(JSBASE):
 
 
 
-        # C=j.sal.fs.fileGetContents("%s/test.lua"%self._dirpath)
+        # C=j.sal.fs.readFile("%s/test.lua"%self._dirpath)
 
 
         r,r_classic=redis_reset()
@@ -285,6 +285,98 @@ class MemUsageTest(JSBASE):
 
 
         print("REDIS MEM USAGE difference in KB:%s"%((redis_mem_stop-redis_mem_start)/1024))
+
+
+    def test_formatter(self):
+        """
+        js_shell 'j.tools.memusagetest.test_formatter()'
+        """
+
+        from string import Formatter
+        formatter = Formatter()
+
+        args = {"name":"MYNAME","val":"AVAL","n":1.9998929}
+
+        # res = formatter.format(C,**args)
+
+        C = "{name!s:>10} {val} {n:<10.2f}"  #floating point rounded to 2 decimals
+        #python doc: string.Formatter
+
+
+        j.tools.timer.start("formatter")
+
+        nritems=100000
+        for i in range(nritems):
+            if "{" in C:
+                C2=formatter.format(C,**args)
+
+        j.tools.timer.stop(nritems)
+
+        #+100k per sec
+
+    def test_logger(self):
+        """
+        js_shell 'j.tools.memusagetest.test_logger()'
+        """
+        import logging
+        from colorlog import ColoredFormatter
+
+        FORMAT_LOG =  '{asctime!s} - {name!s}: {message!s}'
+        FORMAT_LOG = '%(cyan)s[%(asctime)s]%(reset)s - %(filename)-18s:%(lineno)-4d:%(name)-20s - %(log_color)s%(levelname)-8s%(reset)s - %(message)s'
+        FORMAT_LOG = '{cyan!s}{asctime!s}{reset!s} - {filename:<18}:{name:12}-{lineno:4d}: {log_color!s}{levelname:<10}{reset!s} {message!s}'
+        FORMAT_TIME = "%a%d %H:%M"
+
+        class LogFormatter(ColoredFormatter):
+
+            def __init__(self, fmt=None, datefmt=None, style="{"):
+                if fmt is None:
+                    fmt = FORMAT_LOG
+                if datefmt is None:
+                    datefmt = FORMAT_TIME
+                super(LogFormatter, self).__init__(
+                    fmt=fmt,
+                    datefmt=datefmt,
+                    reset=False,
+                    log_colors={
+                        'DEBUG': 'cyan',
+                        'INFO': 'green',
+                        'WARNING': 'yellow',
+                        'ERROR': 'red',
+                        'CRITICAL': 'red,bg_white',
+                    },
+                    secondary_log_colors={},
+                    style=style)
+                self.length = 20
+
+
+            def format(self, record):
+                if len(record.pathname) > self.length:
+                    record.pathname = "..." + record.pathname[-self.length:]
+                return super(LogFormatter, self).format(record)
+
+        formatter=LogFormatter(style="{")
+
+        logger = logging.Logger("installer")
+        logger.level = logging.DEBUG  #10 is debug
+
+        log_handler = logging.StreamHandler()
+        log_handler.setLevel(logging.INFO)
+        log_handler.setFormatter(formatter)
+        logger.addHandler(log_handler)
+
+        logging.basicConfig(level=logging.DEBUG)
+
+
+
+        j.tools.timer.start("logger")
+
+        nritems=100000
+        for i in range(nritems):
+            logger.debug("this is a debug message")
+
+        j.tools.timer.stop(nritems)
+
+        #+100k per sec (when not outputed to stdout)
 
 
 

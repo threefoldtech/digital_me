@@ -64,7 +64,7 @@ class MyJobs(JSBASE):
         self.mainloop = None
         self.dataloop = None
         self.workers_subprocess = True
-        self.logger_enable()
+        self._logger_enable()
 
     def init(self,reset=False,start=True):
         """
@@ -137,7 +137,7 @@ class MyJobs(JSBASE):
         w.time_start = j.data.time.epoch
         w.last_update = j.data.time.epoch
         w = self.model_worker.set(w)
-        self.logger.debug("worker add")
+        self._logger.debug("worker add")
         if onetime:
             myworker(w.id,onetime=onetime)
         else:
@@ -154,14 +154,14 @@ class MyJobs(JSBASE):
         w.time_start = j.data.time.epoch
         w.last_update = j.data.time.epoch
         w = self.model_worker.set(w)
-        self.logger.debug("worker started:%s"%w.id)
+        self._logger.debug("worker started:%s"%w.id)
         myworker(w.id,showout=True)
 
 
 
     def _main_loop(self):
 
-        self.logger.debug("monitor start")
+        self._logger.debug("monitor start")
 
         def test_workers_more():
             nr_workers = self.nr_workers
@@ -177,7 +177,7 @@ class MyJobs(JSBASE):
 
         while True:
 
-            self.logger.debug("monitor run")
+            self._logger.debug("monitor run")
 
             # #there is already 1 working, lets give 2 sec time before we start monitoring
             # time.sleep(2)
@@ -206,7 +206,7 @@ class MyJobs(JSBASE):
                         #WE ARE IN TIMEOUT
                         # print("TIMEOUT")
                         # print(w)
-                        self.logger.info("KILL:%s in worker %s"%(w.id,job.id))
+                        self._logger.info("KILL:%s in worker %s"%(w.id,job.id))
                         gproc.kill()
                         self.workers.pop(wid)
                         job.state = "ERROR"
@@ -237,11 +237,11 @@ class MyJobs(JSBASE):
                         continue
 
                     job_running = w.current_job != 4294967295
-                    self.logger.debug("job running:%s (%s)"%(w.id,job_running))
+                    self._logger.debug("job running:%s (%s)"%(w.id,job_running))
 
                     if w.halt==False and not job_running and self.queue.qsize()==0:
                         if removed_one == False and test_workers_less():
-                            self.logger.debug("worker remove:%s"%wid)
+                            self._logger.debug("worker remove:%s"%wid)
                             removed_one = True
                             w.halt = True
                             self.model_worker.set(w) #mark worker to halt
@@ -257,7 +257,7 @@ class MyJobs(JSBASE):
 
             # print(self.workers)
 
-            self.logger.debug("nr workers:%s, queuesize:%s"%(self.nr_workers,self.queue.qsize()))
+            self._logger.debug("nr workers:%s, queuesize:%s"%(self.nr_workers,self.queue.qsize()))
             gevent.sleep(1)
 
 

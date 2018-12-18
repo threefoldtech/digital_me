@@ -40,7 +40,7 @@ baseDir=`dirname $0`
 
 counter=0
 while [ $counter -lt ${#files[@]} ]; do
-  files[$counter]="$baseDir/${files[$counter]}"
+  files[$counter]="{DIR_BASE}/${files[$counter]}"
   let counter=counter+1
 done
 

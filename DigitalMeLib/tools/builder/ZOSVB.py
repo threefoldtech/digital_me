@@ -1,12 +1,6 @@
 from Jumpscale import j
-import re
-from io import StringIO
-import os
-import locale
 
 from .ZOS import ZOS
-
-import time
 
 class ZOSVB(ZOS):
 
@@ -26,8 +20,8 @@ class ZOSVB(ZOS):
         """
         if self._zos_private_address == None:
 
-            if self.model.address_private != "":
-                self._zos_private_address = self.model.address_private
+            if self.address_private != "":
+                self._zos_private_address = self.address_private
             else:
                 # assume vboxnet0 use an 192.168.0.0/16 address
                 for nic in self.zosclient.client.info.nic():
@@ -37,8 +31,8 @@ class ZOSVB(ZOS):
                         self._zos_private_address = nic['addrs'][0]['addr'].split('/')[0]
                         if not j.sal.nettools.pingMachine(self._zos_private_address):
                             raise RuntimeError("could not reach private addr:%s of VB ZOS"%self._zos_private_address)
-                        self.model.address_private = self._zos_private_address
-                        self.model_save()
+                        self.address_private = self._zos_private_address
+                        self.save()
                         return self._zos_private_address
                 raise RuntimeError("could not find private addr of virtualbox for zos")
         return self._zos_private_address
@@ -46,7 +40,7 @@ class ZOSVB(ZOS):
     def _get_free_port(self):
         port = 4001
         while j.sal.nettools.checkListenPort(port)==True:
-            self.logger.debug("check for free tcp port:%s"%port)
+            self._logger.debug("check for free tcp port:%s"%port)
             port+=1
         return port
 

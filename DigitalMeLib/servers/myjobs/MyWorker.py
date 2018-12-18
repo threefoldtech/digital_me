@@ -11,7 +11,7 @@ def myworker(id=999999,onetime=False,showout=False):
 
     from Jumpscale import j
 
-    j.clients.redis.cache_clear()  # make sure we have redis connections empty, because comes from parent
+    j.clients.redis._cache_clear()  # make sure we have redis connections empty, because comes from parent
 
     redisdb = j.clients.redis.core_get()
 

@@ -74,7 +74,7 @@ class ServerRack(JSBASE):
                 server.start()
                 started.append(server)
                 name = getattr(server, 'name', None) or server.__class__.__name__ or 'Server'
-                self.logger.info('%s started on %s' % (name, server.address))
+                self._logger.info('%s started on %s' % (name, server.address))
         except:
             self.stop(started)
             raise
@@ -87,7 +87,7 @@ class ServerRack(JSBASE):
 
 
     def stop(self, servers=None):
-        self.logger.info("stopping server rack")
+        self._logger.info("stopping server rack")
         if servers is None:
             servers = [item[1] for item in  self.servers.items()]
         for server in servers:

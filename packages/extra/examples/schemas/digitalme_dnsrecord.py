@@ -14,7 +14,7 @@ val = "" (S)
 bcdb = j.data.bcdb.latest
 schema = j.data.schema.get(SCHEMA)
 Index_CLASS = bcdb._BCDBModelIndexClass_generate(schema,__file__)
-MODEL_CLASS = bcdb._BCDBModelClass_get()
+MODEL_CLASS = bcdb._BCDBModelClass
 
 
 class digitalme_dnsrecord(Index_CLASS,MODEL_CLASS):

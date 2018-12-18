@@ -1,31 +1,21 @@
-from Jumpscale import j
-import re
-from io import StringIO
-import os
-import locale
 
-from .BASE import BASE
 
-schema = """
-@url = zos.config
-date_start = 0 (D)
-description = ""
-progress = (LS)
-address_private = ""
-sshport_last = 4010
+class ZOS(j.application.JSBaseConfigClass):
 
-"""
+    _SCHEMATEXT = """
+    @url = zos.config
+    date_start = 0 (D)
+    description = ""
+    progress = (LS)
+    address_private = ""
+    sshport_last = 4010    
+    """
 
-import time
-
-class ZOS(BASE):
-
-    def __init__(self, zosclient,name):
+    def __init__(self, zosclient):
+        j.application.JSBaseConfigClass.__init__(self)
         self.zosclient = zosclient
         if zosclient.client._Client__redis is None:
             zosclient.ping()  # otherwise the redis client does not work
-        self._redis_key="config:zos:%s"%name
-        BASE.__init__(self,redis=self.zosclient.client._Client__redis,name=name,schema=schema)
         self._zostype = 'zerotier'
 
 
@@ -33,7 +23,7 @@ class ZOS(BASE):
         from .ZOSContainer import ZOSContainer
         zc = ZOSContainer(zos=self, name=name)
         if flist is not "":
-            zc.model.flist = flist
+            zc.flist = flist
         zc.start()
         return zc
 
