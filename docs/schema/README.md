@@ -79,7 +79,7 @@ apartment = (I)
 @url = schema.student
 name = (S)
 subjects = (LS)
-address = !schema.address
+address = (O) !schema.address
 ```
 ### How to use schema 
 ```
