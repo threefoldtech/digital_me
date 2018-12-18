@@ -1,3 +1,4 @@
+from redis import Redis, exceptions
 from .ServerRack import ServerRack
 from .Package import Package
 from Jumpscale import j
@@ -34,7 +35,8 @@ class DigitalMe(JSBASE):
         if p.name not in self.packages:
             self.packages[p.name] = p
 
-    def start(self, addr="localhost", port=9900, namespace="digitalme", secret="1234", background=False):
+    def start(self, addr="localhost", port=9900, namespace="digitalme",
+              secret="1234", admin='123456', background=False):
         """
         examples:
 
@@ -49,6 +51,8 @@ class DigitalMe(JSBASE):
         :type namespace: string
         :param secret: the secret of the namespace
         :type secret: string
+        :param admin: the admin password of the zdb
+        :type admin: string
         :param background: boolean indicating whether the server will run in the background or not
         :type background: bool
         """
@@ -63,11 +67,8 @@ class DigitalMe(JSBASE):
 
         if background:
 
-            cmd = "js_shell 'j.servers.digitalme.start(addr=\"%s\",port=%s,namespace=\"%s\", secret=\"%s\")'" %\
-                  (addr, port, namespace, secret)
-
-            process_strings = ["j.servers.digitalme.start"]
-
+            cmd = "js_shell 'j.servers.digitalme.start(addr=\"%s\",port=%s,namespace=\"%s\", secret=\"%s\",admin=\"%s\")'" %\
+                  (addr, port, namespace, secret, admin)
             p = j.tools.tmux.execute(name="digitalme",
                                      cmd=cmd, reset=True, window="digitalme")
         else:
@@ -75,6 +76,21 @@ class DigitalMe(JSBASE):
             geventserver = j.servers.gedis.configure(host="localhost", port="8001", ssl=False,
                                                      adminsecret=secret, instance=namespace)
             self.rack.add("gedis", geventserver.redis_server)  # important to do like this, otherwise 2 servers started
+            try:
+                r = Redis(host=addr, port=port, password=admin)
+                r.ping()
+            except exceptions.ConnectionError:
+                j.servers.zdb.build()
+                j.servers.zdb.addr = addr
+                j.servers.zdb.adminsecret = admin
+                j.servers.zdb.port = port
+                j.servers.zdb.mode = 'seq'
+                j.servers.zdb.start()
+            finally:
+                if namespace.encode() not in r.execute_command("NSLIST"):
+                    r.execute_command("NSNEW %s" % namespace)
+                    r.execute_command("NSSET %s password %s" % (namespace, secret))
+
             zdbclient = j.clients.zdb.client_get(nsname=namespace, addr=addr, port=port, secret=secret, mode='seq')
             key = "%s_%s_%s" % (addr, port, namespace)
             self._bcdb = j.data.bcdb.new("digitalme_%s" % key, zdbclient=zdbclient, cache=True)
