@@ -100,7 +100,7 @@ class GedisCmds(JSBASE):
 
 def method_source_process(txt):
     """
-    return code,comment,schema_in, schema_out
+    return code, comment, schema_in, schema_out, args
     """
     txt = j.core.text.strip(txt)
     code = ""
@@ -117,14 +117,14 @@ def method_source_process(txt):
             state = "DEF"
             if "self" in lstrip:
                 if "," in lstrip:
-                    arg0, arg1 = lstrip.split(",", 1)
-                    args = arg1.split(")", 1)[:-1]
-                    args = [j.core.text.strip(a) for a in args]
+                    _, arg = lstrip.split(",", 1)
+                    args = arg[:arg.index(')')]
+                    args = [j.core.text.strip(x) for x in args.split(',')]
                 else:
                     args = ""
             else:
-                arg0, arg1 = lstrip.split("(", 1)
-                args = arg1.split(")", 1)
+                _, arg = lstrip.split("(", 1)
+                args = arg.split(")", 1)
             continue
         if lstrip.startswith("\"\"\""):
             if state == "DEF":

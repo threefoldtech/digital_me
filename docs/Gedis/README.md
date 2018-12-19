@@ -42,9 +42,9 @@ def foo(self, wallet, schema_out):
     """
     w = schema_out.new()
 
-    w.ipaddr = wallet['ipaddr']
-    w.addr = wallet['addr']
-    w.jwt = wallet['jwt']
+    w.ipaddr = wallet.ipaddr
+    w.addr = wallet.addr
+    w.jwt = wallet.jwt
     return w
 ```
 

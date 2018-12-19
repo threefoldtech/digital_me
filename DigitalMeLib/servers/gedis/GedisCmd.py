@@ -37,16 +37,20 @@ class GedisCmd(JSBASE):
     def args_client(self):
         arguments = [a.strip() for a in self.cmdobj.args.split(',')]
 
-        if 'schema_out' in arguments:
-            arguments.remove('schema_out')
-
         if self.schema_in is None:
             if self.cmdobj.args.strip() == "":
                 return ""
+
             args = eval(self.cmdobj.args)
-            if ':' in args:
-                args.remove(':')
-            return "," + ','.join(args)
+
+            to_exclude = ['schema_out', ':']
+            for item in to_exclude:
+                if item in args:
+                    args.remove(item)
+
+            if args:
+                return "," + ','.join(args)
+            return ""
         else:
             if len(self.schema_in.properties + self.schema_in.lists) == 0:
                 return ""
