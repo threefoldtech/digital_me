@@ -139,18 +139,13 @@ class Handler(JSBASE):
                 else:
                     response.error("invalid content type was provided the valid types are ['json', 'capnp', 'auto']")
 
-                args = [a.strip() for a in cmd.cmdobj.args.split(',')]
-                if 'schema_out' in args:
-                    args.remove('schema_out')
+                # FIXME: avoid using eval
+                method_arguments = eval(cmd.cmdobj.args)
+                if 'schema_out' in method_arguments:
+                    method_arguments.remove('schema_out')
 
-                schema_dict = o._ddict
-                if len(args) == 1:
-                    if args[0] in schema_dict:
-                        params.update(schema_dict)
-                    else:
-                        params[args[0]] = o
-                else:
-                    params.update(schema_dict)
+                for key in method_arguments:
+                    params[key] = getattr(o, key)
 
             else:
                 if len(request) > 1:
@@ -169,7 +164,7 @@ class Handler(JSBASE):
                     result = cmd.method(*params)
                 else:
                     result = cmd.method(**params)
-                # self.logger.debug("Callback done and result {} , type {}".format(result, type(result)))
+                self.logger.debug("Callback done and result {} , type {}".format(result, type(result)))
             except Exception as e:
                 self.logger.debug("exception in redis server")
                 j.errorhandler.try_except_error_process(e, die=False)
@@ -177,12 +172,13 @@ class Handler(JSBASE):
                 msg += "\nCODE:%s:%s\n" % (cmd.namespace, cmd.name)
                 response.error(msg)
                 continue
-            # self.logger.debug("response:{}:{}:{}".format(address, cmd, result))
 
-            if cmd.schema_out:
-                if (response_type == 'auto' and content_type == 'capnp') or response_type == 'capnp':
+            self.logger.debug("response:{}:{}:{}".format(address, cmd, result))
+
+            if cmd.schema_out and hasattr(result, '_data'):
+                if response_type == 'capnp' or (response_type == 'auto' and (content_type in ['capnp', 'auto'])):
                     result = result._data
-            print("content_type: {}, response_type: {}".format(content_type, response_type))
+            self.logger.debug("content_type: {}, response_type: {}".format(content_type, response_type))
             response.encode(result)
 
     def command_split(self, cmd, actor="system", namespace="system"):

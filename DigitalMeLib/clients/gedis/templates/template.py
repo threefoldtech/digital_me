@@ -6,18 +6,16 @@ from Jumpscale import j
 # JSBASE = j.application.JSBaseClass
 
 class CMDS():
-    
+
     def __init__(self,client,cmds):
-        # JSBASE.__init__(self)   
+        # JSBASE.__init__(self)
         self._client = client
-        self._redis = client.redis   
+        self._redis = client.redis
         self._cmds = cmds
         self._name = "{{obj.cmds_name_lower}}"
 
     {# generate the actions #}
     {% for name,cmd in obj.cmds.items() %}
-
-
     def {{name}}(self{{cmd.args_client}}):
         {% if cmd.comment != "" %}
         '''
